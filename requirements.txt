@@ -1,0 +1,5 @@
+﻿PyMuPDF
+python-docx
+openpyxl
+xlrd
+pywin32; platform_system == "Windows"

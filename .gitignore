@@ -1,0 +1,84 @@
+# OS / Editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.venv/
+env/
+ENV/
+venv/
+env.bak/
+venv.bak/
+.venv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code (keep launch configuration if needed)
+.vscode/
+!.vscode/launch.json
+
+# Packaging / build
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+htmlcov/
+
+# Test / coverage / tooling caches
+.coverage*
+.pytest_cache/
+.tox/
+.nox/
+.mypy_cache/
+.pytype/
+.pyre/
+.ruff_cache/
+
+# Logs
+*.log
+logs/
+
+# Project outputs (generated)
+output/
+output2/
+output3/
+temp/
+
+# Input data (PDFs under input only)
+input/**/*.pdf
+input/**/*.PDF
+
+# Sample/generated text in repo root
+
+
+# One-off exported data
+
+output3_no_script
+input_old
+input_all
+final.csv
+final_old.csv
+
+results
+results_no_script
+input_old_4_bureaus
+input.zip
+output3.zip
+output4_no_regex
+output3_with_regex
