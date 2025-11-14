@@ -1,0 +1,328 @@
+
+# Rules for "中部" variant (【85】). Users can tweak phrases/patterns below.
+# Run with:
+#   python extractor.py --rules rules_chubu.yaml --input sample.txt
+
+steps:
+  # Print file meta
+  - op: print_file_info
+
+  # Check 入札の評価に関する基準及び得点配分 presence
+  - op: contains
+    phrase: "入札の評価に関する基準及び得点配分"
+    in: "all"
+    set: "has_eval_phrase"
+    echo_true: "has_eval_phrase: True"
+    echo_false: "has_eval_phrase: False"
+
+  # STEP 1: Look for 入札公告（建設工事） in first 20 chars
+  - op: contains
+    phrase: "入札公告（建設工事）"
+    in: "first_n"
+    n: 20
+    set: "has_notice_head"
+
+  - op: if_var
+    var: "has_notice_head"
+    truthy: true
+    then:
+      - op: find_after
+        pattern: "④  開札日時"
+      - op: len_print
+    else: []
+
+  # From here on, "remaining text" is whatever ctx.text currently is
+  # Check 中部地方整備局 presence and echo
+  - op: contains
+    phrase: "中部地方整備局"
+    set: "has_chubu"
+    echo_true: "中部地方整備局"
+
+  # STEP 2: name_of
+  - op: contains
+    phrase: "支出負担行為担当官 中部地方整備局長"
+    set: "is_honkan_line"
+
+  - op: if_var
+    var: "is_honkan_line"
+    truthy: true
+    then:
+      - op: set_var
+        name: "name_of"
+        literal: "本官"
+      - op: emit
+        key: "name_of"
+        from_var: "name_of"
+    else:
+      # 分任支出負担行為担当官 の後ろを2回取り、その後 中部地方整備局 の後、最後に 所長 の前まで
+      - op: copy
+        as: "tmp_name"
+      - op: find_after
+        pattern: "分任支出負担行為担当官"
+      - op: find_after
+        pattern: "分任支出負担行為担当官"
+      - op: find_after
+        pattern: "中部地方整備局"
+      - op: take_before
+        pattern: "所長"
+      - op: set_var
+        name: "name_of_core"
+        from_text: true
+      - op: strip
+        var: "name_of_core"
+      - op: concat
+        target: "name_of"
+        prefix: ""
+        from_var: "name_of_core"
+        suffix: "所"
+      - op: emit
+        key: "name_of"
+        from_var: "name_of"
+      - op: restore
+        from: "tmp_name"
+
+  # STEP 3: 工事名
+  - op: copy
+    as: "tmp_kouji"
+  - op: find_after
+    pattern: "工事名"
+  - op: set_var
+    name: "kouji_tmp"
+    from_text: true
+  - op: set_text
+    from_var: "kouji_tmp"
+  - op: take_before
+    pattern: "(2)"
+  - op: take_before
+    pattern: "（電子入札対象案件）"
+  - op: set_var
+    name: "kouji_raw"
+    from_text: true
+  - op: set_text
+    from_var: "kouji_raw"
+  - op: compact_ws
+    keep_spaces: true
+  - op: set_var
+    name: "kouji_name"
+    from_text: true
+  - op: emit
+    key: "工事名"
+    from_var: "kouji_name"
+  - op: restore
+    from: "tmp_kouji"
+
+  # STEP 4: 「同種工事（企業）」/「同種工事（技術者）」
+  - op: if_var
+    var: "name_of"
+    not_equals: "本官"
+    then:
+      # when NOT 本官
+      - op: copy
+        as: "tmp_type"
+      - op: find_after
+        pattern: "元請けとして、以下に示す同種工事"
+      - op: find_after
+        pattern: "【企業】"
+      - op: find_after
+        pattern: "同種工事："
+      - op: set_var
+        name: "ds_company_block"
+        from_text: true
+
+      # split company vs engineer blocks around 【技術者】
+      - op: take_before
+        pattern: "【技術者】"
+      - op: set_var
+        name: "ds_company_text"
+        from_text: true
+      - op: set_text
+        from_var: "ds_company_text"
+      - op: compact_ws
+        keep_spaces: true
+      - op: set_var
+        name: "ds_company_clean"
+        from_text: true
+      - op: concat
+        target: "ds_company_out"
+        prefix: "「同種工事（企業）」"
+        from_var: "ds_company_clean"
+        suffix: ""
+      - op: emit
+        key: "同種工事（企業）"
+        from_var: "ds_company_out"
+
+      # after 技術者
+      - op: set_text
+        from_var: "ds_company_block"
+      - op: find_after
+        pattern: "【技術者】"
+      - op: find_after
+        pattern: "同種工事："
+      - op: take_before
+        pattern: "(5)"
+      - op: set_var
+        name: "ds_engineer_text"
+        from_text: true
+      - op: set_text
+        from_var: "ds_engineer_text"
+      - op: compact_ws
+        keep_spaces: true
+      - op: set_var
+        name: "ds_engineer_clean"
+        from_text: true
+      - op: concat
+        target: "ds_engineer_out"
+        prefix: "「同種工事（技術者）」"
+        from_var: "ds_engineer_clean"
+        suffix: ""
+      - op: emit
+        key: "同種工事（技術者）"
+        from_var: "ds_engineer_out"
+      - op: restore
+        from: "tmp_type"
+    else:
+      # name_of == 本官 のときの2分岐
+      - op: contains
+        phrase: "【企業】"
+        set: "has_kigyo"
+      - op: contains
+        phrase: "【技術者】"
+        set: "has_gijutsu"
+      - op: if_var
+        var: "has_kigyo"
+        truthy: true
+        then:
+          - op: if_var
+            var: "has_gijutsu"
+            truthy: true
+            then:
+              # both present
+              - op: copy
+                as: "tmp_both"
+              - op: find_after
+                pattern: "発注者から企業に対して通知された評定点が"
+              - op: find_after
+                pattern: "【企業】"
+              - op: find_after
+                pattern: "同種工事："
+              - op: take_before
+                pattern: "【技術者】"
+              - op: set_var
+                name: "both_company"
+                from_text: true
+              - op: set_text
+                from_var: "both_company"
+              - op: compact_ws
+                keep_spaces: true
+              - op: concat
+                target: "both_company_out"
+                prefix: "「同種工事（企業）」"
+                from_text: true
+                suffix: ""
+              - op: emit
+                key: "同種工事（企業）"
+                from_var: "both_company_out"
+
+              - op: set_text
+                from_var: "both_company"
+              - op: set_text
+                from_var: "original_text"   # ensure we work on full text for engineer block
+              - op: find_after
+                pattern: "【技術者】"
+              - op: find_after
+                pattern: "同種工事："
+              - op: take_before
+                pattern: "(5)"
+              - op: take_before
+                pattern: "(6)"
+              - op: compact_ws
+                keep_spaces: true
+              - op: concat
+                target: "both_engineer_out"
+                prefix: "「同種工事（技術者）」"
+                from_text: true
+                suffix: ""
+              - op: emit
+                key: "同種工事（技術者）"
+                from_var: "both_engineer_out"
+              - op: restore
+                from: "tmp_both"
+            else:
+              # only 【企業】 present (unlikely per spec)
+              - op: emit
+                key: "同種工事（技術者）"
+                literal: "情報なし"
+        else:
+          # else: fallback path
+          - op: copy
+            as: "tmp_else"
+          - op: find_after
+            pattern: "発注者から企業に対して通知された評定点が"
+          - op: find_after
+            pattern: "同種工事："
+          - op: set_var
+            name: "else_company"
+            from_text: true
+          - op: take_before
+            pattern: "(6)"
+          - op: set_text
+            from_var: "else_company"
+          - op: compact_ws
+            keep_spaces: true
+          - op: concat
+            target: "else_company_out"
+            prefix: "同種工事（企業）」"
+            from_text: true
+            suffix: ""
+          - op: emit
+            key: "同種工事（企業）"
+            from_var: "else_company_out"
+          - op: emit
+            key: "同種工事（技術者）"
+            literal: "「同種工事（技術者）」特殊工事のため要確認"
+          - op: restore
+            from: "tmp_else"
+
+  # STEP 5: 「より同種性の高い」
+  - op: contains
+    phrase: "※１："
+    set: "has_note1"
+  - op: contains
+    phrase: "を「より同種性が高い」と評価"
+    set: "has_high_similarity_phrase"
+  - op: if_var
+    var: "has_note1"
+    truthy: true
+    then:
+      - op: if_var
+        var: "has_high_similarity_phrase"
+        truthy: true
+        then:
+          - op: copy
+            as: "tmp_high"
+          - op: find_after
+            pattern: "※１："
+          - op: find_after
+            pattern: "同種工事のうち、"
+          - op: take_before
+            pattern: "を「より同種性が高い」と評価"
+          - op: compact_ws
+            keep_spaces: true
+          - op: concat
+            target: "higher_sim_out"
+            prefix: "「より同種性の高い」"
+            from_text: true
+            suffix: ""
+          - op: emit
+            key: "より同種性の高い"
+            from_var: "higher_sim_out"
+          - op: restore
+            from: "tmp_high"
+        else:
+          - op: emit
+            key: "より同種性の高い"
+            literal: "「より同種性の高い」該当なし."
+    else:
+      - op: emit
+        key: "より同種性の高い"
+        literal: "「より同種性の高い」該当なし."

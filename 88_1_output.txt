@@ -1,0 +1,239 @@
+沼津河川国道事務所
+
+令和６年度 河津下田道路逆川須原地区道路建設工事
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+【88】Python file way of extracting details (Rules) : 
+
+first take the text document and then - print the name and length of the text file
+then check if is present in the text - 総合評価に関する評価項目. if present print true, else false
+
+name_bu
+then check if 四国地方整備局 is present in the remaining text file, print - 四国地方整備局
+
+STEP 1 : name_of
+
+Then check if 支出負担行為担当官 and 四国地方整備局長 are present in the text document. 
+If found do this:
+    check if 支出負担行為担当官四国地方整備局長 is present , if found print 本官
+Else :
+    search 分任支出負担行為担当官 and take everything after 分任支出負担行為担当官
+    then search 四国地方整備局 in the remaining text and take everything before - 四国地方整備局
+    then search 所長 in the remaining text and take everything before 所長
+    add 所 to the remaining text after cleaning and then print it.
+
+
+
+STEP 2 : name_co
+Then make another copy of the original remaing text, and on that copy search for - 工事名 and take everything after the text 工事名.
+then in the remaining text search - (2) and then take everything before - (2).
+Finally search - （電子入札及び電子契約対象案件）and then take everything before the text - （電子入札及び電子契約対象案件）
+remove whitespace from the remaing text and then print it. this is the 工事名 property.
+
+STEP 4
+then check if name_of value we calculated earlier was not 本官
+    if true we do these: 
+        in the copy of the original remaining text, we find - 元請けとして、以下に示す同種工事 and take everything after that text - 元請けとして、以下に示す同種工事
+        then in remaining text search - 【企業】and take everything after that text - 【企業】
+        then search for - 同種工事： and take everything after the text - 同種工事：
+        then search for - 【技術者】and do these:
+            first  take everything before - 【技術者】
+                then remove the white spaces and print the remaining text - 「同種工事（企業）」 + (remaining text) - this is 「同種工事（企業）」property
+            second take everything after - 【技術者】
+                then search for - 同種工事： in the remaining text and take everything after the word - 同種工事：
+                then search for - (5) and take everything before the word - (5)
+                print the remaining text in this way - 「同種工事（技術者）」+  (remaining_text) - this is the 「同種工事（技術者）」 property.
+    if false and if 【企業】 and 【技術者】 are present in the original remaining text file then do these:
+        in the copy find 発注者から企業に対して通知された評定点が and take everything after the word - 発注者から企業に対して通知された評定点が
+        then search 【企業】and take everything after the word - 【企業】
+        then search 同種工事： and take everything after the word-  同種工事：
+        then search for - 【技術者】and do these:
+            first  take everything before - 【技術者】
+                then remove the white spaces and print the remaining text - 「同種工事（企業）」 + (remaining text) - this is 「同種工事（企業）」property
+            second take everything after - 【技術者】
+                then search for - 同種工事： in the remaining text and take everything after the word - 同種工事：
+                then search for - (5) and take everything before the word - (5)
+                then search for - (6) and take everything before the word - (6)
+                remove the whitespaces and print the remaining text in this way - 「同種工事（技術者）」+  (remaining_text) - this is the 「同種工事（技術者）」 property.
+    else
+        in the copy of the original remaing text, search for - 発注者から企業に対して通知された評定点が and take everything after the word - 発注者から企業に対して通知された評定点が
+        then search for - 同種工事： and take everything after the word - 同種工事：
+        then print the remaining text
+        then search for (6) and take everything before - (6)
+        remove the whitespaces of the remaining text and print it like this - 同種工事（企業）」 + (remaining text) - this is the 同種工事（企業）」property
+        then print this - 「同種工事（技術者）」+  特殊工事のため要確認 - this is the 「同種工事（技術者）」property.
+
+STEP 5
+then in the copy of the original remaining text file. check if ※１： and  を「より同種性が高い」と評価 are present
+    if true
+        search the word- ※１： and take everything after the word - ※１：
+        in the remaining text then search the word - 同種工事のうち、 and take everything after the word - 同種工事のうち、
+        then in the remaining text search を「より同種性が高い」と評価 and take everything before the word - を「より同種性が高い」と評価
+        then print it like this - 「より同種性の高い」+ (remaining text) - this is the 「より同種性の高い」 property
+    if false
+        printn this - 「より同種性の高い」+ 該当なし.
+
+thats it.
+
+----------------------------------------------------------------------------------------------
+TESTING on file - 【85】中部_入札公告及び入札説明書：令和６年度　河津下田道路逆川須原地区道路建設工事.txt : 
+
+I tested the above original python file on 5 pdfs of 【85】中部, using the old text extraction method.
+there are multiple issues found:
+    initially in step - 入札公告（建設工事） was found in the text file, therefore program then searched for ④  開札日時, but this text was not found.
+    since the program takes everthing after the word - ④  開札日時 regardless it is present or not, the text it took was empty as the entire text didnt had the word - ④  開札日時
+    there all the remaining steps ran on empty text file, which lead to no results or errors.
+
+i tried skipping these the first step and was able to get these results - 
+
+STEP 2 - 沼津河川国道事務所
+
+STEP 3 - 令和６年度 河津下田道路逆川須原地区道路建設工事
+
+But in step 4 - 
+    since the name_of value (step 2) is not - 本官, the program searched for 元請けとして、以下に示す同種工事 which was found and we took everything after that text.
+    But then we searched the word - 【企業】which was not found therefore , every other part of this step ran on empty string. (same reason as before)
+    therefore 「同種工事（企業）」 and 「同種工事（技術者）」 didnt print anything
+
+STEP 5 - 
+    both ※１： and を「より同種性が高い」と評価 where found in the text file.
+    but then after taking everthing after the word - ※１：
+    the text didnt had 同種工事のうち、 therefore the remaining parts ran on empty string and thus 
+    「より同種性の高い」 was also empty.
+
+
+
+
+
+
+
+
+
+
+JAPANESE:
+
+
+【85】中部 Python file way of extracting details (Rules) :
+
+最初にテキストドキュメントを読み込み、その後 ― テキストファイルの名前と長さを出力する。
+次に、テキスト内に「入札の評価に関する基準及び得点配分」が存在するか確認する。存在すれば True を出力し、なければ False を出力する。
+
+STEP 1
+
+次に、ドキュメントの最初の20文字の中に「入札公告（建設工事）」が含まれているかを確認する。
+もし見つかった場合は次を行う：
+　「④ 開札日時」という文字列を探し、そのテキスト以降のすべてを取得する。
+　そして残りのテキストの長さを出力する。
+見つからなかった場合は、上記の処理をスキップし、元のテキスト全体を使用する。
+
+その後、残りのテキスト内に「中部地方整備局」が存在するか確認し、存在すれば「中部地方整備局」と出力する。
+
+STEP 2
+
+次に、テキスト内に「支出負担行為担当官 中部地方整備局長」が存在するか確認する。
+　存在する場合 ― 「本官」と出力する（これを name_of と呼ぶ）。
+　存在しない場合 ―
+　　　テキストのコピーを作成する（以下の処理はこのコピーを使用する）。
+　　　テキスト内で「分任支出負担行為担当官」という文字列を探し、その文字列以降のすべてを取得する。
+　　　その残りのテキスト内でもう一度「分任支出負担行為担当官」を探し、その文字列以降のすべてを再び取得する。
+　　　次にその残りテキスト内で「中部地方整備局」を探し、その文字列以降のすべてを取得する。
+　　　最後にその残りテキスト内で「所長」という単語を探し、その単語の前までのテキストを取得する。
+　　　取得したテキストの前後の空白を削除し、末尾に「所」を追加して出力する。これを name_of とする。
+
+STEP 3
+
+元の残りテキストのコピーを作成し、そのコピーの中で「工事名」という文字列を探し、その文字列以降を取得する。
+次に残りのテキストの中から「(2)」を探し、「(2)」の前までを取得する。
+さらに「（電子入札対象案件）」を探し、その文字列の前までを取得する。
+残ったテキストから空白を削除し、それを出力する。これが「工事名」プロパティである。
+
+STEP 4
+
+次に、先ほど計算した name_of の値が「本官」でない場合、以下を実行する：
+　元の残りテキストのコピーを使用し、「元請けとして、以下に示す同種工事」という文字列を探し、その文字列以降を取得する。
+　次にその残りテキストの中から「【企業】」という文字列を探し、その文字列以降を取得する。
+　次に「同種工事：」という文字列を探し、その文字列以降を取得する。
+　次に「【技術者】」という文字列を探し、以下の2つの処理を行う：
+　　まず、「【技術者】」より前のテキストを取得し、空白を削除して次のように出力する ― 「同種工事（企業）」＋（残りのテキスト） ― これが「同種工事（企業）」プロパティである。
+　　次に、「【技術者】」以降のテキストを取得し、「同種工事：」という文字列を探してその以降のテキストを取得する。
+　　次に「(5)」を探し、その前までのテキストを取得する。
+　　取得したテキストを次のように出力する ― 「同種工事（技術者）」＋（残りのテキスト） ― これが「同種工事（技術者）」プロパティである。
+
+もし name_of が「本官」であり、かつ「【企業】」および「【技術者】」が元の残りテキスト内に存在する場合は、以下を実行する：
+　コピーの中で「発注者から企業に対して通知された評定点が」という文字列を探し、その文字列以降を取得する。
+　次に「【企業】」を探し、その文字列以降を取得する。
+　次に「同種工事：」を探し、その文字列以降を取得する。
+　次に「【技術者】」という文字列を探し、以下の2つの処理を行う：
+　　まず、「【技術者】」より前のテキストを取得し、空白を削除して次のように出力する ― 「同種工事（企業）」＋（残りのテキスト） ― これが「同種工事（企業）」プロパティである。
+　　次に、「【技術者】」以降のテキストを取得し、「同種工事：」という文字列を探してその以降を取得する。
+　　次に「(5)」を探し、その前までを取得する。
+　　次に「(6)」を探し、その前までを取得する。
+　　残りのテキストの空白を削除し、次のように出力する ― 「同種工事（技術者）」＋（残りのテキスト） ― これが「同種工事（技術者）」プロパティである。
+
+それ以外の場合は以下を実行する：
+　元の残りテキストのコピーの中で「発注者から企業に対して通知された評定点が」という文字列を探し、その文字列以降を取得する。
+　次に「同種工事：」という文字列を探し、その文字列以降を取得する。
+　残りのテキストを出力する。
+　次に「(6)」を探し、その前までのテキストを取得する。
+　残りのテキストの空白を削除し、次のように出力する ― 「同種工事（企業）」＋（残りのテキスト） ― これが「同種工事（企業）」プロパティである。
+　次に次のように出力する ― 「同種工事（技術者）」＋「特殊工事のため要確認」 ― これが「同種工事（技術者）」プロパティである。
+
+STEP 5
+
+次に、元の残りテキストのコピーの中で「※１：」および「を『より同種性が高い』と評価」が存在するかを確認する。
+　存在する場合：
+　　「※１：」という文字列を探し、その文字列以降を取得する。
+　　残りのテキストの中で「同種工事のうち、」という文字列を探し、その文字列以降を取得する。
+　　次に「を『より同種性が高い』と評価」という文字列を探し、その前までを取得する。
+　　次のように出力する ― 「より同種性の高い」＋（残りのテキスト） ― これが「より同種性の高い」プロパティである。
+　存在しない場合：
+　　次のように出力する ― 「より同種性の高い」＋「該当なし」。
+
+以上。
+
+----------------------------------------------------------------------------------------------
+TESTING on file - 【85】中部_入札公告及び入札説明書：令和６年度　河津下田道路逆川須原地区道路建設工事.txt :
+
+上記のオリジナル Python ファイルを【85】中部の5つのPDFで、旧テキスト抽出方法を使用してテストした。
+次のような複数の問題が見つかった：
+
+最初に STEP で「入札公告（建設工事）」がテキスト内で見つかったため、プログラムは「④ 開札日時」を検索したが、この文字列は存在しなかった。
+プログラムはこの文字列が存在するかどうかに関わらず「④ 開札日時」以降のテキストを取得するようになっているため、
+その文字列が存在しない場合、取得結果は空となり、テキスト全体が空として扱われた。
+したがって、以降のすべてのステップが空のテキストに対して実行され、結果が得られないかエラーになった。
+
+STEP 1 をスキップしたところ、次の結果が得られた ―
+
+STEP 2 - 沼津河川国道事務所
+
+STEP 3 - 令和６年度 河津下田道路逆川須原地区道路建設工事
+
+しかし STEP 4 では、
+name_of の値（STEP 2）は「本官」ではなかったため、プログラムは「元請けとして、以下に示す同種工事」を検索し、このテキストは見つかったが、
+次に検索する「【企業】」が存在しなかったため、以降のすべての処理は空の文字列に対して実行された（前と同じ理由）。
+そのため、「同種工事（企業）」および「同種工事（技術者）」は出力されなかった。
+
+STEP 5 では、
+「※１：」および「を『より同種性が高い』と評価」はテキスト内に存在した。
+しかし「※１：」以降を取得した後、テキスト内に「同種工事のうち、」が存在しなかったため、
+残りの部分の処理は空文字列で行われ、結果として「より同種性の高い」も空となった。
+
+
