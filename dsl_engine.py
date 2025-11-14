@@ -59,6 +59,13 @@ def strip_comment(line: str) -> str:
         s.append(ch)
     return ''.join(s).rstrip('\n')
 
+def _unquote(s: str) -> str:
+    s = s.strip()
+    if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+        return s[1:-1]
+    return s
+
+
 @dataclass
 class Node:
     kind: str              # 'var' | 'block' | 'kv' | 'command'
@@ -67,22 +74,46 @@ class Node:
     indent: int = 0
     children: List['Node'] = field(default_factory=list)
 
-def parse_list_value(text: str) -> List[str]:
-    # expects like [a , b , c]
-    inner = text.strip()
-    if not (inner.startswith('[') and inner.endswith(']')):
-        return [inner]
-    inner = inner[1:-1].strip()
-    if not inner:
-        return []
-    parts = [p.strip() for p in inner.split(',')]
-    # strip optional surrounding quotes
-    clean = []
-    for p in parts:
-        if (p.startswith('"') and p.endswith('"')) or (p.startswith("'") and p.endswith("'")):
-            p = p[1:-1]
-        clean.append(p)
-    return clean
+def parse_list_value(text: str) -> list:
+    s = text.strip()
+    if not (s.startswith('[') and s.endswith(']')):
+        # Fallback: treat as single (quoted or unquoted) token
+        return [_unquote(s)]
+
+    inner = s[1:-1]
+    items, buf = [], []
+    in_q = None
+    escape = False
+
+    for ch in inner:
+        if escape:
+            buf.append(ch)
+            escape = False
+            continue
+        if ch == '\\':
+            escape = True
+            continue
+        if in_q:
+            if ch == in_q:
+                in_q = None
+            else:
+                buf.append(ch)
+            continue
+        # not in quotes
+        if ch in ('"', "'"):
+            in_q = ch
+        elif ch == ',':
+            item = ''.join(buf).strip()
+            items.append(_unquote(item))
+            buf = []
+        else:
+            buf.append(ch)
+
+    # last item
+    if buf:
+        items.append(_unquote(''.join(buf).strip()))
+    return items
+
 
 def parse_script(text: str) -> List[Node]:
     lines = text.splitlines()
@@ -227,16 +258,15 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 v = str(val_raw).strip().lower()
                 env.pending_scope = 'taken' if v == 'taken' else 'all'
             elif key == 'search text':
-                # list or scalar
                 txt = str(val_raw).strip()
                 if txt.startswith('[') and txt.endswith(']'):
-                    search_list = parse_list_value(txt)
+                    search_list = parse_list_value(txt)          # supports ["※１：" , "…評価"]
                     env.pending_search_value = search_list
                     do_search(env, search_list)
                 else:
-                    # keep original spacing (no quote removal needed)
-                    env.pending_search_value = str(val_raw).strip()
-                    do_search(env, env.pending_search_value)
+                    scalar = _unquote(txt)                        # supports "※１："
+                    env.pending_search_value = scalar
+                    do_search(env, scalar)
             elif key == 'remove whitespaces':
                 env.current_text = env.current_text.strip()
             elif key == 'add in right':
@@ -249,15 +279,18 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 env.stored[name] = env.current_text
             elif key == 'set':
                 arg = str(val_raw).strip()
-                lc = arg.lower()
-                if arg in env.stored:
-                    env.set_value = env.stored[arg]
-                elif lc == 'true':
-                    env.set_value = True
-                elif lc == 'false':
-                    env.set_value = False
+                if (arg.startswith('"') and arg.endswith('"')) or (arg.startswith("'") and arg.endswith("'")):
+                    env.set_value = arg[1:-1]
                 else:
-                    env.set_value = arg
+                    lc = arg.lower()
+                    if arg in env.stored:
+                        env.set_value = env.stored[arg]
+                    elif lc == 'true':
+                        env.set_value = True
+                    elif lc == 'false':
+                        env.set_value = False
+                    else:
+                        env.set_value = arg
             elif key == 'check':
                 env.check_var = str(val_raw).strip()
             elif key == 'has value':
@@ -282,15 +315,19 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 env.stored[name] = env.current_text
             elif cmd.startswith('set'):
                 arg = node.value if node.value is not None else (m.group('arg') if m else '')
-                lc = str(arg).lower()
-                if arg in env.stored:
-                    env.set_value = env.stored[arg]
-                elif lc == 'true':
-                    env.set_value = True
-                elif lc == 'false':
-                    env.set_value = False
+                arg = str(arg).strip()
+                if (arg.startswith('"') and arg.endswith('"')) or (arg.startswith("'") and arg.endswith("'")):
+                    env.set_value = arg[1:-1]
                 else:
-                    env.set_value = arg
+                    lc = arg.lower()
+                    if arg in env.stored:
+                        env.set_value = env.stored[arg]
+                    elif lc == 'true':
+                        env.set_value = True
+                    elif lc == 'false':
+                        env.set_value = False
+                    else:
+                        env.set_value = arg
             elif cmd == 'remove whitespaces':
                 env.current_text = env.current_text.strip()
             else:

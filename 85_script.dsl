@@ -1,6 +1,6 @@
 has_eval_phrase :
    search in : all
-   search text : 入札の評価に関する基準及び得点配分
+   search text : "入札の評価に関する基準及び得点配分"
    if found :
       set(true)
    if not found :
@@ -8,20 +8,20 @@ has_eval_phrase :
 
 name_of :
    search in first : 20
-   search text : 入札公告（建設工事）
+   search text : "支出負担行為担当官 中部地方整備局長"
    if found :
-      set(本官)
+      set("本官")
    if not found : 
       search in : all
-      search text : 分任支出負担行為担当官
+      search text : "分任支出負担行為担当官"
       if found :
          take right
             search in : taken
-            search text : 中部地方整備局
+            search text : "中部地方整備局"
             if found:
                take right:
                   search in : taken
-                  search text : 所長
+                  search text : "所長"
                   if found : 
                      take left:
                         remove whitespaces
@@ -31,15 +31,15 @@ name_of :
 
 工事名:
    search in : all
-   search text : 工事名
+   search text : "工事名"
    if found : 
       take right:
          search in : taken
-         search text : (2)
+         search text : "(2)"
          if found : 
             take left : 
                search in : taken
-               search text : （電子入札対象案件）
+               search text : "（電子入札対象案件）"
                if found : 
                   take left :
                      remove whitespaces
@@ -52,64 +52,64 @@ name_of :
    has value : 本官
    if true : 
       search in : all
-      search text : [【企業】, 【技術者】]
+      search text : ["【企業】", "【技術者】"]
       if found : 
          search in : all
-         search text : 発注者から企業に対して通知された評定点が
+         search text : "発注者から企業に対して通知された評定点が"
          if found : 
             take right : 
                search in : taken
-               search text : 【企業】
+               search text : "【企業】"
                if found : 
                   take right : 
                      search in : taken
-                     search text : 同種工事：
+                     search text : "同種工事："
                      if found : 
                         take right : 
                            search in : taken
-                           search text : 【技術者】
+                           search text : "【技術者】"
                            if found : 
                               take right : 
                                  search in : taken
-                                 search text : 同種工事：
+                                 search text : "同種工事："
                                  if found : 
                                     take right : 
                                        search in : taken
-                                       search text : (5)
+                                       search text : "(5)"
                                        if found : 
                                           take left : 
                                              search in : taken
-                                             search text : (6)
+                                             search text : "(6)"
                                              if found : 
                                                 take left : 
                                                    remove whitespaces
                                                    store(var_ts_gijutsu_true)
                                                    set(var_ts_gijutsu_true)
       if not found : 
-         set(特殊工事のため要確認)
+         set("特殊工事のため要確認")
    if false:
       search in: all
-      search text: 元請けとして、以下に示す同種工事
+      search text: "元請けとして、以下に示す同種工事"
       if found : 
          take right : 
             search in : taken
-            search text : 【企業】
+            search text : "【企業】"
             if found : 
                take right : 
                   search in : taken
-                  search text : 同種工事：
+                  search text : "同種工事："
                   if found : 
                      take right : 
                         search in : taken
-                        search text : 【技術者】
+                        search text : "【技術者】"
                         if found : 
                            take right : 
                               search in : taken
-                              search text : 同種工事：
+                              search text : "同種工事："
                               if found : 
                                  take right: 
                                     search in : taken
-                                    search text : (5)
+                                    search text : "(5)"
                                     if found : 
                                        take left : 
                                           remove whitespaces
@@ -121,22 +121,22 @@ name_of :
    has value : 本官
    if true : 
       search in : all
-      search text : [【企業】, 【技術者】]
+      search text : ["【企業】", "【技術者】"]
       if found : 
          search in : all
-         search text : 発注者から企業に対して通知された評定点が
+         search text : "発注者から企業に対して通知された評定点が"
          if found : 
             take right : 
                search in : taken
-               search text : 【企業】
+               search text : "【企業】"
                if found : 
                   take right : 
                      search in : taken
-                     search text : 同種工事：
+                     search text : "同種工事："
                      if found : 
-                        take left : 
+                        take right : 
                            search in : taken
-                           search text : 【技術者】
+                           search text : "【技術者】"
                            if found : 
                               take left : 
                                  remove whitespaces
@@ -144,15 +144,15 @@ name_of :
                                  set(var_ts_kigyo_true)
       if not found : 
          search in : all
-         search text : 発注者から企業に対して通知された評定点が
+         search text : "発注者から企業に対して通知された評定点が"
          if found : 
             take right : 
                search in : taken
-               search text : 同種工事：
+               search text : "同種工事："
                if found : 
                   take right : 
                      search in : taken
-                     search text : (6)
+                     search text : "(6)"
                      if found : 
                         take left : 
                            remove whitespaces
@@ -160,15 +160,15 @@ name_of :
                            set(var_ts_kigyo_true2)
    if false:
       search in: all
-      search text: 元請けとして、以下に示す同種工事
+      search text: "元請けとして、以下に示す同種工事"
       if found : 
          take right : 
             search in : taken
-            search text : 【企業】
+            search text : "【企業】"
             if found : 
                take right : 
                   search in : taken
-                  search text : 同種工事：
+                  search text : "同種工事："
                   if found : 
                      take left : 
                         remove whitespaces
@@ -177,22 +177,22 @@ name_of :
 
 「より同種性の高い」:
    search in : all
-   search text : [※１： , を「より同種性が高い」と評価]
+   search text : ["※１：" , "を「より同種性が高い」と評価"]
    if found : 
       search in : all 
-      search text : ※１：
+      search text : "※１："
       if found : 
          take right : 
             search in : taken
-            search text : 同種工事のうち、
+            search text : "同種工事のうち、"
             if found : 
                take right : 
                   search in : taken
-                  search text : を「より同種性が高い」と評価
+                  search text : "を「より同種性が高い」と評価"
                   if found : 
                      take left : 
                         remove whitespaces
                         store(var_high)
                         set(var_high)
    if not found : 
-      set(該当なし)
+      set("該当なし")

@@ -1,7 +1,7 @@
 # 85中部地整：入札説明書（PDF）から「より同種性が高い」工事要件を抽出するテストプログラム
 import re
 
-inputfile = "【85】中部_入札公告及び入札説明書：令和６年度　河津下田道路逆川須原地区道路建設工事.txt"
+inputfile = "test_85_true.txt"
 # inputfile = "【公告・入札説明書】令和５年度　高山国道管内トンネル照明設備工事.txt"
 # inputfile = "【公告・入札説明書】令和５年度　高山国道区画線維持工事.txt" #　！事務所名抽出出来ず！
 # inputfile = "【入札公告・入札説明書】令和5年度 設楽ダム国道257号田口地区道路建設工事.txt"
@@ -18,15 +18,15 @@ print(len(text))
 print("入札の評価に関する基準及び得点配分" in text)
 
 # 入札公告が先頭部部分にある場合、入札説明書のページ以降を抽出する
-if (("入札公告（建設工事）" in text) and text.find("入札公告（建設工事）") <20 ):
-  t = text.partition("④  開札日時")  # 入札公告の最終ページの記載文をタプルとして抽出
-  print(t[1] == '')
-  print(t[2] == '')
-  text = t[-1]                       # 以降の文字列を抽出
-  t = text.partition("入札説明書")   # 入札説明書の１ページ目の記載文
-  text = t[-1]                       # 以降の文字列を抽出（入札説明書の部分（行頭欠け））
+# if (("入札公告（建設工事）" in text) and text.find("入札公告（建設工事）") <20 ):
+#   t = text.partition("④  開札日時")  # 入札公告の最終ページの記載文をタプルとして抽出
+#   print(t[1] == '')
+#   print(t[2] == '')
+#   text = t[-1]                       # 以降の文字列を抽出
+#   t = text.partition("入札説明書")   # 入札説明書の１ページ目の記載文
+#   text = t[-1]                       # 以降の文字列を抽出（入札説明書の部分（行頭欠け））
 
-print(len(text))
+# print(len(text))
 
 # 整備局等名・事務所名の抽出
 # namu_bu 地方整備局等
@@ -93,6 +93,7 @@ if name_of != "本官": # 本官以外の場合
   print("「同種工事（技術者）」", doushu_en)
 
 elif (("【企業】" in text) and ("【技術者】") in text): # 抽出する文字列２つがある場合のサブルーチン
+  print("here")
   t0 = text.partition("発注者から企業に対して通知された評定点が")    # 文字列の後をタプルとして抽出
   text0 = t0[-1]
   t0 = text0.partition("【企業】") # "【企業】"の後の文字列をタプルとして抽出
@@ -102,6 +103,7 @@ elif (("【企業】" in text) and ("【技術者】") in text): # 抽出する�
   t0 = text0.partition("【技術者】") # "【技術者】"の前の文字列をタプルとして抽出
   text0 = t0[0]
   doushu_co = text0.strip() # 前後の空白文字を削除
+  print(doushu_co)
   print("「同種工事（企業）」", doushu_co)
   text0 = t0[-1]  # "技術者"の後の文字列を入力
   t0 = text0.partition("同種工事：")  # "同種工事："の後の文字列をタプルとして抽出
