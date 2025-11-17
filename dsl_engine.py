@@ -41,7 +41,7 @@ BLOCK_KEYS = {
     "take right", "take left"
 }
 
-COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|set)\((?P<arg>.*)\)\s*$')
+COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|set|replace)\((?P<arg>.*)\)\s*$')
 
 def strip_comment(line: str) -> str:
     # remove '#' comments outside quotes
@@ -173,6 +173,41 @@ def parse_script(text: str) -> List[Node]:
 
     return root
 
+def _parse_two_args_quoted(argstr: str):
+    s = argstr.strip()
+    items, buf = [], []
+    in_q = None
+    escape = False
+    for ch in s:
+        if escape:
+            buf.append(ch); escape = False; continue
+        if ch == '\\':
+            escape = True; continue
+        if in_q:
+            if ch == in_q:
+                in_q = None
+            else:
+                buf.append(ch)
+            continue
+        if ch in ('"', "'"):
+            in_q = ch
+            continue
+        if ch == ',' and len(items) == 0:
+            items.append(''.join(buf).strip()); buf = []
+            continue
+        buf.append(ch)
+    items.append(''.join(buf).strip())
+
+    def unq(x: str) -> str:
+        x = x.strip()
+        if (x.startswith('"') and x.endswith('"')) or (x.startswith("'") and x.endswith("'")):
+            return x[1:-1]
+        return x
+    a = unq(items[0]) if items else ''
+    b = unq(items[1]) if len(items) > 1 else ''
+    return a, b
+
+
 # --------------------------- Execution ---------------------------
 
 @dataclass
@@ -224,6 +259,47 @@ def do_search(env: ExecEnv, search_value: Any):
     env.pending_scope = ''
     env.pending_first_n = None
     env.pending_search_value = None
+    
+def do_search_any(env, items):
+    """OR search over items; anchor to the earliest occurrence among matches."""
+    scope_text = resolve_scope_text(env)
+    env.last_scope_text = scope_text
+    best_idx = -1
+    best_len = 0
+    for it in items:
+        idx = scope_text.find(it)
+        if idx >= 0 and (best_idx == -1 or idx < best_idx):
+            best_idx = idx
+            best_len = len(it)
+    env.last_search_found = (best_idx >= 0)
+    env.last_match_start = best_idx
+    env.last_match_end = (best_idx + best_len) if best_idx >= 0 else -1
+    # clear pending
+    env.pending_scope = ''
+    env.pending_first_n = None
+    env.pending_search_value = None
+
+
+def do_search_ordered(env, items):
+    """Sequential search by order; anchor to the first item in order that is found."""
+    scope_text = resolve_scope_text(env)
+    env.last_scope_text = scope_text
+    found_idx = -1
+    found_len = 0
+    for it in items:
+        idx = scope_text.find(it)
+        if idx >= 0:
+            found_idx = idx
+            found_len = len(it)
+            break
+    env.last_search_found = (found_idx >= 0)
+    env.last_match_start = found_idx
+    env.last_match_end = (found_idx + found_len) if found_idx >= 0 else -1
+    # clear pending
+    env.pending_scope = ''
+    env.pending_first_n = None
+    env.pending_search_value = None
+
 
 def with_taken(env: ExecEnv, take: str) -> ExecEnv:
     new_env = ExecEnv(
@@ -259,12 +335,29 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 env.pending_scope = 'taken' if v == 'taken' else 'all'
             elif key == 'search text':
                 txt = str(val_raw).strip()
+                # AND list: [a, b, c] — boolean only (no anchor)
                 if txt.startswith('[') and txt.endswith(']'):
-                    search_list = parse_list_value(txt)          # supports ["※１：" , "…評価"]
+                    search_list = parse_list_value(txt)
                     env.pending_search_value = search_list
                     do_search(env, search_list)
+
+                # OR list: (a, b, c) — true if any found; anchor to earliest occurrence
+                elif txt.startswith('(') and txt.endswith(')'):
+                    inner = txt[1:-1]
+                    items = parse_list_value(f'[{inner}]')  # reuse list parser (quote-aware)
+                    env.pending_search_value = items
+                    do_search_any(env, items)
+
+                # ORDERED list: {a, b, c} — try a, else b, else c; anchor to first found in order
+                elif txt.startswith('{') and txt.endswith('}'):
+                    inner = txt[1:-1]
+                    items = parse_list_value(f'[{inner}]')  # reuse list parser (quote-aware)
+                    env.pending_search_value = items
+                    do_search_ordered(env, items)
+
+                # scalar
                 else:
-                    scalar = _unquote(txt)                        # supports "※１："
+                    scalar = _unquote(txt)  # supports "quoted" or bare
                     env.pending_search_value = scalar
                     do_search(env, scalar)
             elif key == 'remove whitespaces':
@@ -330,6 +423,10 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                         env.set_value = arg
             elif cmd == 'remove whitespaces':
                 env.current_text = env.current_text.strip()
+            elif cmd.startswith('replace'):
+                raw = node.value if node.value is not None else (m.group('arg') if m else '')
+                old, new = _parse_two_args_quoted(raw)
+                env.current_text = env.current_text.replace(old, new)
             else:
                 # unknown bare command -> ignore
                 pass

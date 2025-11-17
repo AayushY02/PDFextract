@@ -15,7 +15,7 @@ name_of :
       search in : all
       search text : "分任支出負担行為担当官"
       if found :
-         take right
+         take right :
             search in : taken
             search text : "中部地方整備局"
             if found:
@@ -33,13 +33,13 @@ name_of :
    search in : all
    search text : "工事名"
    if found : 
-      take right:
+      take right :
          search in : taken
          search text : "(2)"
          if found : 
             take left : 
                search in : taken
-               search text : "（電子入札対象案件）"
+               search text : "(電子入札対象案件)"
                if found : 
                   take left :
                      remove whitespaces
@@ -89,32 +89,15 @@ name_of :
          set("特殊工事のため要確認")
    if false:
       search in: all
-      search text: "元請けとして、以下に示す同種工事"
+      search text: "同種工事:"
       if found : 
          take right : 
             search in : taken
-            search text : "【企業】"
+            search text : "また"
             if found : 
-               take right : 
-                  search in : taken
-                  search text : "同種工事："
-                  if found : 
-                     take right : 
-                        search in : taken
-                        search text : "【技術者】"
-                        if found : 
-                           take right : 
-                              search in : taken
-                              search text : "同種工事："
-                              if found : 
-                                 take right: 
-                                    search in : taken
-                                    search text : "(5)"
-                                    if found : 
-                                       take left : 
-                                          remove whitespaces
-                                          store(var_ts_gijutsu_false)
-                                          set(var_ts_gijutsu_false)
+               take left :
+                  store(new) 
+                  set(new)
 
 同種工事（企業）:
    check : name_of
