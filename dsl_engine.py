@@ -33,6 +33,8 @@ import re
 import json
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+import os
+import csv
 
 # --------------------------- Parsing ---------------------------
 
@@ -506,25 +508,79 @@ def run(script_text: str, input_text: str) -> Dict[str, Any]:
             eval_variable(node, g)
     return g.outputs
 
+def _write_csv(out_path, headers, outputs, source_name):
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    full_headers = ['file name'] + headers
+    row = [source_name] + [(outputs.get(h, "") if outputs.get(h, "") is not None else "") for h in headers]
+    with open(out_path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f)
+        w.writerow(full_headers)
+        w.writerow(row)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--script", required=True, help="DSL script file")
-    ap.add_argument("--input", required=True, help="UTF-8 text file to parse")
+    ap.add_argument("--input", help="UTF-8 text file to parse")
+    ap.add_argument("--input_dir", help="Directory of .txt files to batch process")
+    ap.add_argument("--outdir", help="Directory to write per-file CSVs")
     ap.add_argument("--json", action="store_true", help="Print JSON output")
     args = ap.parse_args()
 
     with open(args.script, "r", encoding="utf-8") as f:
         script_text = f.read()
-    with open(args.input, "r", encoding="utf-8") as f:
-        input_text = f.read()
+    # with open(args.input, "r", encoding="utf-8") as f:
+    #     input_text = f.read()
 
-    outputs = run(script_text, input_text)
+    tree_for_header = parse_script(script_text)
+    var_order = [n.name for n in tree_for_header if n.kind == 'var']
 
-    if args.json:
-        print(json.dumps(outputs, ensure_ascii=False, indent=2))
-    else:
-        for k, v in outputs.items():
-            print(f"{k}: {v}")
+    # outputs = run(script_text, input_text)
+
+    # if args.json:
+    #     print(json.dumps(outputs, ensu    re_ascii=False, indent=2))
+    # else:
+    #     for k, v in outputs.items():
+    #         print(f"{k}: {v}")
+
+    if args.input_dir:
+        if not args.outdir:
+            raise SystemExit("--outdir is required when using --input_dir")
+        in_dir = args.input_dir
+        out_dir = args.outdir
+        # process all .txt files (non-recursive)
+        for fname in sorted(os.listdir(in_dir)):
+            if not fname.lower().endswith(".txt"):
+                continue
+            fpath = os.path.join(in_dir, fname)
+            with open(fpath, "r", encoding="utf-8") as f:
+                text = f.read()
+            outputs = run(script_text, text)
+            base = os.path.splitext(fname)[0]
+            out_path = os.path.join(out_dir, base + ".csv")
+            _write_csv(out_path, var_order, outputs, source_name=fname)
+        return
+
+ # --- Single-file mode ---
+    if args.input:
+        with open(args.input, "r", encoding="utf-8") as f:
+            input_text = f.read()
+        outputs = run(script_text, input_text)
+        # If outdir is provided, write one CSV for this file; else keep old behavior
+        if args.outdir:
+            base = os.path.splitext(os.path.basename(args.input))[0]
+            out_path = os.path.join(args.outdir, base + ".csv")
+            src_name = os.path.basename(args.input)
+            _write_csv(out_path, var_order, outputs, source_name=src_name)
+        else:
+            if args.json:
+                print(json.dumps(outputs, ensure_ascii=False, indent=2))
+            else:
+                for k, v in outputs.items():
+                    print(f"{k}: {v}")
+        return
+
+    raise SystemExit("Provide either --input or --input_dir")
 
 if __name__ == "__main__":
     main()

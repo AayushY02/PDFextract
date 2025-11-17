@@ -6,6 +6,12 @@ has_eval_phrase :
    if not found :
       set(false)
 
+name_bu : 
+   search in : all
+   search text : "中部地方整備局"
+   if found : 
+      set("中部地方整備局")
+
 name_of :
    search in first : 20
    search text : "支出負担行為担当官 中部地方整備局長"
@@ -29,7 +35,7 @@ name_of :
                         store(var_nameof)
                         set(var_nameof)
 
-工事名:
+「工事名」:
    search in : all
    search text : "工事名"
    if found : 
@@ -99,7 +105,7 @@ name_of :
                   store(new) 
                   set(new)
 
-同種工事（企業）:
+「同種工事（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -160,22 +166,19 @@ name_of :
 
 「より同種性の高い」:
    search in : all
-   search text : ["※１：" , "を「より同種性が高い」と評価"]
+   search text : ["また、" , "を「より同種性が高い」と評価"]
    if found : 
       search in : all 
-      search text : "※１："
+      search text : "また、"
       if found : 
          take right : 
             search in : taken
-            search text : "同種工事のうち、"
+            search text : "を「より同種性が高い」と評価"
             if found : 
-               take right : 
-                  search in : taken
-                  search text : "を「より同種性が高い」と評価"
-                  if found : 
-                     take left : 
-                        remove whitespaces
-                        store(var_high)
-                        set(var_high)
+               take left : 
+                  remove whitespaces
+                  store(var_high)
+                  set(var_high)
+                        
    if not found : 
       set("該当なし")
