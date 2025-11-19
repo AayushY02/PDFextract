@@ -44,6 +44,12 @@ BLOCK_KEYS = {
 }
 
 COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|set|replace)\((?P<arg>.*)\)\s*$')
+PAGE_MARKER_RE = re.compile(r"\[\[PAGE_START\s+\d+\]\]|\[\[PAGE_END\]\]")
+
+def _strip_page_markers(s: str) -> str:
+    """Remove [[PAGE_START N]] and [[PAGE_END]] markers from a string."""
+    return PAGE_MARKER_RE.sub("", s)
+
 
 def strip_comment(line: str) -> str:
     # remove '#' comments outside quotes
@@ -67,6 +73,9 @@ def _unquote(s: str) -> str:
         return s[1:-1]
     return s
 
+def _decode_escapes_for_search(s: str) -> str:
+    # support "\n" and "\t" at least
+    return s.replace("\\n", "\n").replace("\\t", "\t")
 
 @dataclass
 class Node:
@@ -340,6 +349,7 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 # AND list: [a, b, c] — boolean only (no anchor)
                 if txt.startswith('[') and txt.endswith(']'):
                     search_list = parse_list_value(txt)
+                    search_list = [_decode_escapes_for_search(s) for s in search_list]
                     env.pending_search_value = search_list
                     do_search(env, search_list)
 
@@ -347,6 +357,7 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 elif txt.startswith('(') and txt.endswith(')'):
                     inner = txt[1:-1]
                     items = parse_list_value(f'[{inner}]')  # reuse list parser (quote-aware)
+                    items = [_decode_escapes_for_search(s) for s in items]
                     env.pending_search_value = items
                     do_search_any(env, items)
 
@@ -354,12 +365,14 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 elif txt.startswith('{') and txt.endswith('}'):
                     inner = txt[1:-1]
                     items = parse_list_value(f'[{inner}]')  # reuse list parser (quote-aware)
+                    items = [_decode_escapes_for_search(s) for s in items]
                     env.pending_search_value = items
                     do_search_ordered(env, items)
 
                 # scalar
                 else:
                     scalar = _unquote(txt)  # supports "quoted" or bare
+                    scalar = _decode_escapes_for_search(scalar)
                     env.pending_search_value = scalar
                     do_search(env, scalar)
             elif key == 'remove whitespaces':
@@ -497,7 +510,45 @@ def eval_variable(var_node: Node, global_env: ExecEnv):
     eval_nodes(var_node.children, env, var_name)
     # if not set, default to empty string
     value = env.set_value
+    if isinstance(value, str):
+        value = _strip_page_markers(value).strip()
+        
     global_env.outputs[var_name] = value
+
+def _build_page_spans(text: str):
+    """
+    Scan [[PAGE_START N]] markers and build a list of (page_no:int, start_index:int).
+    """
+    spans = []
+    for m in re.finditer(r"\[\[PAGE_START\s+(\d+)\]\]", text):
+        page_no = int(m.group(1))
+        spans.append((page_no, m.start()))
+    spans.sort(key=lambda x: x[1])
+    return spans
+
+
+def _page_for_index(idx: int, spans) -> Optional[int]:
+    """
+    Given a character index and page spans, return the page number whose start <= idx.
+    If no page_start exists before idx, returns None.
+    """
+    current = None
+    for page_no, start_idx in spans:
+        if start_idx <= idx:
+            current = page_no
+        else:
+            break
+    return current
+
+
+# def run(script_text: str, input_text: str) -> Dict[str, Any]:
+#     tree = parse_script(script_text)
+#     g = ExecEnv(original_text=input_text, current_text=input_text, outputs={})
+#     # Execute variables in order
+#     for node in tree:
+#         if node.kind == 'var':
+#             eval_variable(node, g)
+#     return g.outputs
 
 def run(script_text: str, input_text: str) -> Dict[str, Any]:
     tree = parse_script(script_text)
@@ -506,7 +557,23 @@ def run(script_text: str, input_text: str) -> Dict[str, Any]:
     for node in tree:
         if node.kind == 'var':
             eval_variable(node, g)
+
+    # After values are computed, add "<var> pageNo" entries for string values
+    page_spans = _build_page_spans(input_text)
+    if page_spans:
+        for name, val in list(g.outputs.items()):
+            # avoid creating pageNo for pageNo fields themselves
+            if name.endswith(" pageNo"):
+                continue
+            if isinstance(val, str) and val:
+                idx = input_text.find(val)
+                if idx >= 0:
+                    page_no = _page_for_index(idx, page_spans)
+                    if page_no is not None:
+                        g.outputs[f"{name} pageNo"] = page_no
+
     return g.outputs
+
 
 def _write_csv(out_path, headers, outputs, source_name):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -533,7 +600,12 @@ def main():
     #     input_text = f.read()
 
     tree_for_header = parse_script(script_text)
-    var_order = [n.name for n in tree_for_header if n.kind == 'var']
+    base_vars  = [n.name for n in tree_for_header if n.kind == 'var']
+
+    var_order = []
+    for name in base_vars:
+        var_order.append(name)
+        var_order.append(f"{name} pageNo")
 
     # outputs = run(script_text, input_text)
 

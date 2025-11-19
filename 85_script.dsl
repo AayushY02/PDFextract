@@ -52,8 +52,7 @@ name_of :
                      store(var_kouji)
                      set(var_kouji)
 
-
-「同種工事（技術者）」:
+「同種工事（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -105,7 +104,7 @@ name_of :
                   store(new) 
                   set(new)
 
-「同種工事（企業）」:
+「同種工事（技術者）」:
    check : name_of
    has value : 本官
    if true : 
@@ -149,15 +148,15 @@ name_of :
                            set(var_ts_kigyo_true2)
    if false:
       search in: all
-      search text: "元請けとして、以下に示す同種工事"
+      search text: "次に掲げる基準を満たす配置予定技術者"
       if found : 
          take right : 
             search in : taken
-            search text : "【企業】"
+            search text : "同種工事:"
             if found : 
                take right : 
                   search in : taken
-                  search text : "同種工事："
+                  search text : "配置予定技術者と直接的かつ恒常的な雇用関係"
                   if found : 
                      take left : 
                         remove whitespaces
