@@ -620,6 +620,9 @@ def main():
             raise SystemExit("--outdir is required when using --input_dir")
         in_dir = args.input_dir
         out_dir = args.outdir
+
+        summary_rows = []  # NEW: keep all rows for this folder
+
         # process all .txt files (non-recursive)
         for fname in sorted(os.listdir(in_dir)):
             if not fname.lower().endswith(".txt"):
@@ -631,6 +634,23 @@ def main():
             base = os.path.splitext(fname)[0]
             out_path = os.path.join(out_dir, base + ".csv")
             _write_csv(out_path, var_order, outputs, source_name=fname)
+
+            # build row for summary (same shape as per-file CSV)
+            row = [fname] + [
+                (outputs.get(h, "") if outputs.get(h, "") is not None else "")
+                for h in var_order
+            ]
+            summary_rows.append(row)
+            
+            # NEW: write folder/bureau-wise summary CSV
+        if summary_rows:
+            bureau_name = os.path.basename(os.path.normpath(in_dir))
+            summary_path = os.path.join(out_dir, f"{bureau_name}_summary.csv")
+            os.makedirs(os.path.dirname(summary_path), exist_ok=True)
+            with open(summary_path, "w", newline="", encoding="utf-8-sig") as f:
+                w = csv.writer(f)
+                w.writerow(['file name'] + var_order)
+                w.writerows(summary_rows)
         return
 
  # --- Single-file mode ---

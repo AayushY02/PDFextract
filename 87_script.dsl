@@ -8,9 +8,9 @@ has_eval_phrase :
 
 name_bu : 
    search in : all
-   search text : "四国地方整備局"
+   search text : "中国地方整備局"
    if found : 
-      set("四国地方整備局")
+      set("中国地方整備局")
 
 name_of :
    search in : all
@@ -23,7 +23,7 @@ name_of :
       if found :
          take right
             search in : taken
-            search text : "四国地方整備局"
+            search text : "中国地方整備局"
             if found:
                take right:
                   search in : taken
@@ -45,115 +45,58 @@ name_of :
          if found : 
             take left : 
                search in : taken
-               search text : "（電子入札及び電子契約対象案件）"
+               search text : "（電子入札対象案件）"
                if found : 
                   take left :
                      remove whitespaces
                      store(var_kouji)
                      set(var_kouji)
-               if not found : 
-                  remove whitespaces
-                  store(var_kouji)
-                  set(var_kouji)
 
 
 「同種工事（企業）」:
    search in : all
-   search text : "下記の条件を満足する同種工事を施工した実績を有すること"
+   search text : ["同種工事とは、", "なお、同種工事の施工実績は、"]
    if found : 
-      take right :
+      search in : all
+      search text : "同種工事とは、"
+      if found : 
+         take right :  
+            search in : taken
+            search text : "なお、同種工事の施工実績は、"
+            if found : 
+               take left : 
+                  remove whitespaces
+                  store(var3)
+                  set(var3)  
+
+「同種工事（技術者）」:
+   search in : all
+   search text : "現場での作業に配置する技術者は、"
+   if found : 
+      take right : 
          search in : taken
-         search text : "実績に限る。・同種工事として、"
+         search text :  "同種工事とは、"
          if found : 
             take right : 
                search in : taken
-               search text : "なお、当該実績が"
+               search text : "ただし、"
                if found : 
                   take left : 
-                     replace("を有すること。","")
-                     store(var3)
-                     set(var3)
-         if not found : 
-            search in : taken
-            search text : "実績に限る。同種工事とは、"
-            if found : 
-               take right : 
-                  search in : taken
-                  search text : "なお、当該実績が"
-                  if found : 
-                     take left : 
-                        replace("を有すること。","")
-                        store(var4)
-                        set(var4)
-            if not found : 
-               search in : taken
-               search text : "実績に限る。・"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "なお、当該実績が"
-                     if found : 
-                        take left : 
-                           replace("を有すること。","")
-                           store(var5)
-                           set(var5)
+                     remove whitespaces
+                     store(var4)
+                     set(var4)
    if not found : 
       search in : all
-      search text : "下記の条件を満足する同種工事１を施工した実績を有すること"
+      search text : "基準を満たす主任技術者又は監理技術者を当該工事に"
       if found : 
          take right : 
             search in : taken
-            search text :  "同種工事１とは、"
+            seach text : ("に掲げる同種工事の経験を有する者であること。" , "の同種工事の施工実績を有していること。")
             if found : 
-               take right : 
-                  search in : taken
-                  search text : "なお、当該実績は"
-                  if found : 
-                     take left : 
-                        replace("を有すること。","")
-                        store(var6)
-                        set(var6)
-        
+               set(「同種工事（企業）」)
 
 
-「同種工事（技術者）」:
-   check : name_of
-   has value : 本官
-   if true : 
-      search in : all
-      search text : "同種工事２の経験を有する者"
-      if found : 
-         search in : all
-         search text : "同種工事２とは"
-         if found : 
-            take right :  
-               search in : taken
-               search text : "なお、当該経験は"
-               if found :
-                  take left : 
-                     replace("を有すること。", "")
-                     store(var1)
-                     set(var1)
-   if false:
-      search in: all
-      search text: "同種工事（上記（４）に掲げる工事）の経験を有する者であること"
-      if found : 
-         set(「同種工事（企業）」)
-      if not found :
-         search in : all
-         search text : "元請けの技術者として"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "（共同企業体の構成員としての経験は"
-               if found : 
-                  take left : 
-                     replace("を有すること。", "")
-                     store(var2)
-                     set(var2)
-
-
-「より同種性の高い（技術者）」: 
+「より高い同種性（企業）doushusei_co_0」:  
    check : name_of
    has value : 本官
    if true : 

@@ -8,7 +8,7 @@ import re
 # inputfile = "1101_02 入札説明書【令和5年度　愛南地区舗装修繕工事】.txt"
 # inputfile = "0601_01-1 入札説明書.txt"
 # inputfile = "0711_02 入札説明書本文.txt"
-inputfile = "0502_02-1 入札説明書.txt"
+inputfile = "88_test_input.txt"
 
 
 with open(inputfile, "rt", encoding="utf-8") as f:  # 改行コード等除去後のテキストファイルを開く
