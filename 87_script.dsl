@@ -21,7 +21,7 @@ name_of :
       search in : all
       search text : "分任支出負担行為担当官"
       if found :
-         take right
+         take right:
             search in : taken
             search text : "中国地方整備局"
             if found:
@@ -45,7 +45,7 @@ name_of :
          if found : 
             take left : 
                search in : taken
-               search text : "（電子入札対象案件）"
+               search text : "(電子入札対象案件)"
                if found : 
                   take left :
                      remove whitespaces
@@ -53,7 +53,7 @@ name_of :
                      set(var_kouji)
 
 
-「同種工事（企業）」:
+「同種工事(企業)」:
    search in : all
    search text : ["同種工事とは、", "なお、同種工事の施工実績は、"]
    if found : 
@@ -69,7 +69,7 @@ name_of :
                   store(var3)
                   set(var3)  
 
-「同種工事（技術者）」:
+「同種工事(技術者)」:
    search in : all
    search text : "現場での作業に配置する技術者は、"
    if found : 
@@ -93,194 +93,764 @@ name_of :
             search in : taken
             seach text : ("に掲げる同種工事の経験を有する者であること。" , "の同種工事の施工実績を有していること。")
             if found : 
-               set(「同種工事（企業）」)
+               set(「同種工事(企業)」)
 
 
-「より高い同種性（企業）doushusei_co_0」:  
+「より高い同種性(企業)doushusei_co_0」:  
    check : name_of
    has value : 本官
    if true : 
-      search in : all
-      search text : "同種工事２の経験を有する者"
-      if found : 
-         search in : all
-         search text : "１）技術者評価"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "「より同種性の高い工事」とは、同種工事２のうち「"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "」とする。"
-                     if found : 
-                        take left : 
-                           store(var5)
-                           set(var5)
-
-
    if false : 
       search in : all
-      search text : ("「より同種性の高い工事」：" , "「同種性が認められる工事」")
+      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "企業の能力等(加算点)で提出した企業において"
          if found : 
             take right:
                search in : taken
-               search text : "」における「より同種性の高い工事」とは、"
+               search text : "企業の能力等(加算点)"
                if found : 
                   take right : 
                      search in : taken
-                     search text : "を有することとする。"
+                     search text : "より高い同種性が認められる工事:"
+                     if found : 
+                        take right :
+                           search in : taken
+                           search text :  "より高い同種性が認められる工事の実績"
+                           if found : 
+                              take left : 
+                                 remove whitespaces
+                                 store(var10)
+                                 set(var10)
+      if not found : 
+         search in : all
+         search text : "企業の能力等("
+         if found : 
+            take right : 
+               search in : taken
+               search text : "同種工事の実績において、"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "で評価し、"
                      if found : 
                         take left : 
-                           store(var3)
-                           set(var3)
-                     if not found : 
-                        search in : taken
-                        search text : "とする。"
-                        if found : 
-                           take left:
-                              store(var4)
-                              set(var4)
+                           remove whitespaces
+                           store(var20)
+                           set(var20)
 
-
-「同種性が認められる（技術者）」:
-   check : name_of
-   has value : 本官
-   if true :
-      search in : all
-      search text : "同種工事２の経験を有する者"
-      if found : 
-         search in : all
-         search text : "１）技術者評価"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "「同種性が認められる工事」とは、"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "記載している同種工事２を示す。"
-                     if found : 
-                        store(var7)
-                        set(var7)
-
-   if false : 
-      search in : all
-      search text : ("「より同種性の高い工事」：" , "「同種性が認められる工事」")
-      if found : 
-         search in : all
-         search text : "１）技術者評価"
-         if found : 
-            take right :
-               search in : taken
-               search text : "「同種性が認められる工事」とは、"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : 記載している同種工事を示す。
-                     if found : 
-                        store(var6)
-                        set(var6)
-
-「より同種性の高い（企業）」:
+「同種性(企業)doushusei_co_2」:  
    check : name_of
    has value : 本官
    if true : 
-      search in : all
-      search text : "同種工事２の経験を有する者"
-      if found : 
-         search in : all
-         search text : "１）技術者評価"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "．企業の施工実績"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "「より同種性の高い工事」とは、同種工事１のうち「"
-                     if found :
-                        take right : 
-                           search in : taken
-                           search text : "」とする。"
-                           if found : 
-                              take left : 
-                                 store(var8)
-                                 set(var8)       
    if false : 
       search in : all
-      search text : ("「より同種性の高い工事」：", "「同種性が認められる工事」")
+      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "企業の能力等(加算点)で提出した企業において"
          if found : 
-            take right : 
+            take right:
                search in : taken
-               search text : "．企業の施工実績"
+               search text : "企業の能力等(加算点)"
                if found : 
                   take right : 
                      search in : taken
-                     search text : "示す。「より同種性の高い工事」とは、"
+                     search text : "より高い同種性が認められる工事:"
                      if found : 
-                        take right : 
+                        take right :
                            search in : taken
-                           search text : "を有することとする。"
+                           search text : "同種性が認められる工事:"
                            if found : 
-                              take left : 
-                                 store(var7)
-                                 set(var7)
-                           if not found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "共同企業体の構成員"
+                                 if found : 
+                                    take left : 
+                                       remove whitespaces
+                                       store(var40)
+                                       set(var40)
+                     if not found :    
+                        search in : taken
+                        search text : "同種性が認められる工事:"
+                        if found : 
+                           take right : 
                               search in : taken
-                              search text : "とする。"
+                              search text : "共同企業体の構成員"
                               if found : 
                                  take left : 
-                                    store(var8)
-                                    set(var8)
+                                    remove whitespaces
+                                    store(var50)
+                                    set(var50)
 
 
-「同種性が認められる（企業）」: 
+
+「より高い同種性(技術者) doushusei_en_0」:
+   check : name_of
+   has value : 本官
+   if true : 
+   if false : 
+      search in : all
+      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
+      if found : 
+         search in : all
+         search text : "企業の能力等(加算点)で提出した企業において"
+         if found : 
+            take right:
+               search in : taken
+               search text : "企業の能力等(加算点)"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "より高い同種性が認められる工事:"
+                     if found : 
+                        take right :
+                           search in : taken
+                           search text : "同種性が認められる工事:"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "技術者の能力等(加算点)"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "より高い同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "より高い同種性が認められる工事の実績"
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   store(var60)
+                                                   set(var60)
+                           if not found : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "より高い同種性が認められる工事:"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "より高い同種性が認められる工事の実績"
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                store(var60)
+                                                set(var60)
+                     if not found :    
+                        search in : taken
+                        search text : "同種性が認められる工事:"
+                        if found : 
+                           take right : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "より高い同種性が認められる工事:"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "より高い同種性が認められる工事の実績"
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                store(var60)
+                                                set(var60)
+                        if not found : 
+                           search in : taken
+                           search text : "技術者の能力等(加算点)"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "より高い同種性が認められる工事:"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "より高い同種性が認められる工事の実績"
+                                       if found : 
+                                          take left : 
+                                             remove whitespaces
+                                             store(var60)
+                                             set(var60)
+      if not found : 
+         search in : all
+         search text : "企業の能力等("
+         if found : 
+            take right : 
+               search in : taken
+               search text : "同種工事の実績において、"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : 
+
+「高い同種性(技術者) doushusei_en_1」:
+   check : name_of
+   has value : 本官
+   if true : 
+   if false : 
+      search in : all
+      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
+      if found : 
+         search in : all
+         search text : "企業の能力等(加算点)で提出した企業において"
+         if found : 
+            take right:
+               search in : taken
+               search text : "企業の能力等(加算点)"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "より高い同種性が認められる工事:"
+                     if found : 
+                        take right :
+                           search in : taken
+                           search text : "同種性が認められる工事:"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "技術者の能力等(加算点)"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "より高い同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "高い同種性が認められる工事:"
+                                             if found : 
+                                                search in : taken
+                                                search text : "同種性が認められる工事:"
+                                                if found : 
+                                                   take right : 
+                                                      search in : taken
+                                                      search text : "高い同種性が認められる工事の実績"
+                                                      if found : 
+                                                         take left : 
+                                                            remove whitespaces
+                                                            store(var60)
+                                                            set(var60)
+                                       if not found : 
+                                          search in : taken
+                                          search text : "高い同種性が認められる工事:"
+                                          if found : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "高い同種性が認められる工事の実績"
+                                                   if found : 
+                                                      take left : 
+                                                         remove whitespaces
+                                                         store(var60)
+                                                         set(var60)
+                           if not found : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "より高い同種性が認められる工事:"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "高い同種性が認められる工事:"
+                                          if found : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "高い同種性が認められる工事の実績"
+                                                   if found : 
+                                                      take left : 
+                                                         remove whitespaces
+                                                         store(var60)
+                                                         set(var60)
+                                    if not found : 
+                                       search in : taken
+                                       search text : "高い同種性が認められる工事:"
+                                       if found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "高い同種性が認められる工事の実績"
+                                                if found : 
+                                                   take left : 
+                                                      remove whitespaces
+                                                      store(var60)
+                                                      set(var60)
+                     if not found :    
+                        search in : taken
+                        search text : "同種性が認められる工事:"
+                        if found : 
+                           take right : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "より高い同種性が認められる工事:"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "高い同種性が認められる工事:"
+                                          if found : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "高い同種性が認められる工事の実績"
+                                                   if found : 
+                                                      take left : 
+                                                         remove whitespaces
+                                                         store(var60)
+                                                         set(var60)
+                                    if not found : 
+                                       search in : taken
+                                       search text : "高い同種性が認められる工事:"
+                                       if found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "高い同種性が認められる工事の実績"
+                                                if found : 
+                                                   take left : 
+                                                      remove whitespaces
+                                                      store(var60)
+                                                      set(var60)
+                        if not found : 
+                           search in : taken
+                           search text : "技術者の能力等(加算点)"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "より高い同種性が認められる工事:"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "高い同種性が認められる工事:"
+                                       if found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "高い同種性が認められる工事の実績"
+                                                if found : 
+                                                   take left : 
+                                                      remove whitespaces
+                                                      store(var60)
+                                                      set(var60)
+                                 if not found : 
+                                    search in : taken
+                                    search text : "高い同種性が認められる工事:"
+                                    if found : 
+                                       search in : taken
+                                       search text : "同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "高い同種性が認められる工事の実績"
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   store(var60)
+                                                   set(var60)
+
+
+「同種性(技術者) doushusei_en_2」:
+   check : name_of
+   has value : 本官
+   if true : 
+   if false : 
+      search in : all
+      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
+      if found : 
+         search in : all
+         search text : "企業の能力等(加算点)で提出した企業において"
+         if found : 
+            take right:
+               search in : taken
+               search text : "企業の能力等(加算点)"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "より高い同種性が認められる工事:"
+                     if found : 
+                        take right :
+                           search in : taken
+                           search text : "同種性が認められる工事:"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "技術者の能力等(加算点)"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "より高い同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "高い同種性が認められる工事:"
+                                             if found : 
+                                                search in : taken
+                                                search text : "同種性が認められる工事:"
+                                                if found : 
+                                                   take right : 
+                                                      search in : taken
+                                                      search text : "同種性が認められる工事:"
+                                                      if found : 
+                                                         take right : 
+                                                            search in : taken
+                                                            search text : "共同企業体の構成員"
+                                                            if found : 
+                                                               take left : 
+                                                                  remove whitespaces
+                                                                  store(var60)
+                                                                  set(var60)
+                                             if not found : 
+                                                search in : taken
+                                                search text : "同種性が認められる工事:"
+                                                if found : 
+                                                   take right : 
+                                                      search in : taken
+                                                      search text : "共同企業体の構成員"
+                                                      if found : 
+                                                         take left : 
+                                                            remove whitespaces
+                                                            store(var60)
+                                                            set(var60)
+                                       if not found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "高い同種性が認められる工事の実績"
+                                                if found : 
+                                                   take left : 
+                                                      remove whitespaces
+                                                      store(var60)
+                                                      set(var60)
+                           if not found : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "より高い同種性が認められる工事:"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "高い同種性が認められる工事:"
+                                          if found : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "同種性が認められる工事:"
+                                                   if found : 
+                                                      take right : 
+                                                         search in : taken
+                                                         search text : "共同企業体の構成員"
+                                                         if found : 
+                                                            take left : 
+                                                               remove whitespaces
+                                                               store(var60)
+                                                               set(var60)
+                                    if not found : 
+                                       search in : taken
+                                       search text : "同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "高い同種性が認められる工事の実績"
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   store(var60)
+                                                   set(var60)
+                     if not found :    
+                        search in : taken
+                        search text : "同種性が認められる工事:"
+                        if found : 
+                           take right : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "より高い同種性が認められる工事:"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "高い同種性が認められる工事:"
+                                          if found : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "同種性が認められる工事:"
+                                                   if found : 
+                                                      take right : 
+                                                         search in : taken
+                                                         search text : "共同企業体の構成員"
+                                                         if found : 
+                                                            take left : 
+                                                               remove whitespaces
+                                                               store(var60)
+                                                               set(var60)
+                                          if not found : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "共同企業体の構成員"
+                                                   if found : 
+                                                      take left : 
+                                                         remove whitespaces
+                                                         store(var60)
+                                                         set(var60)
+                                    if not found : 
+                                       search in : taken
+                                       search text : "同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "高い同種性が認められる工事の実績"
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   store(var60)
+                                                   set(var60)
+                        if not found : 
+                           search in : taken
+                           search text : "技術者の能力等(加算点)"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "より高い同種性が認められる工事:"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "高い同種性が認められる工事:"
+                                       if found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "同種性が認められる工事:"
+                                                if found : 
+                                                   take right : 
+                                                      search in : taken
+                                                      search text : "共同企業体の構成員"
+                                                      if found : 
+                                                         take left : 
+                                                            remove whitespaces
+                                                            store(var60)
+                                                            set(var60)
+                                 if not found : 
+                                    search in : taken
+                                    search text : "同種性が認められる工事:"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "高い同種性が認められる工事の実績"
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                store(var60)
+                                                set(var60)
+
+
+「配点(企業)」: 
+   check : name_of
+   has value : 本官
+   if true : 
+   if false : 
+      search in : all
+      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
+      if found : 
+         search in : all
+         search text : "企業の能力等(加算点)で提出した企業において"
+         if found : 
+            take right:
+               search in : taken
+               search text : "企業の能力等(加算点)"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "で評価し、それぞれ"
+                     if found : 
+                        take right :  
+                           search in : taken
+                           search text : "の加算点を"
+                           if found : 
+                              take left : 
+                                 remove whitespaces 
+                                 store(score_co)
+                                 set(score_co)
+      if not found : 
+         search in : all
+         search text : "企業の能力等("
+         if found : 
+            take right : 
+               search in : taken
+               search text : "、それぞれ"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "の加算点を与える。"
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           store(score_co)
+                           set(score_co)
+
+
+「配点(技術者)」: 
    check : name_of
    has value : 本官
    if true : 
       search in : all
-      search text : "同種工事２の経験を有する者"
-      if found : 
-         search in : all
-         search text : "１）技術者評価"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "．企業の施工実績"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "「同種性が認められる工事」とは、"
-                     if found :
-                        take right : 
-                           search in : taken
-                           search text : "記載している同種工事１を示す。"
-                           if found : 
-                              set(「同種工事（企業）」)     
+      search text : "技術者の能力等("
+      if found :  
+         take right : 
+            search in : taken
+            search text : "で評価し、"
+            if found :  
+               take right : 
+                  search in : taken
+                  search text : "の加算点を与える。"
+                  if found : 
+                     take left : 
+                        replace("それぞれ","")
+                        remove whitespaces
+                        store(score_en)
+                        set(score_en)
+
    if false : 
       search in : all
-      search text : ("「より同種性の高い工事」：", "「同種性が認められる工事」")
+      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "企業の能力等(加算点)で提出した企業において"
          if found : 
-            take right : 
+            take right:
                search in : taken
-               search text : "．企業の施工実績"
+               search text : "企業の能力等(加算点)"
                if found : 
                   take right : 
                      search in : taken
-                     search text : "「同種性が認められる工事」とは、"
+                     search text : "より高い同種性が認められる工事:"
                      if found : 
-                        take right : 
+                        take right :
                            search in : taken
-                           search text : "記載している同種工事を示す。"
-                           if found :    
-                              set(「同種工事（企業）」)
+                           search text : "同種性が認められる工事:"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "技術者の能力等(加算点)"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "で評価し、それぞれ"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "の加算点を"
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   store(score_en)
+                                                   set(score_en)
+                           if not found : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "で評価し、それぞれ"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "の加算点を"
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                store(score_en)
+                                                set(score_en)
+                     if not found :    
+                        search in : taken
+                        search text : "同種性が認められる工事:"
+                        if found : 
+                           take right : 
+                              search in : taken
+                              search text : "技術者の能力等(加算点)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "で評価し、それぞれ"
+                                    if found : 
+                                       take right : 
+                                          search in : taken
+                                          search text : "の加算点を"
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                store(score_en)
+                                                set(score_en)
+                        if not found : 
+                           search in : taken
+                           search text : "技術者の能力等(加算点)"
+                           if found : 
+                              take right : 
+                                 search in : taken
+                                 search text : "で評価し、それぞれ"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "の加算点を"
+                                       if found : 
+                                          take left : 
+                                             remove whitespaces
+                                             store(score_en)
+                                             set(score_en)
+      if not found : 
+         search in : all
+         search text : "企業の能力等("
+         if found : 
+            take right : 
+               search in : taken
+               search text : "技術者の能力等("
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "で評価し、"
+                     if found : 
+                        take right :  
+                           search in : taken
+                           search taken : "の加算点を与える。"
+                           if found : 
+                              take left : 
+                                 replace("それぞれ","")
+                                 remove whitespaces
+                                 store(score_en)
+                                 set(score_en)
+                        

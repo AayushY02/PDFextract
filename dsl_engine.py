@@ -393,6 +393,8 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                     lc = arg.lower()
                     if arg in env.stored:
                         env.set_value = env.stored[arg]
+                    elif arg in env.outputs:
+                        env.set_value = env.outputs[arg]
                     elif lc == 'true':
                         env.set_value = True
                     elif lc == 'false':
@@ -430,6 +432,8 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                     lc = arg.lower()
                     if arg in env.stored:
                         env.set_value = env.stored[arg]
+                    elif arg in env.outputs:
+                        env.set_value = env.outputs[arg]
                     elif lc == 'true':
                         env.set_value = True
                     elif lc == 'false':

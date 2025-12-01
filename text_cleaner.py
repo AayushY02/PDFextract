@@ -26,6 +26,7 @@ from pathlib import Path
 import shutil
 from datetime import datetime
 import csv
+import re
 
 # ---------- CONFIGURATION ----------
 BASE_DIR = Path("results")
@@ -37,6 +38,52 @@ LOG_FILE = BASE_DIR / "cleaning_log.txt"
 # ---------- TABLE HELPERS ----------
 TABLE_START_MARKER = "[[TABLE_START"
 TABLE_END_MARKER = "[[TABLE_END]]"
+
+# ---------- CHARACTER & LABEL HELPERS ----------
+
+def _is_cjk(ch: str) -> bool:
+    """Return True if ch is a Japanese CJK/Hiragana/Katakana-ish character."""
+    if not ch:
+        return False
+    code = ord(ch)
+    return (
+        0x4E00 <= code <= 0x9FFF   # CJK Unified
+        or 0x3400 <= code <= 0x4DBF  # CJK Ext A
+        or 0x3040 <= code <= 0x309F  # Hiragana
+        or 0x30A0 <= code <= 0x30FF  # Katakana
+        or 0xFF66 <= code <= 0xFF9D  # Half-width Katakana
+        or ch in "々〆ヶ"
+    )
+
+
+_LABEL_LIKE_SUFFIXES = (
+    "日", "等", "名", "場所", "内容", "概要", "期", "期間", "方法", "方式", "金額",
+)
+
+
+def _strip_point_bullet_prefix(line: str) -> str:
+    """
+    Remove leading bullets / numbers like:
+    '1. ', '２．', '(1)', '①', etc.
+    """
+    s = line.strip()
+    # strip typical numeric / bullet style prefixes
+    s = re.sub(r"^[0-9０-９IVXivx一二三四五六七八九十①-⑳\(\)（）\.\s　]+", "", s)
+    return s
+
+
+def _is_label_like_point(line: str) -> bool:
+    """
+    Heuristic:判定 if a bullet line is something like '公告日', '契約担当官等',
+    '工事名', '工事場所' etc.
+    """
+    core = _strip_point_bullet_prefix(line)
+    if not core:
+        return False
+    # Labels tend to be short
+    if len(core) > 12:
+        return False
+    return core.endswith(_LABEL_LIKE_SUFFIXES)
 
 
 def _apply_preserving_tables(text: str, transform) -> str:
@@ -1123,18 +1170,79 @@ def _clean_collapse_point_lines_core(text: str) -> str:
             return False
         return True
 
+    # def join_buffer(buffer_lines):
+    #     """
+    #     Join physical lines belonging to the same point.
+
+    #     - If the point header looks like a 'label' (公告日, 契約担当官等, 工事名, ...),
+    #       we ALWAYS put a space between the label line and the first value line.
+    #     - For all other joins, we avoid inserting a space between CJK–CJK
+    #       (to prevent '入 札', 'に ついて').
+    #     """
+    #     if not buffer_lines:
+    #         return ""
+
+    #     merged_line = buffer_lines[0].strip()
+    #     is_label_point = _is_label_like_point(buffer_lines[0])
+
+    #     for idx, piece in enumerate(buffer_lines[1:], start=1):
+    #         chunk = piece.strip()
+    #         if not chunk:
+    #             continue
+
+    #         need_space = False
+    #         if merged_line and merged_line[-1] not in no_space_after and chunk[0] not in no_space_before:
+    #             if is_label_point and idx == 1:
+    #                 # First continuation after a label-like header: always separate
+    #                 need_space = True
+    #             else:
+    #                 # Normal continuation: avoid CJK–CJK spaces
+    #                 if not (_is_cjk(merged_line[-1]) and _is_cjk(chunk[0])):
+    #                     need_space = True
+
+    #         if need_space:
+    #             merged_line += " "
+    #         merged_line += chunk
+
+    #     return merged_line
+
     def join_buffer(buffer_lines):
+        """
+        Join physical lines belonging to the same point.
+        """
         if not buffer_lines:
             return ""
+
+        # Find the first line that looks like a label (even if it's not the first physical line)
+        label_idx = None
+        for i, ln in enumerate(buffer_lines):
+            if _is_label_like_point(ln):
+                label_idx = i
+                break
+        is_label_point = label_idx is not None
+
         merged_line = buffer_lines[0].strip()
-        for piece in buffer_lines[1:]:
+
+        for idx, piece in enumerate(buffer_lines[1:], start=1):
             chunk = piece.strip()
             if not chunk:
                 continue
+
+            need_space = False
             if merged_line and merged_line[-1] not in no_space_after and chunk[0] not in no_space_before:
+                # Force a space before the label itself and the first value line after the label
+                if is_label_point and (idx == label_idx or idx == label_idx + 1):
+                    need_space = True
+                else:
+                    if not (_is_cjk(merged_line[-1]) and _is_cjk(chunk[0])):
+                        need_space = True
+
+            if need_space:
                 merged_line += " "
             merged_line += chunk
+
         return merged_line
+
 
     lines = text.splitlines()
     ends_with_newline = text.endswith("\n")
@@ -1247,6 +1355,18 @@ def clean_collapse_point_lines(text: str) -> str:
     """Wrapper that preserves table blocks before collapsing bullet lines."""
     return _apply_preserving_tables(text, _clean_collapse_point_lines_core)
 
+def clean_fix_common_split_words(text: str) -> str:
+    """
+    Fix some very common bad splits that still slip through.
+    """
+    replacements = {
+        "入 札": "入札",
+        "に ついて": "について",
+    }
+    for bad, good in replacements.items():
+        text = text.replace(bad, good)
+    return text
+
 
 def _clean_collapse_paragraph_lines_core(text: str) -> str:
     """
@@ -1313,21 +1433,38 @@ def _clean_collapse_paragraph_lines_core(text: str) -> str:
                 balance["jp_quote"] = max(0, balance["jp_quote"] - 1)
 
     def join_group(buffer_lines):
+        """
+        Join physical lines of a normal paragraph.
+
+        - Same spacing rules as for points, but without label/value special-case.
+        - Default: DO NOT insert a space between CJK–CJK joins.
+        """
         if not buffer_lines:
             return ""
+
         merged = buffer_lines[0].strip()
         for piece in buffer_lines[1:]:
             chunk = piece.strip()
             if not chunk:
                 continue
+
+            need_space = False
             if (
                 merged
                 and merged[-1] not in no_space_after
                 and chunk[0] not in no_space_before
             ):
+                # Only add a space if it's NOT CJK–CJK.
+                if not (_is_cjk(merged[-1]) and _is_cjk(chunk[0])):
+                    need_space = True
+
+            if need_space:
                 merged += " "
             merged += chunk
+
         return merged
+
+    
 
     def is_probable_point_line(line: str) -> bool:
         stripped = line.lstrip()
@@ -1968,6 +2105,7 @@ def apply_cleaning_pipeline(text: str, file_name: str = "") -> str:
         clean_collapse_paragraph_lines,
         # Footnotes formatting and relocation
         clean_process_footnotes,
+        clean_fix_common_split_words
     ]
 
     for func in cleaning_steps:

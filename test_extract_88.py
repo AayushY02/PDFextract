@@ -54,7 +54,7 @@ text0 = t0[0]
 name_co =text0.strip()         # 前後の空白文字を削除
 
 print(name_co)
-
+doushu_co = ""
 #　同種工事の要件文字列の抽出（企業） doushu_co
 
 if ("下記の条件を満足する同種工事を施工した実績を有すること" in text) :  # 記載があるかの判定
@@ -82,6 +82,8 @@ elif ("下記の条件を満足する同種工事１を施工した実績を有�
 
 #　同種工事の要件文字列の抽出（技術者） doushu_en
 
+print("confirm : " , text0 , "FINISH")
+
 if name_of != "本官": # 分任官工事・本官工事とのサブルーチン分け
   if ("同種工事（上記（４）に掲げる工事）の経験を有する者であること" in text):  # 記載があるかの判定
     doushu_en = doushu_co 
@@ -97,6 +99,7 @@ elif ("同種工事２の経験を有する者" in text):
     text1 = t1[-1]
     t1 = text1.partition("なお、当該経験は") # 文字列の前をタプルとして抽出
     text1 = t1[0]
+    # print("confirm : " , text1)
     doushu_en = text1.replace("を有すること。", "")
 
 print("「同種工事（企業）」", doushu_co)

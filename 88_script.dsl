@@ -21,7 +21,7 @@ name_of :
       search in : all
       search text : "分任支出負担行為担当官"
       if found :
-         take right
+         take right : 
             search in : taken
             search text : "四国地方整備局"
             if found:
@@ -45,7 +45,7 @@ name_of :
          if found : 
             take left : 
                search in : taken
-               search text : "（電子入札及び電子契約対象案件）"
+               search text : "(電子入札及び電子契約対象案件)"
                if found : 
                   take left :
                      remove whitespaces
@@ -63,7 +63,7 @@ name_of :
    if found : 
       take right :
          search in : taken
-         search text : "実績に限る。・同種工事として、"
+         search text : "実績に限る。\\n・同種工事として、"
          if found : 
             take right : 
                search in : taken
@@ -99,11 +99,11 @@ name_of :
                            set(var5)
    if not found : 
       search in : all
-      search text : "下記の条件を満足する同種工事１を施工した実績を有すること"
+      search text : "下記の条件を満足する同種工事1を施工した実績を有すること"
       if found : 
          take right : 
             search in : taken
-            search text :  "同種工事１とは、"
+            search text :  "同種工事1とは、"
             if found : 
                take right : 
                   search in : taken
@@ -121,10 +121,10 @@ name_of :
    has value : 本官
    if true : 
       search in : all
-      search text : "同種工事２の経験を有する者"
+      search text : "同種工事2の経験を有する者"
       if found : 
          search in : all
-         search text : "同種工事２とは"
+         search text : "同種工事2とは"
          if found : 
             take right :  
                search in : taken
@@ -136,7 +136,7 @@ name_of :
                      set(var1)
    if false:
       search in: all
-      search text: "同種工事（上記（４）に掲げる工事）の経験を有する者であること"
+      search text: "同種工事(上記(4)に掲げる工事)の経験を有する者であること"
       if found : 
          set(「同種工事（企業）」)
       if not found :
@@ -145,7 +145,7 @@ name_of :
          if found : 
             take right : 
                search in : taken
-               search text : "（共同企業体の構成員としての経験は"
+               search text : "(共同企業体の構成員としての経験は"
                if found : 
                   take left : 
                      replace("を有すること。", "")
@@ -158,14 +158,14 @@ name_of :
    has value : 本官
    if true : 
       search in : all
-      search text : "同種工事２の経験を有する者"
+      search text : "同種工事2の経験を有する者"
       if found : 
          search in : all
          search text : "１）技術者評価"
          if found : 
             take right : 
                search in : taken
-               search text : "「より同種性の高い工事」とは、同種工事２のうち「"
+               search text : "「より同種性の高い工事」とは、同種工事2のうち「"
                if found : 
                   take right : 
                      search in : taken
@@ -178,10 +178,10 @@ name_of :
 
    if false : 
       search in : all
-      search text : ("「より同種性の高い工事」：" , "「同種性が認められる工事」")
+      search text : ("「より同種性の高い工事」:" , "「同種性が認められる工事」")
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "1)技術者評価"
          if found : 
             take right:
                search in : taken
@@ -208,7 +208,7 @@ name_of :
    has value : 本官
    if true :
       search in : all
-      search text : "同種工事２の経験を有する者"
+      search text : "同種工事2の経験を有する者"
       if found : 
          search in : all
          search text : "１）技術者評価"
@@ -219,7 +219,7 @@ name_of :
                if found : 
                   take right : 
                      search in : taken
-                     search text : "記載している同種工事２を示す。"
+                     search text : "記載している同種工事2を示す。"
                      if found : 
                         store(var7)
                         set(var7)
@@ -229,7 +229,7 @@ name_of :
       search text : ("「より同種性の高い工事」：" , "「同種性が認められる工事」")
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "1)技術者評価"
          if found : 
             take right :
                search in : taken
@@ -247,10 +247,10 @@ name_of :
    has value : 本官
    if true : 
       search in : all
-      search text : "同種工事２の経験を有する者"
+      search text : "同種工事2の経験を有する者"
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "1)技術者評価"
          if found : 
             take right : 
                search in : taken
@@ -258,7 +258,7 @@ name_of :
                if found : 
                   take right : 
                      search in : taken
-                     search text : "「より同種性の高い工事」とは、同種工事１のうち「"
+                     search text : "「より同種性の高い工事」とは、同種工事1のうち「"
                      if found :
                         take right : 
                            search in : taken
@@ -272,7 +272,7 @@ name_of :
       search text : ("「より同種性の高い工事」：", "「同種性が認められる工事」")
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "1)技術者評価"
          if found : 
             take right : 
                search in : taken
@@ -303,10 +303,10 @@ name_of :
    has value : 本官
    if true : 
       search in : all
-      search text : "同種工事２の経験を有する者"
+      search text : "同種工事2の経験を有する者"
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "1)技術者評価"
          if found : 
             take right : 
                search in : taken
@@ -318,7 +318,7 @@ name_of :
                      if found :
                         take right : 
                            search in : taken
-                           search text : "記載している同種工事１を示す。"
+                           search text : "記載している同種工事1を示す。"
                            if found : 
                               set(「同種工事（企業）」)     
    if false : 
@@ -326,7 +326,7 @@ name_of :
       search text : ("「より同種性の高い工事」：", "「同種性が認められる工事」")
       if found : 
          search in : all
-         search text : "１）技術者評価"
+         search text : "1)技術者評価"
          if found : 
             take right : 
                search in : taken

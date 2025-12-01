@@ -6,7 +6,8 @@ import re
 # inputfile = "【訂正230531】230526-鳥取-03説明書.txt"
 # inputfile = "230613-広島国道ｰ02入札説明書.txt"
 # inputfile = "230512-本官-01入札説明書.txt"
-inputfile = "230607-太田川-入札説明書.txt"
+# inputfile = "230607-太田川-入札説明書.txt"
+inputfile = "【87】中国_【修正】250114-広砂-01 入札説明書.txt"
 
 with open(inputfile, "rt", encoding="utf-8") as f:  # 改行コード等除去後のテキストファイルを開く
   text = f.read()
@@ -211,3 +212,7 @@ print("「より高い同種性／高い同種性／同種性（企業）list」
 print("「配点（企業）」", score_co)
 print("「より高い同種性／高い同種性／同種性（技術者）list」", doushusei_en)
 print("「配点（技術者）」", score_co)
+
+
+
+["val1", "val2", "val3"]
