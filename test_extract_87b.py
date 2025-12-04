@@ -213,6 +213,3 @@ print("「配点（企業）」", score_co)
 print("「より高い同種性／高い同種性／同種性（技術者）list」", doushusei_en)
 print("「配点（技術者）」", score_co)
 
-
-
-["val1", "val2", "val3"]

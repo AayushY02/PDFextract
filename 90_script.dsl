@@ -58,20 +58,20 @@ name_of :
 
 「同種工事(企業)」:
     search in : all
-    search text : ["「同種工事」は、次の要件を満たす", "同種工事とは4.(4)に明示"]
+    search text : ["「同種工事」は、次の要件を満たす" , "同種工事とは4.(4)に明示"]
     if found : 
-        take right : 
-            search in : taken
-            search text : "次に掲げる施工実績を有すること。"
-            if found : 
-                take right : 
-                    search in : taken
-                    search text : "※施工実績が確認できる資料(コリンズ"
-                    if found :
-                        take left : 
-                            remove whitespaces
-                            store(var_co1)
-                            set(var_co1)
+        search in : all
+        search text : "次に掲げる施工実績を有すること。"
+        if found : 
+            take right : 
+                store(text0)
+                search in : text0
+                search text : "※施工実績が確認できる資料(コリンズ"
+                if found :
+                    take left : 
+                        remove whitespaces
+                        store(text1)
+                        set(text1)
     if not found : 
         search in : all
         search text : ["･同種工事", "･より同種工事"]
@@ -80,7 +80,8 @@ name_of :
             search text : "次の要件を満たす施工実績を有すること。"
             if found :  
                 take right : 
-                    search in : taken
+                    store(text0)
+                    search in : text0
                     search text : "･同種工事:"
                     if found : 
                         take right : 
@@ -89,8 +90,8 @@ name_of :
                             if found :
                                 take left :
                                     remove whitespaces
-                                    store(var_co2)
-                                    set(var_co2)
+                                    store(text1)
+                                    set(text1)
         if not found : 
             search in : all
             search text : "同種工事:"
@@ -99,36 +100,38 @@ name_of :
                 search text : "次の要件を満たす施工実績を有すること。"
                 if found :
                     take right : 
-                        search in : taken
+                        store(text0)
+                        search in : text0
                         search text : "同種工事:"
                         if found : 
                             take right :
                                 search in : taken
-                                search text : "※コリンズで"
+                                search text : ("※コリンズで" , "【注】 コリンズで")
                                 if found : 
                                     take left : 
                                         remove whitespaces
-                                        store(var_co3)
-                                        set(var_co3)
+                                        store(text1)
+                                        set(text1)
             if not found : 
                 search in : all
-                search text : ["次の(ｱ)、(ｲ)の要件を満たす施工実績を有すること。", "同種工事とは4.(4)に明示"]
+                search text : ["次の(ア)、(イ)の要件を満たす施工実績を有すること。", "同種工事とは4.(4)に明示"]
                 if found : 
                     search in : all
                     search text : "次に掲げる施工実績を有すること。"
                     if found : 
                         take right : 
-                            search in : taken
-                            search text : "(ｲ)の要件を満たす施工実績を有すること。"
+                            store(text0)
+                            search in : text0
+                            search text : "(イ)の要件を満たす施工実績を有すること。"
                             if found : 
                                 take right : 
                                     search in : taken
-                                    search text : "※コリンズで"
+                                    search text : ("※コリンズで" , "【注】 コリンズで")
                                     if found : 
                                         take left : 
                                             remove whitespaces
-                                            store(var_co4)
-                                            set(var_co4)
+                                            store(text1)
+                                            set(text1)
                 if not found :
                     search in : all
                     search text : ["次の要件を満たす施工実績を有すること", "同種工事とは4.(4)に明示"]
@@ -137,29 +140,30 @@ name_of :
                         search text : "次の要件を満たす施工実績を有すること"
                         if found : 
                             take right : 
+                                store(text0)
                                 search in : taken
                                 search text : "同種工事:"
                                 if found : 
                                     take right : 
                                         search in : taken
-                                        search text : "※コリンズで"
+                                        search text : ("※コリンズで" , "【注】 コリンズで")
                                         if found : 
                                             take left : 
                                                 remove whitespaces
-                                                store(var_co5)
-                                                set(var_co5)
+                                                store(text1)
+                                                set(text1)
                                 if not found : 
                                     search in : taken
                                     search text : "･"
                                     if found : 
                                         take right : 
                                             search in : taken
-                                            search text : "※コリンズで"
+                                            search text : ("※コリンズで" , "【注】 コリンズで")
                                             if found : 
                                                 take left : 
                                                     remove whitespaces
-                                                    store(var_co6)
-                                                    set(var_co6)
+                                                    store(text1)
+                                                    set(text1)
                     if not found : 
                         set("記載なし")
 
@@ -183,7 +187,7 @@ name_of :
         search in : all
         search text : ["同種工事:", "より同種工事:"]
         if found : 
-            search in : all
+            search in : text0
             search text : "同種工事とは4"
             if found : 
                 take right : 
@@ -228,6 +232,18 @@ name_of :
                                                 remove whitespaces
                                                 store(var10)
                                                 set(var10) 
+                                if not found : 
+                                    search in : taken
+                                    search text : "次のとおりとする。\n･" 
+                                    if found : 
+                                        take right : 
+                                            search in : taken
+                                            search text : "◇施工実績"
+                                            if found : 
+                                                take left : 
+                                                    remove whitespaces
+                                                    store(exception1)
+                                                    set(exception1)
             if not found : 
                 search in : all
                 search text : "同種工事とは4"
@@ -248,15 +264,28 @@ name_of :
                                                 remove whitespaces
                                                 store(var20)
                                                 set(var20)
+                                if not found : 
+                                    search in : taken
+                                    search text : "次のとおりとする。\n･"
+                                    if found : 
+                                        take right : 
+                                            search in : taken
+                                            search text : "◇施工実績"
+                                            if found : 
+                                                take left : 
+                                                    remove whitespaces
+                                                    store(var20)
+                                                    set(var20)
 
-「同種工事(企業)」 :
+
+「同種工事(企業)」_doushu_co2 :
     check : name_of
     has value : 本官
     if true : 
         search in : all
         search text : ["同種工事:", "より同種工事:"]
         if found : 
-            search in : all
+            search in : text0
             search text : "同種工事とは4"
             if found : 
                 take right : 
@@ -282,7 +311,7 @@ name_of :
             search in : all
             search text : ["同種工事:", "より同種工事:"]
             if found : 
-                search in : all
+                search in : text0
                 search text : "同種工事とは4"
                 if found : 
                     take right :
@@ -314,8 +343,8 @@ name_of :
                                         store(var40)
                                         set(var40)
 
-「より同種性の高い(技術者)」 :
-    search in : all
+「より同種性の高い(技術者) doushu_en01」 :
+    search in : text0
     search text : "配置予定技術者の能力等(加算点2)"
     if found :
         search in : all
@@ -325,8 +354,8 @@ name_of :
         if not found :
             set("")
 
-「同種性が認められる(技術者)」 :
-    search in : all
+「同種工事（技術者） doushu_en02」 :
+    search in : text0
     search text : "配置予定技術者の能力等(加算点2)"
     if found :
         search in : all

@@ -43,7 +43,7 @@ import fitz  # PyMuPDF
 import statistics
 from pathlib import Path
 from datetime import datetime
-
+from concurrent.futures import ProcessPoolExecutor, as_completed
 # ---------- CONFIGURATION ----------
 INPUT_DIR = Path("input")
 RESULTS_DIR = Path("results")
@@ -56,6 +56,17 @@ PAGE_START_TEMPLATE = "[[PAGE_START {n}]]"
 PAGE_END_TEMPLATE = "[[PAGE_END]]"
 TABLE_COL_SEPARATOR = " | "
 # ----------------------------------
+
+def process_one_pdf(pdf_path: Path, input_dir: Path, output_dir: Path):
+    relative_path = pdf_path.relative_to(input_dir)
+    output_path = output_dir / relative_path.with_suffix(".txt")
+
+    try:
+        text, pages = extract_text_from_pdf(pdf_path)
+        save_text(output_path, text)
+        return relative_path, pages, "OK", ""
+    except Exception as e:
+        return relative_path, 0, "FAIL", str(e)
 
 
 def sanitize_cell_text(cell_value):
@@ -104,6 +115,37 @@ def block_center_in_bbox(block_bbox, table_bbox, padding: float = 0.5) -> bool:
         and (ty0 - padding) <= cy <= (ty1 + padding)
     )
 
+def line_belongs_to_table(
+    line_bbox,
+    table_entry,
+    padding: float = 0.5,
+    bottom_margin_rows: float = 0.4,
+) -> bool:
+    """
+    Decide if a text line should be treated as part of a table.
+
+    We slightly shrink the bottom of the table bbox so that normal text just
+    under the table is not accidentally considered "inside" the table region.
+    """
+    bx0, by0, bx1, by1 = line_bbox
+    cx = (bx0 + bx1) / 2
+    cy = (by0 + by1) / 2
+
+    tx0, ty0, tx1, ty1 = table_entry["bbox"]
+    row_h = table_entry.get("row_height") or 0.0
+
+    # shrink table bottom by a fraction of one row height
+    if row_h > 0:
+        ty1_adj = ty1 - row_h * bottom_margin_rows
+    else:
+        ty1_adj = ty1
+
+    return (
+        (tx0 - padding) <= cx <= (tx1 + padding)
+        and (ty0 - padding) <= cy <= (ty1_adj + padding)
+    )
+
+
 
 def extract_page_body(page, page_number: int) -> str:
     """
@@ -111,15 +153,30 @@ def extract_page_body(page, page_number: int) -> str:
     """
     table_finder = page.find_tables()
     tables = []
+    # if table_finder:
+    #     for table_index, table in enumerate(table_finder.tables, start=1):
+    #         tables.append(
+    #             {
+    #                 "bbox": table.bbox,
+    #                 "content": format_table(table, page_number, table_index),
+    #                 "emitted": False,
+    #             }
+    #         )
     if table_finder:
         for table_index, table in enumerate(table_finder.tables, start=1):
+            tx0, ty0, tx1, ty1 = table.bbox
+            height = ty1 - ty0
+            row_h = height / max(table.row_count, 1)
+
             tables.append(
                 {
                     "bbox": table.bbox,
+                    "row_height": row_h,
                     "content": format_table(table, page_number, table_index),
                     "emitted": False,
                 }
             )
+
 
     segments = []
     info = page.get_text("dict")
@@ -149,16 +206,29 @@ def extract_page_body(page, page_number: int) -> str:
             line_size = max(sizes) if sizes else 0.0
 
             # table handling: emit once when first encountered
+            # table_entry = None
+            # for entry in tables:
+            #     if block_center_in_bbox(line_bbox, entry["bbox"]):
+            #         table_entry = entry
+            #         break
+            # if table_entry is not None:
+            #     if not table_entry["emitted"]:
+            #         segments.append(table_entry["content"])
+            #         table_entry["emitted"] = True
+            #     continue
             table_entry = None
             for entry in tables:
-                if block_center_in_bbox(line_bbox, entry["bbox"]):
+                if line_belongs_to_table(line_bbox, entry):
                     table_entry = entry
                     break
+
             if table_entry is not None:
+                # emit table once, skip individual table lines
                 if not table_entry["emitted"]:
                     segments.append(table_entry["content"])
                     table_entry["emitted"] = True
                 continue
+
 
             # heading marker for large font lines (inline before the text)
             collapsed = "".join(line_text.strip().split())
@@ -240,8 +310,34 @@ def append_log(file_path: Path, pages: int, status: str, error: str = ""):
         ])
 
 
+# def process_pdfs(input_dir: Path, output_dir: Path):
+#     """Recursively processes all PDFs in input_dir and saves text to output_dir."""
+#     pdf_files = list(input_dir.rglob(f"*{EXTENSION}"))
+#     if not pdf_files:
+#         print(f"No PDF files found in: {input_dir}")
+#         return
+
+#     init_log()
+#     print(f"Found {len(pdf_files)} PDF files. Starting extraction...\n")
+
+#     for pdf_path in pdf_files:
+#         relative_path = pdf_path.relative_to(input_dir)
+#         output_path = output_dir / relative_path.with_suffix(".txt")
+
+#         try:
+#             text, pages = extract_text_from_pdf(pdf_path)
+#             save_text(output_path, text)
+#             append_log(relative_path, pages, "OK")
+#             print(f"✅ Extracted: {pdf_path}  ({pages} pages)")
+#         except Exception as e:
+#             append_log(relative_path, 0, "FAIL", str(e))
+#             print(f"❌ Failed: {pdf_path} ({e})")
+
+#     print("\nAll done!")
+#     print(f"📂 Extracted texts: {output_dir}")
+#     print(f"📄 Log file: {LOG_FILE}")
+
 def process_pdfs(input_dir: Path, output_dir: Path):
-    """Recursively processes all PDFs in input_dir and saves text to output_dir."""
     pdf_files = list(input_dir.rglob(f"*{EXTENSION}"))
     if not pdf_files:
         print(f"No PDF files found in: {input_dir}")
@@ -250,18 +346,21 @@ def process_pdfs(input_dir: Path, output_dir: Path):
     init_log()
     print(f"Found {len(pdf_files)} PDF files. Starting extraction...\n")
 
-    for pdf_path in pdf_files:
-        relative_path = pdf_path.relative_to(input_dir)
-        output_path = output_dir / relative_path.with_suffix(".txt")
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-        try:
-            text, pages = extract_text_from_pdf(pdf_path)
-            save_text(output_path, text)
-            append_log(relative_path, pages, "OK")
-            print(f"✅ Extracted: {pdf_path}  ({pages} pages)")
-        except Exception as e:
-            append_log(relative_path, 0, "FAIL", str(e))
-            print(f"❌ Failed: {pdf_path} ({e})")
+    with ProcessPoolExecutor() as executor:
+        futures = {
+            executor.submit(process_one_pdf, pdf_path, input_dir, output_dir): pdf_path
+            for pdf_path in pdf_files
+        }
+
+        for fut in as_completed(futures):
+            rel, pages, status, error = fut.result()
+            append_log(rel, pages, status, error)
+            if status == "OK":
+                print(f"✅ Extracted: {rel}  ({pages} pages)")
+            else:
+                print(f"❌ Failed: {rel} ({error})")
 
     print("\nAll done!")
     print(f"📂 Extracted texts: {output_dir}")

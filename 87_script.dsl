@@ -48,9 +48,18 @@ name_of :
                search text : "(電子入札対象案件)"
                if found : 
                   take left :
-                     remove whitespaces
-                     store(var_kouji)
-                     set(var_kouji)
+                     search in : taken
+                     search text : "れいわねん"
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           store(var_kouji)
+                           set(var_kouji)
+                     if not found : 
+                        take left : 
+                           remove whitespaces
+                           store(var_kouji)
+                           set(var_kouji)
 
 
 「同種工事(企業)」:
@@ -68,6 +77,21 @@ name_of :
                   remove whitespaces
                   store(var3)
                   set(var3)  
+   if not found : 
+      search in : all
+      search text : ["同種工事とは、", "なお、同種工事の施工実績は"]
+      if found : 
+         search in : all
+         search text : "同種工事とは、"
+         if found :
+            take right : 
+               search in : taken
+               search text : "なお、同種工事の施工実績は"
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(exception1)
+                     set(exception1)
 
 「同種工事(技術者)」:
    search in : all
@@ -287,7 +311,64 @@ name_of :
                if found : 
                   take right : 
                      search in : taken
-                     search text : 
+                     search text : "技術者の能力等（"
+                     if found : 
+                        take right : 
+                           store(text0)
+                           search in : text0
+                           search text : "補佐の場合において、"
+                           if found : 
+                              take right : 
+                                 store(text1)
+                                 search in : text0
+                                 search text : "補助者の場合において、"
+                                 if found : 
+                                    take right:
+                                       store(text1)
+                                       search in : text1
+                                       search text : "で評価し、"
+                                       if found : 
+                                          take left : 
+                                             remove whitespaces
+                                             store(doushusei_co_0)
+                                             set(doushusei_co_0)
+                                 if not found : 
+                                    search in : text1
+                                    search text : "で評価し、"
+                                    if found : 
+                                       take left : 
+                                          remove whitespaces
+                                          store(doushusei_co_0)
+                                          set(doushusei_co_0)
+                           if not found : 
+                              search in : text0
+                              search text : "補助者の場合において、"
+                              if found : 
+                                 take right : 
+                                    store(text1)
+                                    search in : text0
+                                    search text : "補助者の場合において、"
+                                    if found : 
+                                       take right:
+                                          store(text1)
+                                          search in : text1
+                                          search text : "で評価し、"
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                store(doushusei_co_0)
+                                                set(doushusei_co_0) 
+                              if not found : 
+                                 search in : text1
+                                 search text : "で評価し、"
+                                 if found : 
+                                    take left : 
+                                       remove whitespaces
+                                       store(doushusei_co_0)
+                                       set(doushusei_co_0) 
+
+
+                        
 
 「高い同種性(技術者) doushusei_en_1」:
    check : name_of
@@ -571,6 +652,18 @@ name_of :
                                                                remove whitespaces
                                                                store(var60)
                                                                set(var60)
+                                          if not found : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "共同企業体の構成員"
+                                                   if found : 
+                                                      take left : 
+                                                         remove whitespaces
+                                                         store(var60)
+                                                         set(var60)
                                     if not found : 
                                        search in : taken
                                        search text : "同種性が認められる工事:"
@@ -583,6 +676,18 @@ name_of :
                                                    remove whitespaces
                                                    store(var60)
                                                    set(var60)
+                                       if not found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "共同企業体の構成員"
+                                                if found : 
+                                                   take left : 
+                                                      remove whitespaces
+                                                      store(var60)
+                                                      set(var60)
                      if not found :    
                         search in : taken
                         search text : "同種性が認められる工事:"
@@ -628,16 +733,35 @@ name_of :
                                                          set(var60)
                                     if not found : 
                                        search in : taken
-                                       search text : "同種性が認められる工事:"
+                                       search text : "高い同種性が認められる工事:"
                                        if found : 
-                                          take right : 
-                                             search in : taken
-                                             search text : "高い同種性が認められる工事の実績"
-                                             if found : 
-                                                take left : 
-                                                   remove whitespaces
-                                                   store(var60)
-                                                   set(var60)
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "同種性が認められる工事:"
+                                                if found : 
+                                                   take right : 
+                                                      search in : taken
+                                                      search text : "共同企業体の構成員"
+                                                      if found : 
+                                                         take left : 
+                                                            remove whitespaces
+                                                            store(var60)
+                                                            set(var60)
+                                       if not found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "共同企業体の構成員"
+                                                if found : 
+                                                   take left : 
+                                                      remove whitespaces
+                                                      store(var60)
+                                                      set(var60)
                         if not found : 
                            search in : taken
                            search text : "技術者の能力等(加算点)"
@@ -665,18 +789,49 @@ name_of :
                                                             remove whitespaces
                                                             store(var60)
                                                             set(var60)
+                                       if not found : 
+                                          search in : taken
+                                          search text : "同種性が認められる工事:"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "共同企業体の構成員"
+                                                if found : 
+                                                   take left : 
+                                                      remove whitespaces
+                                                      store(var60)
+                                                      set(var60)
                                  if not found : 
                                     search in : taken
-                                    search text : "同種性が認められる工事:"
+                                    search text : "高い同種性が認められる工事:"
                                     if found : 
-                                       take right : 
-                                          search in : taken
-                                          search text : "高い同種性が認められる工事の実績"
-                                          if found : 
-                                             take left : 
-                                                remove whitespaces
-                                                store(var60)
-                                                set(var60)
+                                       search in : taken
+                                       search text : "同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "同種性が認められる工事:"
+                                             if found : 
+                                                take right : 
+                                                   search in : taken
+                                                   search text : "共同企業体の構成員"
+                                                   if found : 
+                                                      take left : 
+                                                         remove whitespaces
+                                                         store(var60)
+                                                         set(var60)
+                                    if not found : 
+                                       search in : taken
+                                       search text : "同種性が認められる工事:"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "共同企業体の構成員"
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   store(var60)
+                                                   set(var60)
 
 
 「配点(企業)」: 

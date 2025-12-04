@@ -45,7 +45,7 @@ def del_text_n(input_folder, output_folder):
 
 
 # 入力フォルダと出力フォルダを指定
-input_folder = "input"
+input_folder = "input_old"
 output_folder = "output"
 output_folder2 = "output2"
 

@@ -1647,7 +1647,13 @@ def clean_start_from_heading2(text: str) -> str:
             continue
         if s.startswith("[[HEADING]]"):
             after = s[len("[[HEADING]]"):].strip()
-            if "".join(after.split()).startswith("入札説明書"):
+            compressed = "".join(after.split())
+            # Only treat short, title-like patterns as the main heading
+            if (
+                compressed == "入札説明書"
+                or compressed.startswith("入札説明書(")
+                or compressed.startswith("入札説明書（")
+            ):
                 keep_idx = find_prev_page_start(j)
                 out = []
                 if keep_idx != -1:
@@ -1662,7 +1668,12 @@ def clean_start_from_heading2(text: str) -> str:
         s = lines[j].strip()
         if not s:
             continue
-        if "".join(s.split()).startswith("入札説明書"):
+        compressed = "".join(s.split())
+        if (
+            compressed == "入札説明書"
+            or compressed.startswith("入札説明書(")
+            or compressed.startswith("入札説明書（")
+        ):
             k = prev_non_empty(j)
             if k >= 0 and lines[k].strip().startswith("[[HEADING]]"):
                 keep_idx = find_prev_page_start(j)

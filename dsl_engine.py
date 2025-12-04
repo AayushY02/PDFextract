@@ -10,7 +10,7 @@ Usage:
 Concepts:
 - Top-level keys (no indent, ending with ':') define output variables to compute and print.
 - Nested blocks describe how to compute them using:
-  - search in : all | taken
+  - search in : all | taken | varName  (where varName was previously store(varName))
   - search in first : N
   - search text : <str> | [a, b, c]  (list means: all must be present; order ignored)
   - if found: ... / if not found: ...
@@ -43,8 +43,8 @@ BLOCK_KEYS = {
     "take right", "take left"
 }
 
-COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|set|replace)\((?P<arg>.*)\)\s*$')
-PAGE_MARKER_RE = re.compile(r"\[\[PAGE_START\s+\d+\]\]|\[\[PAGE_END\]\]")
+COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|set|replace)\s*\((?P<arg>.*)\)\s*$')
+PAGE_MARKER_RE = re.compile(r"\[\[PAGE_START\s+\d+\]\]|\[\[PAGE_END\]\]|\[\[HEADING\]\]\s*\d*")
 
 def _strip_page_markers(s: str) -> str:
     """Remove [[PAGE_START N]] and [[PAGE_END]] markers from a string."""
@@ -233,20 +233,47 @@ class ExecEnv:
     last_scope_kind: str = ''   # 'all' | 'taken' | 'first'
     last_scope_text: str = ''
     pending_scope: str = ''     # 'all' | 'taken' | 'first'
+    pending_scope_var: Optional[str] = None  # for 'search in : varName'
     pending_first_n: Optional[int] = None
     pending_search_value: Any = None
     check_var: Optional[str] = None
     check_expected: Optional[str] = None
     set_value: Any = None       # final value for the variable being computed
 
+# def resolve_scope_text(env: ExecEnv) -> str:
+#     if env.pending_scope == 'taken':
+#         return env.current_text
+#     if env.pending_scope == 'first':
+#         n = env.pending_first_n or 0
+#         return env.original_text[:max(n, 0)]
+#     # default/all
+#     return env.original_text
+
 def resolve_scope_text(env: ExecEnv) -> str:
+    # Decide which base text to search in, based on the last 'search in :' directive.
+    # - 'taken' : the current working text in this block
+    # - 'first' : first N chars of the full text
+    # - 'stored': a previously store(varName) buffer or an already-set output
+    # - default : full original text
     if env.pending_scope == 'taken':
         return env.current_text
     if env.pending_scope == 'first':
         n = env.pending_first_n or 0
         return env.original_text[:max(n, 0)]
+    if env.pending_scope == 'stored' and env.pending_scope_var:
+        # Prefer locally stored buffers
+        buf = env.stored.get(env.pending_scope_var)
+        if buf is not None:
+            return buf
+        # Fallback: allow searching in another variable's output if it's a string
+        out_val = env.outputs.get(env.pending_scope_var)
+        if isinstance(out_val, str):
+            return out_val
+        # As a last resort, fall back to full text (backwards-compatible behaviour)
+        return env.original_text
     # default/all
     return env.original_text
+
 
 def do_search(env: ExecEnv, search_value: Any):
     # search_value can be string or list of strings
@@ -268,6 +295,7 @@ def do_search(env: ExecEnv, search_value: Any):
             env.last_match_end = idx + len(pat)
     # reset pending
     env.pending_scope = ''
+    env.pending_scope_var = None
     env.pending_first_n = None
     env.pending_search_value = None
     
@@ -287,6 +315,7 @@ def do_search_any(env, items):
     env.last_match_end = (best_idx + best_len) if best_idx >= 0 else -1
     # clear pending
     env.pending_scope = ''
+    env.pending_scope_var = None
     env.pending_first_n = None
     env.pending_search_value = None
 
@@ -308,6 +337,7 @@ def do_search_ordered(env, items):
     env.last_match_end = (found_idx + found_len) if found_idx >= 0 else -1
     # clear pending
     env.pending_scope = ''
+    env.pending_scope_var = None
     env.pending_first_n = None
     env.pending_search_value = None
 
@@ -342,8 +372,18 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                     env.pending_scope = 'first'
                     env.pending_first_n = 0
             elif key == 'search in':
-                v = str(val_raw).strip().lower()
-                env.pending_scope = 'taken' if v == 'taken' else 'all'
+                raw = str(val_raw).strip()
+                v = raw.lower()
+                if v == 'taken':
+                    env.pending_scope = 'taken'
+                    env.pending_scope_var = None
+                elif v == 'all' or raw == '':
+                    env.pending_scope = 'all'
+                    env.pending_scope_var = None
+                else:
+                    # Treat as "search only inside this stored/output buffer"
+                    env.pending_scope = 'stored'
+                    env.pending_scope_var = raw
             elif key == 'search text':
                 txt = str(val_raw).strip()
                 # AND list: [a, b, c] — boolean only (no anchor)
@@ -582,9 +622,13 @@ def run(script_text: str, input_text: str) -> Dict[str, Any]:
 def _write_csv(out_path, headers, outputs, source_name):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     full_headers = ['file name'] + headers
-    row = [source_name] + [(outputs.get(h, "") if outputs.get(h, "") is not None else "") for h in headers]
+    row = [source_name] + [
+        (outputs.get(h, "") if outputs.get(h, "") is not None else "")
+        for h in headers
+    ]
     with open(out_path, "w", newline="", encoding="utf-8-sig") as f:
-        w = csv.writer(f)
+        # 🔽 force quoting so line breaks stay inside the cell
+        w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
         w.writerow(full_headers)
         w.writerow(row)
 
@@ -652,7 +696,8 @@ def main():
             summary_path = os.path.join(out_dir, f"{bureau_name}_summary.csv")
             os.makedirs(os.path.dirname(summary_path), exist_ok=True)
             with open(summary_path, "w", newline="", encoding="utf-8-sig") as f:
-                w = csv.writer(f)
+                # same settings here so behavior matches per-file CSV
+                w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
                 w.writerow(['file name'] + var_order)
                 w.writerows(summary_rows)
         return
