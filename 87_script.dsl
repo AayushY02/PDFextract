@@ -14,7 +14,7 @@ name_bu :
 
 name_of :
    search in : all
-   search text : "支出負担行為担当官四国地方整備局長"
+   search text : "支出負担行為担当官中国地方整備局長"
    if found :
       set("本官")
    if not found : 

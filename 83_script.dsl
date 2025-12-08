@@ -1,6 +1,6 @@
 has_eval_phrase :
    search in : all
-   search text : "入札の評価に関する基準及び得点配分"
+   search text : "評価方法及び資料（総合評価に関する資料）の確認等"
    if found :
       set(true)
    if not found :
@@ -8,13 +8,13 @@ has_eval_phrase :
 
 name_bu : 
    search in : all
-   search text : "中部地方整備局"
+   search text : "関東地方整備局"
    if found : 
-      set("中部地方整備局")
+      set("関東地方整備局")
 
 name_of :
    search in first : 20
-   search text : "支出負担行為担当官 中部地方整備局長"
+   search text : "支出負担行為担当官関東地方整備局長"
    if found :
       set("本官")
    if not found : 
@@ -23,7 +23,7 @@ name_of :
       if found :
          take right :
             search in : taken
-            search text : "中部地方整備局"
+            search text : "関東地方整備局"
             if found:
                take right:
                   search in : taken
@@ -88,8 +88,8 @@ name_of :
                                              if found : 
                                                 take left : 
                                                    remove whitespaces
-                                                   store(var_ts_kigyo_true)
-                                                   set(var_ts_kigyo_true)
+                                                   store(var_ts_gijutsu_true)
+                                                   set(var_ts_gijutsu_true)
       if not found : 
          set("特殊工事のため要確認")
    if false:
@@ -128,8 +128,8 @@ name_of :
                            if found : 
                               take left : 
                                  remove whitespaces
-                                 store(var_ts_gijutsu_true)
-                                 set(var_ts_gijutsu_true)
+                                 store(var_ts_kigyo_true)
+                                 set(var_ts_kigyo_true)
       if not found : 
          search in : all
          search text : "発注者から企業に対して通知された評定点が"
@@ -144,8 +144,8 @@ name_of :
                      if found : 
                         take left : 
                            remove whitespaces
-                           store(var_ts_gijutsu_true2)
-                           set(var_ts_gijutsu_true2)
+                           store(var_ts_kigyo_true2)
+                           set(var_ts_kigyo_true2)
    if false:
       search in: all
       search text: "次に掲げる基準を満たす配置予定技術者"
@@ -160,8 +160,8 @@ name_of :
                   if found : 
                      take left : 
                         remove whitespaces
-                        store(var_ts_gijutsu_false)
-                        set(var_ts_gijutsu_false)
+                        store(var_ts_kigyo_false)
+                        set(var_ts_kigyo_false)
 
 「より同種性の高い」:
    search in : all

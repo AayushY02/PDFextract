@@ -180,7 +180,7 @@ name_of :
         if not found :
             set("記載なし")
 
-「より同種性の高い(企業)」 :
+「より同種性の高い(企業)」:
     check : name_of
     has value : 本官
     if true : 
@@ -285,7 +285,7 @@ name_of :
         search in : all
         search text : ["同種工事:", "より同種工事:"]
         if found : 
-            search in : text0
+            search in : all
             search text : "同種工事とは4"
             if found : 
                 take right : 
@@ -311,7 +311,7 @@ name_of :
             search in : all
             search text : ["同種工事:", "より同種工事:"]
             if found : 
-                search in : text0
+                search in : all
                 search text : "同種工事とは4"
                 if found : 
                     take right :
@@ -326,13 +326,29 @@ name_of :
                                         remove whitespaces
                                         store(var50)
                                         set(var50) 
+                        if not found : 
+                            search in : taken 
+                            search text : "おりである。"
+                            if found : 
+                                take right : 
+                                    search in : taken
+                                    search text : "･"
+                                    if found : 
+                                        take right : 
+                                            search in : taken
+                                            search text : "◇より同種工事とは"
+                                            if found : 
+                                                take left : 
+                                                    remove whitespaces
+                                                    store(exception2)
+                                                    set(exception2) 
             if not found : 
                 search in : all
                 search text : "同種工事とは4"
                 if found : 
                     take right : 
                         search in : taken
-                        search text : ")に明示しているとおりである。･"
+                        search text : ")に明示しているとおりである。\n･"
                         if found : 
                             take right : 
                                 search in : taken
@@ -344,11 +360,11 @@ name_of :
                                         set(var40)
 
 「より同種性の高い(技術者) doushu_en01」 :
-    search in : text0
+    search in : all
     search text : "配置予定技術者の能力等(加算点2)"
     if found :
         search in : all
-        search text : "配置予定技術者に関する発注機関別の評価方法は、施工実績に準ずる"
+        search text : ("配置予定技術者に関する発注機関別の評価方法は、施工実績に準ずる" , "配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。")
         if found :
             set(「より同種性の高い(企業)」)
         if not found :
@@ -359,8 +375,8 @@ name_of :
     search text : "配置予定技術者の能力等(加算点2)"
     if found :
         search in : all
-        search text : "配置予定技術者に関する発注機関別の評価方法は、施工実績に準ずる"
+        search text : ("配置予定技術者に関する発注機関別の評価方法は、施工実績に準ずる" , "配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。")
         if found :
-            set(「同種性が認められる(企業)」)
+            set(「同種工事(企業)」_doushu_co2)
         if not found :
             set("")
