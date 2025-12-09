@@ -1,4 +1,4 @@
-"""
+﻿"""
 Post-clean pass for results/output2 -> results/output4.
 
 Goals:
@@ -31,8 +31,8 @@ TABLE_END = "[[TABLE_END]]"
 #     # special "3" + ")タイトル" pattern
 #     if (
 #         len(nonempty) >= 2
-#         and re.fullmatch(r"[0-9０-９]+", nonempty[0])
-#         and (nonempty[1].startswith(")") or nonempty[1].startswith("）"))
+#         and re.fullmatch(r"[0-9�E�E�E�]+", nonempty[0])
+#         and (nonempty[1].startswith(")") or nonempty[1].startswith("�E�E))
 #     ):
 #         first = nonempty[0] + nonempty[1]  # "3" + ")総合評価" -> "3)総合評価"
 #         rest = nonempty[2:]
@@ -365,49 +365,23 @@ def is_ignorable_text(seg: dict) -> bool:
 
     We treat a segment as ignorable if:
       - it's all blank / digit-only lines, OR
-      - it consists of at most 2 short-ish lines that look like table
-        leaks (no '【注】', no '※', no Japanese full stop '。').
+      - it consists of short-ish lines that look like table leaks.
     """
     if seg["type"] != "text":
         return False
 
-    # strip empties
     lines = [ln.strip() for ln in seg["lines"] if ln.strip()]
 
-    # all empty -> ignorable
     if not lines:
         return True
 
-    # page numbers or similar tiny junk only
     if all(is_digit_line(ln) for ln in lines):
         return True
 
-    # if we have lots of lines, assume it's real content
-    if len(lines) > 2:
-        return False
+    if len(lines) <= 3 and all(len(s) <= 120 for s in lines):
+        return True
 
-    # check each line for "table leak" vs "real note"
-    for s in lines:
-        # already handled digits above
-        if is_digit_line(s):
-            continue
-
-        # treat it as real content if it looks like a note / paragraph
-        if s.startswith("【注】") or s.startswith("※") or "。" in s:
-            return False
-
-        # loosened condition: allow up to ~80 chars and allow spaces
-        # (we assume these are short-ish leak lines from tables)
-        if len(s) <= 100:
-            continue
-
-        # too long and not a simple leak -> not ignorable
-        return False
-
-    # if we didn't bail, treat this segment as ignorable
-    return True
-
-
+    return False
 def flatten_segments(segments: list[dict]) -> list[str]:
     out: list[str] = []
     for seg in segments:
@@ -499,6 +473,22 @@ def merge_pages(page_a: dict, page_b: dict) -> bool:
     return True
 
 
+def merge_table_chain(pages: list[dict], start_idx: int) -> bool:
+    """
+    Greedily merge a table on page start_idx with subsequent pages while
+    the boundary tables remain compatible.
+    """
+    changed = False
+    j = start_idx + 1
+    while j < len(pages):
+        if merge_pages(pages[start_idx], pages[j]):
+            changed = True
+            j += 1
+            continue
+        break
+    return changed
+
+
 def merge_cross_page_tables(text: str) -> str:
     lines = text.splitlines()
     ends_with_nl = text.endswith("\n")
@@ -528,10 +518,11 @@ def merge_cross_page_tables(text: str) -> str:
         else:
             current["body"].append(line)
 
-    # Merge backwards so chains roll up to the starting page
-    for idx in range(len(pages) - 2, -1, -1):
-        while merge_pages(pages[idx], pages[idx + 1]):
-            continue
+    # Merge forward so multi-page chains roll up to the starting page
+    idx = 0
+    while idx < len(pages) - 1:
+        merge_table_chain(pages, idx)
+        idx += 1
 
     out_lines: list[str] = []
     out_lines.extend(prelude)
@@ -563,7 +554,7 @@ def _join_nonempty_cells(cells: list[str]) -> str:
 #     For each [[TABLE_START ...]] block:
 
 #       - If the first non-empty body row starts with a numeric item
-#         like '3', '3)', '３）', treat it as a section heading and move it
+#         like '3', '3)', '�E�！E, treat it as a section heading and move it
 #         ABOVE the table.
 
 #       - If the last non-empty body row looks like a footnote
@@ -593,8 +584,8 @@ def _join_nonempty_cells(cells: list[str]) -> str:
 #             continue
 #         first_cell = nonempty[0]
 
-#         # heading like "3", "3.", "3)", "３", "３）", etc.
-#         if re.fullmatch(r"[0-9０-９]+[.)）]?", first_cell):
+#         # heading like "3", "3.", "3)", "�E�E, "�E�！E, etc.
+#         if re.fullmatch(r"[0-9�E�E�E�]+[.)�E�]?", first_cell):
 #             first_idx = idx
 #             first_title = _title_from_nonempty(nonempty)
 #         break  # only ever consider the first non-empty row
@@ -671,13 +662,13 @@ def process_single_table_outer_rows(table_lines: list[str]) -> tuple[str | None,
         # patterns:
         #  - 3, 3), 3.
         #  - II, II), Ⅳ)
-        #  - (1), （2）
+        #  - (1), �E�E�E�E
         #  - ①, ②, ... ⑳
         if (
-            re.fullmatch(r"[0-9０-９]+[.)）]?", first_cell)           # digits
-            or re.fullmatch(r"[ivxlcdmIVXLCDM]+[.)）]?", first_cell) # roman (ASCII)
-            or re.fullmatch(r"[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+[.)）]?", first_cell)  # roman (full-width)
-            or re.fullmatch(r"[\(（][0-9０-９]+[)）]", first_cell)    # (1), （1）
+            re.fullmatch(r"[0-9�E�E�E�]+[.)�E�]?", first_cell)           # digits
+            or re.fullmatch(r"[ivxlcdmIVXLCDM]+[.)�E�]?", first_cell) # roman (ASCII)
+            or re.fullmatch(r"[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+[.)�E�]?", first_cell)  # roman (full-width)
+            or re.fullmatch(r"[\(�E�E[0-9�E�E�E�]+[)�E�]", first_cell)    # (1), �E�E�E�E
             or re.fullmatch(r"[\u2460-\u2473]", first_cell)          # ①–⑳
         ):
             first_idx = idx
@@ -770,7 +761,7 @@ def process_text(text: str) -> str:
     text = remove_stray_page_numbers(text)
     text = merge_cross_page_tables(text)
     text = extract_outer_table_rows(text) 
-    # text = merge_continuation_rows_in_tables(text)  # ← NEW
+    # text = merge_continuation_rows_in_tables(text)  # ↁENEW
     return text
 
 
@@ -791,3 +782,5 @@ def process_all():
 
 if __name__ == "__main__":
     process_all()
+
+

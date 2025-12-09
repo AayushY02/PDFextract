@@ -31,13 +31,34 @@ name_of :
                   if found:
                      take right:
                         search in : taken
-                        search text : "所長"
+                        search text : ("所長" , "所⻑")
                         if found : 
                            take left:
                               remove whitespaces
                               add in right(所)
                               store(var_nameof)
                               set(var_nameof)
+      if not found : 
+         search in : all
+         search text : "契約担当官等"
+         if found : 
+            take right : 
+               search in : taken
+               search text : "分任支出負担行為担当官"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "東北地方整備局"
+                     if found : 
+                        take right : 
+                           search in : taken
+                           search text : "所長"
+                           if found : 
+                              take left : 
+                                 remove whitespaces
+                                 add in right(所)
+                                 store(var_nameof)
+                                 set(var_nameof)
 
 「工事名」:
    search in : all

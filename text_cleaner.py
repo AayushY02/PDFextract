@@ -2110,12 +2110,12 @@ def apply_cleaning_pipeline(text: str, file_name: str = "") -> str:
         # extra rules - added by me:
         # clean_merge_point_wrapping
         # Merge multi-page tables before collapsing lines
-        clean_merge_cross_page_tables,
+        # clean_merge_cross_page_tables,
         # Collapse line-wrapped points and paragraphs (tables preserved)
         clean_collapse_point_lines,
         clean_collapse_paragraph_lines,
         # Footnotes formatting and relocation
-        clean_process_footnotes,
+        # clean_process_footnotes,
         clean_fix_common_split_words
     ]
 
