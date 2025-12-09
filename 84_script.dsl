@@ -1,6 +1,6 @@
 has_eval_phrase :
    search in : all
-   search text : "評価方法及び資料(総合評価に関する資料)の確認等"
+   search text : "総合評価に関する事項"
    if found :
       set(true)
    if not found :
@@ -8,9 +8,9 @@ has_eval_phrase :
 
 name_bu : 
    search in : all
-   search text : "関東地方整備局"
+   search text : "北陸地方整備局"
    if found : 
-      set("関東地方整備局")
+      set("北陸地方整備局")
 
 name_of :
    search in first : 20
@@ -27,7 +27,7 @@ name_of :
             if found :
                take right :
                   search in : taken
-                  search text : "関東地方整備局"
+                  search text : "北陸地方整備局"
                   if found:
                      take right:
                         search in : taken
@@ -39,13 +39,13 @@ name_of :
                               store(var_nameof)
                               set(var_nameof)
 
-「工事名」:
+「工事名・作業名」:
    search in : all
-   search text : "工事名"
+   search text : "工 事 名"
    if found : 
       take right :
          search in : taken
-         search text : "(2)工事場所"
+         search text : "(2)"
          if found : 
             take left : 
                search in : taken
@@ -59,6 +59,26 @@ name_of :
                   remove whitespaces
                   store(var_kouji)
                   set(var_kouji)
+   if not found : 
+      search in : all
+      search text : "作 業 名"
+      if found : 
+         take right :
+            search in : taken
+            search text : "(2)"
+            if found : 
+               take left : 
+                  search in : taken
+                  search text : "(電子入札対象案件)"
+                  if found : 
+                     take left :
+                        remove whitespaces
+                        store(var_kouji)
+                        set(var_kouji)
+                  if not found : 
+                     remove whitespaces
+                     store(var_kouji)
+                     set(var_kouji)
 
 「同種工事（企業）」:
    check : name_of
