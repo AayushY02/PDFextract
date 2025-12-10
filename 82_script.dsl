@@ -87,7 +87,72 @@ name_of :
    if true : 
       
    if false:
-      
+      search in : all
+      search text : "((2)) 加算点"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "| より同種性が高い工事 | 同種性が認められる工事"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "企業の施工能力 |"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "配置予定技術者の能力 |"
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              replace(" | " , "\n")
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)
+
+「より同種性の高い（企業）」: 
+   search in : all
+   search text : "((2)) 加算点"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| より同種性が高い工事"
+         if found : 
+            take right :
+               search in : taken
+               search text : "企業の施工能力 |"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : " | "
+                     if found : 
+                        take left :  
+                           remove whitespaces
+                           store(co_very_high_similarity)
+                           set(co_very_high_similarity)
+
+「同種性が認められる（企業）」: 
+   search in : all
+   search text : "((2)) 加算点"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| 同種性が認められる工事"
+         if found : 
+            take right :
+               search in : taken
+               search text : "企業の施工能力 |"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : " | "
+                     if found : 
+                        take right :
+                           search in : taken
+                           search text : "配置予定技術者の能力 |"
+                           if found : 
+                              take left : 
+                                 remove whitespaces
+                                 store(co_similarity)
+                                 set(co_similarity)
 
 「同種工事（技術者）」:
    check : name_of
@@ -96,4 +161,60 @@ name_of :
       
      
    if false:
- 
+
+
+「より同種性の高い（技術者）」: 
+   search in : all
+   search text : "((2)) 加算点"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| より同種性が高い工事"
+         if found : 
+            take right :
+               search in : taken
+               search text : "配置予定技術者の能力 |"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : " |"
+                     if found : 
+                        take left :  
+                           remove whitespaces
+                           store(temp1)
+                           check : temp1
+                           has value : ""
+                           if true : 
+                              set(「より同種性の高い（企業）」)
+                           if false : 
+                              set(temp1)
+
+「同種性が認められる（技術者）」:
+   search in : all
+   search text : "((2)) 加算点"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| 同種性が認められる工事"
+         if found : 
+            take right :
+               search in : taken
+               search text : "配置予定技術者の能力 |"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : " |"
+                     if found : 
+                        take right :
+                           search in : taken
+                           search text : "[[TABLE_END]]"  
+                           if found : 
+                              take left : 
+                                 remove whitespaces
+                                 store(temp2)
+                                 check : temp2
+                                 has value : ""
+                                 if true : 
+                                    set(「同種性が認められる（企業）」)
+                                 if false : 
+                                    set(temp2)

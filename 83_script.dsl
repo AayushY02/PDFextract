@@ -60,19 +60,109 @@ name_of :
                   store(var_kouji)
                   set(var_kouji)
 
-「同種工事（企業）」:
-   check : name_of
-   has value : 本官
-   if true : 
-      
-   if false:
-      
+「より同種性の高い（企業）」: 
+   search in : all
+   search text : "〔企業の施工能力〕"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| より高い同種性が認められる。"
+         if found : 
+            take right :
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(co_very_high_similarity)
+                     set(co_very_high_similarity)
 
-「同種工事（技術者）」:
-   check : name_of
-   has value : 本官
-   if true : 
-      
-     
-   if false:
+「同種性が高い（企業）」: 
+   search in : all
+   search text : "〔企業の施工能力〕"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| 高い同種性が認められる。"
+         if found : 
+            take right :
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(co_high_similarity)
+                     set(co_high_similarity)
+
+「同種性が認められる（企業）」: 
+   search in : all
+   search text : "〔企業の施工能力〕"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| 同種性が認められる。"
+         if found : 
+            take right :
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(co_similarity)
+                     set(co_similarity)
+
+   
+
+「より同種性の高い（技術者）」: 
+   search in : all
+   search text : "〔配置予定技術者の能力〕"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| より高い同種性が認められる。"
+         if found : 
+            take right :
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(eng_very_high_similarity)
+                     set(eng_very_high_similarity)
+
+「同種性の高い（技術者）」:
+   search in : all
+   search text : "〔配置予定技術者の能力〕"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| 高い同種性が認められる。"
+         if found : 
+            take right :
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(eng_high_similarity)
+                     set(eng_high_similarity)
+
+「同種性が認められる（技術者）」:
+   search in : all
+   search text : "〔配置予定技術者の能力〕"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "| 同種性が認められる。"
+         if found : 
+            take right :
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(eng_similarity)
+                     set(eng_similarity)
+
+
  
