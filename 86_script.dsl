@@ -14,7 +14,7 @@ name_bu :
 
 name_of :
    search in first : 20
-   search text : "支出負担行為担当官関東地方整備局長"
+   search text : "支出負担行為担当官近畿地方整備局長"
    if found :
       set("本官")
    if not found : 
@@ -31,7 +31,7 @@ name_of :
                   if found:
                      take right:
                         search in : taken
-                        search text : "所長"
+                        search text : ("所長", "所⻑")
                         if found : 
                            take left:
                               remove whitespaces
@@ -41,11 +41,11 @@ name_of :
 
 「工事名・作業名」:
    search in : all
-   search text : "工 事 名"
+   search text : "工事名"
    if found : 
       take right :
          search in : taken
-         search text : "(2)"
+         search text : "3.2"
          if found : 
             take left : 
                search in : taken
@@ -59,40 +59,40 @@ name_of :
                   remove whitespaces
                   store(var_kouji)
                   set(var_kouji)
-   if not found : 
-      search in : all
-      search text : "作 業 名"
-      if found : 
-         take right :
-            search in : taken
-            search text : "(2)"
-            if found : 
-               take left : 
-                  search in : taken
-                  search text : "(電子入札対象案件)"
-                  if found : 
-                     take left :
-                        remove whitespaces
-                        store(var_kouji)
-                        set(var_kouji)
-                  if not found : 
+   
+
+「同種性が高い（企業）」:
+   search in : all
+   search text : "5.1.1.1 同種性の高い施工実績"
+   if found : 
+      take right : 
+         search in : taken
+         search text : (" | | | | " , " | ")
+         if found : 
+            take right : 
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
                      remove whitespaces
-                     store(var_kouji)
-                     set(var_kouji)
+                     store(co_high_similarity)
+                     set(co_high_similarity)
 
-「同種工事（企業）」:
-   check : name_of
-   has value : 本官
-   if true : 
-      
-   if false:
       
 
-「同種工事（技術者）」:
-   check : name_of
-   has value : 本官
-   if true : 
-      
-     
-   if false:
- 
+「同種性の高い（技術者）」:
+   search in : all
+   search text : ("5.1.2.2 同種性の高い施工経験 評価項目" , "5.1.2.2 同種性の高い施工経験")
+   if found : 
+      take right : 
+         search in : taken
+         search text : (" | | | | " , " | ")
+         if found : 
+            take right : 
+               search in : taken
+               search text : " | "
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     store(eng_high_similarity)
+                     set(eng_high_similarity)

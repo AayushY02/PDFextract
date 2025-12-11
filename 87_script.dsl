@@ -115,7 +115,7 @@ name_of :
       if found : 
          take right : 
             search in : taken
-            seach text : ("に掲げる同種工事の経験を有する者であること。" , "の同種工事の施工実績を有していること。")
+            search text : ("に掲げる同種工事の経験を有する者であること。" , "の同種工事の施工実績を有していること。")
             if found : 
                set(「同種工事(企業)」)
 
@@ -1001,7 +1001,7 @@ name_of :
                      if found : 
                         take right :  
                            search in : taken
-                           search taken : "の加算点を与える。"
+                           search text : "の加算点を与える。"
                            if found : 
                               take left : 
                                  replace("それぞれ","")
