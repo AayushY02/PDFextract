@@ -77,6 +77,35 @@ def _decode_escapes_for_search(s: str) -> str:
     # support "\n" and "\t" at least
     return s.replace("\\n", "\n").replace("\\t", "\t")
 
+def _resolve_add_arg(arg: Any, env: "ExecEnv") -> str:
+    """
+    Resolve the argument of add in left/right into a string:
+    - "..." or '...': treat as a literal
+    - name in env.stored: use stored local value
+    - name in env.outputs: use previously computed global variable
+    - otherwise: use the raw text as-is
+    """
+    if arg is None:
+        return ""
+
+    s = str(arg).strip()
+
+    # quoted literal
+    if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+        return s[1:-1]
+
+    # local temp storage has priority
+    if s in env.stored and env.stored[s] is not None:
+        return str(env.stored[s])
+
+    # then global outputs (other DSL top-level vars)
+    if s in env.outputs and env.outputs[s] is not None:
+        return str(env.outputs[s])
+
+    # fallback: treat as literal text
+    return s
+
+
 @dataclass
 class Node:
     kind: str              # 'var' | 'block' | 'kv' | 'command'
@@ -419,9 +448,11 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 env.current_text = env.current_text.strip()
             elif key == 'add in right':
                 # value might be "(所)" if parsed as kv; but in sample it's a command form add in right(所)
-                env.current_text = f"{env.current_text}{val_raw}"
+                to_add = _resolve_add_arg(val_raw, env)
+                env.current_text = f"{env.current_text}{to_add}"
             elif key == 'add in left':
-                env.current_text = f"{val_raw}{env.current_text}"
+                to_add = _resolve_add_arg(val_raw, env)
+                env.current_text = f"{to_add}{env.current_text}"
             elif key == 'store':
                 name = str(val_raw).strip()
                 env.stored[name] = env.current_text
@@ -444,7 +475,7 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
             elif key == 'check':
                 env.check_var = str(val_raw).strip()
             elif key == 'has value':
-                env.check_expected = str(val_raw).strip()
+                env.check_expected = _unquote(str(val_raw).strip())
             else:
                 # ignore unknown kv
                 pass
@@ -455,10 +486,12 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
             m = COMMAND_PATTERN_PARENS.match(node.name)
             arg_text = node.value if node.value is not None else (m.group('arg') if m else None)
             if cmd.startswith('add in right'):
-                to_add = node.value if node.value is not None else (m.group('arg') if m else '')
+                raw = node.value if node.value is not None else (m.group('arg') if m else '')
+                to_add = _resolve_add_arg(raw, env)
                 env.current_text = f"{env.current_text}{to_add}"
             elif cmd.startswith('add in left'):
-                to_add = node.value if node.value is not None else (m.group('arg') if m else '')
+                raw = node.value if node.value is not None else (m.group('arg') if m else '')
+                to_add = _resolve_add_arg(raw, env)
                 env.current_text = f"{to_add}{env.current_text}"
             elif cmd.startswith('store'):
                 name = node.value if node.value is not None else (m.group('arg') if m else 'var')
@@ -500,11 +533,15 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                     eval_nodes(node.children, env, var_name)
             elif bname == 'if true':
                 val = env.outputs.get(env.check_var)
+                if val is None:
+                    val = env.stored.get(env.check_var)  # ← look at stored vars too
                 ok = (val == env.check_expected) if env.check_expected is not None else bool(val)
                 if ok:
                     eval_nodes(node.children, env, var_name)
             elif bname == 'if false':
                 val = env.outputs.get(env.check_var)
+                if val is None:
+                    val = env.stored.get(env.check_var)  # ← same here
                 ok = (val == env.check_expected) if env.check_expected is not None else bool(val)
                 if not ok:
                     eval_nodes(node.children, env, var_name)
