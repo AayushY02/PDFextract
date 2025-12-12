@@ -1,0 +1,40 @@
+Windows セットアップ (Python 3.10以上; Python 3.13で確認)
+--------------------------------------------------------
+
+1) 仮想環境の作成と有効化 (PowerShell, プロジェクトルート)
+- `python -m venv .venv`
+- `.\.venv\Scripts\Activate`
+
+2) 依存関係のインストール
+- pip を更新: `python -m pip install --upgrade pip`
+- 必要パッケージを導入: `pip install -r requirements.txt`
+  - pandas, pdfminer.six, PyYAML, PyMuPDF, python-docx, openpyxl, xlrd, pywin32 を含む。
+
+3) PDF からテキスト抽出 (input ➜ results/output1)
+- `python text_extractor.py`
+
+4) 抽出テキストのクリーニング (results/output1 ➜ results/output2)
+- `python text_cleaner.py`
+
+5) ポストクリーニング (results/output2 ➜ results/output3; output4 を狙う場合はスクリプト内のパスを調整)
+- `python post_clean_output4.py`
+
+6) 主なコマンド (プロジェクトルートで実行)
+- DSL 抽出例 (86): `python dsl_engine.py --script 86_script.dsl --input_dir "results/output4/【86】近畿" --outdir "results/csv/【86】近畿"`
+- 86 のサマリー統合: `python merge_86_rows.py`
+
+7) 地方別 CSV 生成コマンド (PowerShell)
+- 82 東北: `python dsl_engine.py --script 82_script.dsl --input_dir "results/output4/【82】東北" --outdir "results/csv/【82】東北"`
+- 83 関東: `python dsl_engine.py --script 83_script.dsl --input_dir "results/output4/【83】関東" --outdir "results/csv/【83】関東"`
+- 84 北陸: `python dsl_engine.py --script 84_script.dsl --input_dir "results/output4/【84】北陸" --outdir "results/csv/【84】北陸"`
+- 85 中部: `python dsl_engine.py --script 85_script.dsl --input_dir "results/output4/【85】中部" --outdir "results/csv/【85】中部"`
+- 86 近畿: `python dsl_engine.py --script 86_script.dsl --input_dir "results/output4/【86】近畿" --outdir "results/csv/【86】近畿"`
+- 87 中国: `python dsl_engine.py --script 87_script.dsl --input_dir "results/output4/【87】中国" --outdir "results/csv/【87】中国"`
+- 88 四国: `python dsl_engine.py --script 88_script.dsl --input_dir "results/output4/【88】四国" --outdir "results/csv/【88】四国"`
+- 90 沖縄: `python dsl_engine.py --script 90_script.dsl --input_dir "results/output4/【90】沖縄" --outdir "results/csv/【90】沖縄"`
+
+8) エンコーディングの注意
+- UTF-8 を維持。Excel 互換のため一部 CSV は UTF-8 BOM を付与。
+
+9) 動作確認
+- `python -c "import fitz, pandas, yaml; print('ok')"`

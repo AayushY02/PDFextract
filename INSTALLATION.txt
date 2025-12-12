@@ -1,0 +1,38 @@
+Windows setup (Python 3.10+; tested with Python 3.13)
+------------------------------------------------------
+
+1) Create and activate a virtual environment (PowerShell, project root)
+- `python -m venv .venv`
+- `.\.venv\Scripts\Activate`
+
+2) Install dependencies
+- Upgrade pip: `python -m pip install --upgrade pip`
+- Install packages: `pip install -r requirements.txt`
+  - Includes pandas, pdfminer.six, PyYAML, PyMuPDF, python-docx, openpyxl, xlrd, pywin32.
+
+3) Extract text from PDFs (input ➜ results/output1)
+- `python text_extractor.py`
+
+4) Clean extracted text (results/output1 ➜ results/output2)
+- `python text_cleaner.py`
+
+5) Post-clean text (results/output2 ➜ results/output3; adjust paths inside if you target output4)
+- `python post_clean_output3.py`
+
+6) Key commands (run from project root)
+- DSL extraction example (86): `python dsl_engine.py --script 86_script.dsl --input_dir "results/output4/【86】近畿" --outdir "results/csv/【86】近畿"`
+- Merge 86 summary pairs: `python merge_86_rows.py`
+
+7) Region CSV generation commands (PowerShell)
+- 82 東北: `python dsl_engine.py --script 82_script.dsl --input_dir "results/output4/【82】東北" --outdir "results/csv/【82】東北"`
+- 83 関東: `python dsl_engine.py --script 83_script.dsl --input_dir "results/output4/【83】関東" --outdir "results/csv/【83】関東"`
+- 84 北陸: `python dsl_engine.py --script 84_script.dsl --input_dir "results/output4/【84】北陸" --outdir "results/csv/【84】北陸"`
+- 85 中部: `python dsl_engine.py --script 85_script.dsl --input_dir "results/output4/【85】中部" --outdir "results/csv/【85】中部"`
+- 86 近畿: `python dsl_engine.py --script 86_script.dsl --input_dir "results/output4/【86】近畿" --outdir "results/csv/【86】近畿"`
+- 87 中国: `python dsl_engine.py --script 87_script.dsl --input_dir "results/output4/【87】中国" --outdir "results/csv/【87】中国"`
+- 88 四国: `python dsl_engine.py --script 88_script.dsl --input_dir "results/output4/【88】四国" --outdir "results/csv/【88】四国"`
+- 90 沖縄: `python dsl_engine.py --script 90_script.dsl --input_dir "results/output4/【90】沖縄" --outdir "results/csv/【90】沖縄"`
+
+8) Encoding notes
+- Keep files UTF-8; some CSV outputs use UTF-8 with BOM for Excel compatibility.
+
