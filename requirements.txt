@@ -1,4 +1,7 @@
-﻿PyMuPDF
+﻿pandas
+pdfminer.six
+PyYAML
+PyMuPDF
 python-docx
 openpyxl
 xlrd
