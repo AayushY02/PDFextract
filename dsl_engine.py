@@ -503,7 +503,10 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                     env.set_value = arg[1:-1]
                 else:
                     lc = arg.lower()
-                    if arg in env.stored:
+                    # Special case: set(all) should stash the full original text
+                    if lc == 'all':
+                        env.set_value = env.original_text
+                    elif arg in env.stored:
                         env.set_value = env.stored[arg]
                     elif arg in env.outputs:
                         env.set_value = env.outputs[arg]
