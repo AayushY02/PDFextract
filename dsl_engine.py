@@ -706,37 +706,59 @@ def main():
         in_dir = args.input_dir
         out_dir = args.outdir
 
-        summary_rows = []  # NEW: keep all rows for this folder
+        overall_rows = []      # summary for all text files (with relative path)
+        folder_rows = {}       # folder-specific summaries keyed by rel path
 
-        # process all .txt files (non-recursive)
-        for fname in sorted(os.listdir(in_dir)):
-            if not fname.lower().endswith(".txt"):
+        # recursive walk to pick up nested folders
+        for dirpath, _, filenames in os.walk(in_dir):
+            txt_files = [f for f in sorted(filenames) if f.lower().endswith(".txt")]
+            if not txt_files:
                 continue
-            fpath = os.path.join(in_dir, fname)
-            with open(fpath, "r", encoding="utf-8") as f:
-                text = f.read()
-            outputs = run(script_text, text)
-            base = os.path.splitext(fname)[0]
-            out_path = os.path.join(out_dir, base + ".csv")
-            _write_csv(out_path, var_order, outputs, source_name=fname)
 
-            # build row for summary (same shape as per-file CSV)
-            row = [fname] + [
-                (outputs.get(h, "") if outputs.get(h, "") is not None else "")
-                for h in var_order
-            ]
-            summary_rows.append(row)
-            
-            # NEW: write folder/bureau-wise summary CSV
-        if summary_rows:
-            bureau_name = os.path.basename(os.path.normpath(in_dir))
-            summary_path = os.path.join(out_dir, f"{bureau_name}_summary.csv")
-            os.makedirs(os.path.dirname(summary_path), exist_ok=True)
+            rel_dir = os.path.relpath(dirpath, in_dir)
+            rel_dir = "" if rel_dir == "." else rel_dir
+
+            for fname in txt_files:
+                fpath = os.path.join(dirpath, fname)
+                with open(fpath, "r", encoding="utf-8") as f:
+                    text = f.read()
+                outputs = run(script_text, text)
+
+                dest_dir = out_dir if not rel_dir else os.path.join(out_dir, rel_dir)
+                os.makedirs(dest_dir, exist_ok=True)
+                base = os.path.splitext(fname)[0]
+                out_path = os.path.join(dest_dir, base + ".csv")
+                _write_csv(out_path, var_order, outputs, source_name=fname)
+
+                row_vals = [
+                    (outputs.get(h, "") if outputs.get(h, "") is not None else "")
+                    for h in var_order
+                ]
+                folder_rows.setdefault(rel_dir or ".", []).append([fname] + row_vals)
+                rel_name = fname if not rel_dir else os.path.join(rel_dir, fname)
+                overall_rows.append([rel_name] + row_vals)
+
+        # write per-folder summaries
+        for rel_dir, rows in folder_rows.items():
+            folder_abs = in_dir if rel_dir in ("", ".") else os.path.join(in_dir, rel_dir)
+            folder_label = os.path.basename(os.path.normpath(folder_abs))
+            summary_dir = out_dir if rel_dir in ("", ".") else os.path.join(out_dir, rel_dir)
+            os.makedirs(summary_dir, exist_ok=True)
+            summary_path = os.path.join(summary_dir, f"{folder_label}_summary.csv")
             with open(summary_path, "w", newline="", encoding="utf-8-sig") as f:
-                # same settings here so behavior matches per-file CSV
                 w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
                 w.writerow(['file name'] + var_order)
-                w.writerows(summary_rows)
+                w.writerows(rows)
+
+        # write overall summary for every text file processed
+        if overall_rows:
+            root_label = os.path.basename(os.path.normpath(in_dir))
+            overall_path = os.path.join(out_dir, f"{root_label}_all_texts_summary.csv")
+            os.makedirs(os.path.dirname(overall_path), exist_ok=True)
+            with open(overall_path, "w", newline="", encoding="utf-8-sig") as f:
+                w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
+                w.writerow(['file name'] + var_order)
+                w.writerows(overall_rows)
         return
 
  # --- Single-file mode ---

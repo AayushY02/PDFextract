@@ -1,9 +1,10 @@
 """
-PDF Text Extractor with Page Start/End Markers (results/output1 version)
-=======================================================================
+Document Text Extractor with Page Start/End Markers (results/output1 version)
+=============================================================================
 
-This script recursively scans the 'input' folder for PDF files,
-extracts their embedded text (no OCR), and saves the result in:
+This script recursively scans the 'input' folder for PDF, Word (.docx),
+and Excel (.xls/.xlsx) files, extracts their embedded text (no OCR),
+and saves the result in:
     results/output1/
 
 Enhancements:
@@ -32,7 +33,7 @@ summarizing:
     - Error message (if any)
 
 Requirements:
-    pip install PyMuPDF
+    pip install PyMuPDF python-docx openpyxl pandas
 
 Usage:
     python pdf_text_extractor.py
@@ -40,16 +41,22 @@ Usage:
 
 import csv
 import fitz  # PyMuPDF
+import pandas as pd
 import statistics
 from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from docx import Document
+from docx.oxml.table import CT_Tbl
+from docx.oxml.text.paragraph import CT_P
+from docx.table import Table
+from docx.text.paragraph import Paragraph
 # ---------- CONFIGURATION ----------
 INPUT_DIR = Path("input")
 RESULTS_DIR = Path("results")
 OUTPUT_DIR = RESULTS_DIR / "output1"
 LOG_FILE = RESULTS_DIR / "extraction_log.csv"
-EXTENSION = ".pdf"
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".xls"}
 
 # Page boundary marker settings
 PAGE_START_TEMPLATE = "[[PAGE_START {n}]]"
@@ -57,12 +64,21 @@ PAGE_END_TEMPLATE = "[[PAGE_END]]"
 TABLE_COL_SEPARATOR = " | "
 # ----------------------------------
 
-def process_one_pdf(pdf_path: Path, input_dir: Path, output_dir: Path):
-    relative_path = pdf_path.relative_to(input_dir)
+def process_one_file(file_path: Path, input_dir: Path, output_dir: Path):
+    relative_path = file_path.relative_to(input_dir)
     output_path = output_dir / relative_path.with_suffix(".txt")
+    suffix = file_path.suffix.lower()
 
     try:
-        text, pages = extract_text_from_pdf(pdf_path)
+        if suffix == ".pdf":
+            text, pages = extract_text_from_pdf(file_path)
+        elif suffix == ".docx":
+            text, pages = extract_text_from_docx(file_path)
+        elif suffix in {".xlsx", ".xls"}:
+            text, pages = extract_text_from_excel(file_path)
+        else:
+            raise ValueError(f"Unsupported extension: {suffix}")
+
         save_text(output_path, text)
         return relative_path, pages, "OK", ""
     except Exception as e:
@@ -79,26 +95,37 @@ def sanitize_cell_text(cell_value):
     return " ".join(str(cell_value).split())
 
 
-def format_table(table, page_number: int, table_index: int) -> str:
+def format_table_rows(rows, header_label: str, row_count: int, col_count: int) -> str:
     """
-    Convert a PyMuPDF table object into a structured text block with explicit markers.
-    Cells are joined with the configured column separator to keep columns clear.
+    Convert arbitrary row data into a structured text block with explicit markers.
+    header_label allows callers to inject context such as page or sheet numbers.
     """
-    header = (
-        f"[[TABLE_START page={page_number} index={table_index} "
-        f"rows={table.row_count} cols={table.col_count}]]"
-    )
-    rows = []
-    for row in table.extract():
+    header = f"[[TABLE_START {header_label} rows={row_count} cols={col_count}]]"
+    body_rows = []
+    for row in rows:
         sanitized_cells = [sanitize_cell_text(cell) for cell in row]
-        rows.append(TABLE_COL_SEPARATOR.join(sanitized_cells))
-    body = "\n".join(rows)
+        body_rows.append(TABLE_COL_SEPARATOR.join(sanitized_cells))
+    body = "\n".join(body_rows)
     footer = "[[TABLE_END]]"
     content_lines = [header]
     if body:
         content_lines.append(body)
     content_lines.append(footer)
     return "\n".join(content_lines) + "\n\n"
+
+
+def format_table(table, page_number: int, table_index: int) -> str:
+    """
+    Convert a PyMuPDF table object into a structured text block with explicit markers.
+    Cells are joined with the configured column separator to keep columns clear.
+    """
+    header_label = f"page={page_number} index={table_index}"
+    return format_table_rows(
+        table.extract(),
+        header_label=header_label,
+        row_count=table.row_count,
+        col_count=table.col_count,
+    )
 
 
 def block_center_in_bbox(block_bbox, table_bbox, padding: float = 0.5) -> bool:
@@ -145,6 +172,16 @@ def line_belongs_to_table(
         and (ty0 - padding) <= cy <= (ty1_adj + padding)
     )
 
+
+def iter_docx_blocks(document):
+    """
+    Yield paragraphs and tables in the original document order.
+    """
+    for child in document.element.body.iterchildren():
+        if isinstance(child, CT_P):
+            yield Paragraph(child, document)
+        elif isinstance(child, CT_Tbl):
+            yield Table(child, document)
 
 
 def extract_page_body(page, page_number: int) -> str:
@@ -282,6 +319,80 @@ def extract_text_from_pdf(pdf_path: Path):
         return combined_text, page_count
 
 
+def extract_text_from_docx(docx_path: Path):
+    """
+    Extract text from a Word document, preserving heading markers and tables.
+    The whole document is treated as a single page for marker consistency.
+    """
+    doc = Document(docx_path)
+    segments = []
+    table_index = 0
+
+    for block in iter_docx_blocks(doc):
+        if isinstance(block, Paragraph):
+            text = block.text.strip()
+            if not text:
+                continue
+            if not text.endswith("\n"):
+                text = f"{text}\n"
+            style_name = block.style.name if block.style else ""
+            if style_name and style_name.lower().startswith("heading"):
+                segments.append(f"[[HEADING]] {text}")
+            else:
+                segments.append(text)
+        elif isinstance(block, Table):
+            table_index += 1
+            rows = []
+            max_cols = 0
+            for row in block.rows:
+                cells = [sanitize_cell_text(cell.text) for cell in row.cells]
+                max_cols = max(max_cols, len(cells))
+                rows.append(cells)
+
+            segments.append(
+                format_table_rows(
+                    rows=rows,
+                    header_label=f"page=1 index={table_index}",
+                    row_count=len(rows),
+                    col_count=max_cols,
+                )
+            )
+
+    body = "".join(segments)
+    start_marker = f"{PAGE_START_TEMPLATE.format(n=1)}\n\n"
+    end_marker = f"\n{PAGE_END_TEMPLATE.format(n=1)}\n"
+    combined = start_marker + body + end_marker
+    return combined, 1
+
+
+def extract_text_from_excel(excel_path: Path):
+    """
+    Extract text from Excel workbooks by emitting one table per sheet.
+    Each sheet is wrapped in page markers to align with the PDF output format.
+    """
+    workbook = pd.ExcelFile(excel_path)
+    chunks = []
+
+    for idx, sheet_name in enumerate(workbook.sheet_names, start=1):
+        df = workbook.parse(sheet_name, header=None, dtype=object)
+        df = df.where(pd.notnull(df), "")
+        rows = df.astype(str).values.tolist()
+        col_count = df.shape[1] if not df.empty else 0
+
+        table_text = format_table_rows(
+            rows=rows,
+            header_label=f"page={idx} index=1 sheet={sanitize_cell_text(sheet_name)}",
+            row_count=len(rows),
+            col_count=col_count,
+        )
+        start_marker = f"{PAGE_START_TEMPLATE.format(n=idx)}\n\n"
+        end_marker = f"\n{PAGE_END_TEMPLATE.format(n=idx)}\n"
+        chunks.append(start_marker + table_text + end_marker)
+
+    combined_text = "".join(chunks)
+    return combined_text, len(workbook.sheet_names)
+
+
 def save_text(output_path: Path, text: str):
     """Writes text to a UTF-8 encoded file."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -310,55 +421,40 @@ def append_log(file_path: Path, pages: int, status: str, error: str = ""):
         ])
 
 
-# def process_pdfs(input_dir: Path, output_dir: Path):
-#     """Recursively processes all PDFs in input_dir and saves text to output_dir."""
-#     pdf_files = list(input_dir.rglob(f"*{EXTENSION}"))
-#     if not pdf_files:
-#         print(f"No PDF files found in: {input_dir}")
-#         return
+def collect_supported_files(input_dir: Path):
+    """Return a sorted list of all supported files under input_dir."""
+    return sorted(
+        (
+            path
+            for path in input_dir.rglob("*")
+            if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
+        ),
+        key=lambda p: str(p).lower(),
+    )
 
-#     init_log()
-#     print(f"Found {len(pdf_files)} PDF files. Starting extraction...\n")
 
-#     for pdf_path in pdf_files:
-#         relative_path = pdf_path.relative_to(input_dir)
-#         output_path = output_dir / relative_path.with_suffix(".txt")
-
-#         try:
-#             text, pages = extract_text_from_pdf(pdf_path)
-#             save_text(output_path, text)
-#             append_log(relative_path, pages, "OK")
-#             print(f"✅ Extracted: {pdf_path}  ({pages} pages)")
-#         except Exception as e:
-#             append_log(relative_path, 0, "FAIL", str(e))
-#             print(f"❌ Failed: {pdf_path} ({e})")
-
-#     print("\nAll done!")
-#     print(f"📂 Extracted texts: {output_dir}")
-#     print(f"📄 Log file: {LOG_FILE}")
-
-def process_pdfs(input_dir: Path, output_dir: Path):
-    pdf_files = list(input_dir.rglob(f"*{EXTENSION}"))
-    if not pdf_files:
-        print(f"No PDF files found in: {input_dir}")
+def process_documents(input_dir: Path, output_dir: Path):
+    files = collect_supported_files(input_dir)
+    if not files:
+        print(f"No supported files (.pdf, .docx, .xls, .xlsx) found in: {input_dir}")
         return
 
     init_log()
-    print(f"Found {len(pdf_files)} PDF files. Starting extraction...\n")
+    print(f"Found {len(files)} files (PDF/Word/Excel). Starting extraction...\n")
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     with ProcessPoolExecutor() as executor:
         futures = {
-            executor.submit(process_one_pdf, pdf_path, input_dir, output_dir): pdf_path
-            for pdf_path in pdf_files
+            executor.submit(process_one_file, path, input_dir, output_dir): path
+            for path in files
         }
 
         for fut in as_completed(futures):
             rel, pages, status, error = fut.result()
             append_log(rel, pages, status, error)
             if status == "OK":
-                print(f"✅ Extracted: {rel}  ({pages} pages)")
+                print(f"✅ Extracted: {rel}  ({pages} pages/sheets)")
             else:
                 print(f"❌ Failed: {rel} ({error})")
 
@@ -367,5 +463,10 @@ def process_pdfs(input_dir: Path, output_dir: Path):
     print(f"📄 Log file: {LOG_FILE}")
 
 
+# Backwards-compatible entry point name
+def process_pdfs(input_dir: Path, output_dir: Path):
+    process_documents(input_dir, output_dir)
+
+
 if __name__ == "__main__":
-    process_pdfs(INPUT_DIR, OUTPUT_DIR)
+    process_documents(INPUT_DIR, OUTPUT_DIR)
