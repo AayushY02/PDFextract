@@ -81,35 +81,72 @@ name_of :
                   store(var_kouji)
                   set(var_kouji)
 
+reg_A : 
+   search in : all
+   search text : "4.競争参加資格"
+   if found : 
+      take right : 
+         search in : taken
+         search text : "5.総合評価に関する事項"
+         if found : 
+            take left : 
+               store(region_A)
+         
+reg_B : 
+   search in : all
+   search text : "5.総合評価に関する事項"
+   if found : 
+      take right : 
+         store(region_B)
+
+
 「同種工事（企業）」:
    check : name_of
    has value : 本官
    if true : 
       
    if false:
-      search in : all
-      search text : "((2)) 加算点"
+      search in : region_A
+      search text : "施工を行った分担工事の実績であること。)。"
       if found : 
          take right : 
             search in : taken
-            search text : "| より同種性が高い工事 | 同種性が認められる工事"
+            search text : "((2)) 当該施工実績"
             if found : 
-               take right :
+               take left :
+                  remove whitespaces
+                  store(doushi_kouji_1)
+                  set(doushi_kouji_1)
+
+「同種工事（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+     
+   if false:
+      search in : region_A
+      search text : ("(5) 次に掲げる基準を満たす主任技術者、監理技術者又は特例監理技術者を本工事に配置できること" , "(5) 次に掲げる基準を満たす主任技術者、監理技術者を本工事に配置できること。")
+      if found : 
+         take right : 
+            search in : taken
+            search text : ("完成･引渡しが完了した、下記(ア)及び(イ)の要件を満たす工事" , "完成･引渡しが完了した、下記(ア)及び(イ)の要件を満")
+            if found : 
+               take right : 
                   search in : taken
-                  search text : "企業の施工能力 |"
+                  search text : "に代えることができる。"
                   if found : 
                      take right : 
                         search in : taken
-                        search text : "配置予定技術者の能力 |"
+                        search text : "(イ) 当該施工経験"
                         if found : 
                            take left : 
                               remove whitespaces
-                              replace(" | " , "\n")
-                              store(doushi_kouji_1)
-                              set(doushi_kouji_1)
+                              store(doushi_kouji_gijutsusha)
+                              set(doushi_kouji_gijutsusha)
+
 
 「より同種性の高い（企業）」: 
-   search in : all
+   search in : region_B
    search text : "((2)) 加算点"
    if found : 
       take right : 
@@ -126,11 +163,12 @@ name_of :
                      if found : 
                         take left :  
                            remove whitespaces
+                           replace(" | ", "")
                            store(co_very_high_similarity)
                            set(co_very_high_similarity)
 
 「同種性が認められる（企業）」: 
-   search in : all
+   search in : region_B
    search text : "((2)) 加算点"
    if found : 
       take right : 
@@ -154,17 +192,11 @@ name_of :
                                  store(co_similarity)
                                  set(co_similarity)
 
-「同種工事（技術者）」:
-   check : name_of
-   has value : 本官
-   if true : 
-      
-     
-   if false:
+
 
 
 「より同種性の高い（技術者）」: 
-   search in : all
+   search in : region_B
    search text : "((2)) 加算点"
    if found : 
       take right : 
@@ -190,7 +222,7 @@ name_of :
                               set(temp1)
 
 「同種性が認められる（技術者）」:
-   search in : all
+   search in : region_B
    search text : "((2)) 加算点"
    if found : 
       take right : 

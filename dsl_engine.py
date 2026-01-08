@@ -77,6 +77,31 @@ def _decode_escapes_for_search(s: str) -> str:
     # support "\n" and "\t" at least
     return s.replace("\\n", "\n").replace("\\t", "\t")
 
+def _decode_escapes_for_add(s: str) -> str:
+    out = []
+    i = 0
+    while i < len(s):
+        ch = s[i]
+        if ch != "\\" or i == len(s) - 1:
+            out.append(ch)
+            i += 1
+            continue
+
+        nxt = s[i + 1]
+        if nxt == "n":
+            out.append("\n")
+        elif nxt == "t":
+            out.append("\t")
+        elif nxt == "r":
+            out.append("\r")
+        elif nxt == "\\":
+            out.append("\\")
+        else:
+            out.append("\\")
+            out.append(nxt)
+        i += 2
+    return "".join(out)
+
 def _resolve_add_arg(arg: Any, env: "ExecEnv") -> str:
     """
     Resolve the argument of add in left/right into a string:
@@ -84,6 +109,8 @@ def _resolve_add_arg(arg: Any, env: "ExecEnv") -> str:
     - name in env.stored: use stored local value
     - name in env.outputs: use previously computed global variable
     - otherwise: use the raw text as-is
+
+    Also decodes escape sequences for literal inputs: \n, \t, \r, \\.
     """
     if arg is None:
         return ""
@@ -92,7 +119,7 @@ def _resolve_add_arg(arg: Any, env: "ExecEnv") -> str:
 
     # quoted literal
     if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
-        return s[1:-1]
+        return _decode_escapes_for_add(s[1:-1])
 
     # local temp storage has priority
     if s in env.stored and env.stored[s] is not None:
@@ -103,7 +130,7 @@ def _resolve_add_arg(arg: Any, env: "ExecEnv") -> str:
         return str(env.outputs[s])
 
     # fallback: treat as literal text
-    return s
+    return _decode_escapes_for_add(s)
 
 
 @dataclass

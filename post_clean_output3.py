@@ -357,6 +357,17 @@ def build_segments(lines: list[str]) -> list[dict]:
             segments.append({"type": "text", "lines": block})
     return segments
 
+def contains_section_pointer(lines: list[str]) -> bool:
+    return any(re.search(r"\(\(\d+\)\)", line) for line in lines)
+
+def page_has_real_text(page: dict) -> bool:
+    segs = build_segments(page["body"])
+    for seg in segs:
+        if seg["type"] == "text" and not is_ignorable_text(seg):
+            # any real (non-ignorable) text blocks further chaining
+            return True
+    return False
+
 
 def is_ignorable_text(seg: dict) -> bool:
     """
@@ -374,11 +385,14 @@ def is_ignorable_text(seg: dict) -> bool:
 
     if not lines:
         return True
+    
+    if contains_section_pointer(lines):
+        return False
 
     if all(is_digit_line(ln) for ln in lines):
         return True
 
-    if len(lines) <= 3 and all(len(s) <= 120 for s in lines):
+    if len(lines) < 3 and all(len(s) <= 100 for s in lines):
         return True
 
     return False
@@ -483,6 +497,14 @@ def merge_table_chain(pages: list[dict], start_idx: int) -> bool:
     while j < len(pages):
         if merge_pages(pages[start_idx], pages[j]):
             changed = True
+            # ✅ NEW: stop if the merged-into page still contains real text
+            if page_has_real_text(pages[j]):
+                break
+
+            # Existing behavior: stop if page j still has another table to handle
+            if find_first_table_idx(build_segments(pages[j]["body"])) is not None:
+                break
+            
             j += 1
             continue
         break

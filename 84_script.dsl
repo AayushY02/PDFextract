@@ -80,31 +80,111 @@ name_of :
                      store(var_kouji)
                      set(var_kouji)
 
+reg_A : 
+   search in : all
+   search text : ("4.競争参加資格" , "4. 競争参加資格")
+   if found : 
+      take right : 
+         search in : taken
+         search text : ("5.総合評価に関する事項", "5. 総合評価に関する事項")
+         if found : 
+            take left : 
+               store(region_A)
+         
+reg_B : 
+   search in : all
+   search text : ("5.総合評価に関する事項", "5. 総合評価に関する事項")
+   if found : 
+      take right : 
+         store(region_B)
+
 「同種工事（企業）」:
    check : name_of
    has value : 本官
    if true : 
       
    if false:
-      search in : all
-      search text : ("同種工事の施 工実績 | ", "同種作業(工 事)の施工実績 | ", "同種作業(工事)の施工実績 | " , "同 種 作 業 ( 工 事)の施工実績 | " , "同種工事の施 工実績 | " , "同種工事の施 工実績 工事成績 | " )
+      search in : region_A
+      search text : ("下記1)の要件を満たす工事の施工実績", "下記1)の要件を満たす作業(工事)")
       if found : 
          take right : 
             search in : taken
-            search text : " | "
+            search text : "評定点が65点未満のものを除く。\n1) "
             if found : 
                take right :
                   search in : taken
-                  search text : "| "
+                  search text : "(7) 建設共同企業体の実績をもって単体"
                   if found : 
                      take left : 
-                        remove whitespaces
-                        store(doushi_kouji_1)
-                        set(doushi_kouji_1)
+                        search in : taken
+                        search text : "※一般財団法人日"
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)
+                        if not found : 
+                           take left : 
+                              remove whitespaces
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)
+            if not found : 
+               search in : taken
+               search text : "満のものを除く。\n1) "
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : "(7) 建設共同企業体の実績をもって単体"
+                     if found : 
+                        take left : 
+                           search in : taken
+                           search text : "※一般財団法人日"
+                           if found : 
+                              take left : 
+                                 remove whitespaces
+                                 store(doushi_kouji_1)
+                                 set(doushi_kouji_1)
+                           if not found : 
+                              take left : 
+                                 remove whitespaces
+                                 store(doushi_kouji_1)
+                                 set(doushi_kouji_1)
+
+                     
+「同種工事（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+     
+   if false:
+      search in : region_A
+      search text : ("次に掲げる基準を満たす主任技術者、又は監理技術者を本工事に配置できること。" , "次に掲げる基準を満たす主任技術者又は監理技術者を本工事に配置できること。", "次に掲げる基準を満たす主任技術者、又は監理技術者を本作業に配置できること。" , "次に掲げる基準を満たす現場代理人を本作業に配置できること。")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "下記(ア)の要件を満たす工事の施工経験"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "評定点が65点未満のものを除く。"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "((3)) 監理技術者にあっては"
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              store(doushi_kouji_2)
+                              set(doushi_kouji_2)
+            if not found : 
+               search in : taken
+               search text : ("上記(6)に掲げる要件を満たす工事の施工経験", "上記(6)に掲げる要件を満たす工事", "上記(6)に掲げる要件を満たす作業(工事)")
+               if found : 
+                  set(「同種工事（企業）」)
 
 「より同種性の高い（企業）」: 
-   search in : all
-   search text : ("同種工事の施 工実績 | ", "同種作業(工 事)の施工実績 | ", "同種作業(工事)の施工実績 | " , "同 種 作 業 ( 工 事)の施工実績 | " , "同種工事の施 工実績 | " , "同種工事の施 工実績 工事成績 | " )
+   search in : region_Bchou
+   search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
    if found : 
       take right : 
          search in : taken
@@ -115,13 +195,17 @@ name_of :
                search text : "同種性が高い施工実績(A)"
                if found : 
                   take left : 
-                     remove whitespaces
-                     store(co_very_high_similarity)
-                     set(co_very_high_similarity)
+                     search in : taken
+                     search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           store(co_very_high_similarity)
+                           set(co_very_high_similarity)
 
 「同種性が高い（企業）」: 
-   search in : all
-   search text : ("同種工事の施 工実績 | ", "同種作業(工 事)の施工実績 | ", "同種作業(工事)の施工実績 | " , "同 種 作 業 ( 工 事)の施工実績 | " , "同種工事の施 工実績 | " , ""同種工事の施 工実績 工事成績 |"" )
+   search in : region_B
+   search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
    if found : 
       take right : 
          search in : taken
@@ -132,13 +216,17 @@ name_of :
                search text : "同種性が認められる施工実績(B)"
                if found : 
                   take left : 
-                     remove whitespaces
-                     store(co_high_similarity)
-                     set(co_high_similarity)
+                     search in : taken
+                     search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           store(co_high_similarity)
+                           set(co_high_similarity)
 
 「同種性が認められる（企業）」: 
-   search in : all
-   search text : ("同種工事の施 工実績 | ", "同種作業(工 事)の施工実績 | ", "同種作業(工事)の施工実績 | " , "同 種 作 業 ( 工 事)の施工実績 | " , "同種工事の施 工実績 | " , "同種工事の施 工実績 工事成績 | " )
+   search in : region_B
+   search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
    if found : 
       take right : 
          search in : taken
@@ -149,41 +237,16 @@ name_of :
                search text : "| "
                if found : 
                   take left : 
-                     remove whitespaces
-                     store(co_similarity)
-                     set(co_similarity)
-                        
-「同種工事（技術者）」:
-   check : name_of
-   has value : 本官
-   if true : 
-   if false:
-      search in : all
-      search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
-      if found : 
-         take right : 
-            search in : taken
-            search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工")
-            if found : 
-               take right : 
-                  search in : taken
-                  search text : " | "
-                  if found : 
-                     take right : 
-                        search in : taken
-                        search text : " | "
-                        if found : 
-                           take right :
-                              search in : taken
-                              search text : "| "
-                              if found : 
-                                 take left : 
-                                    remove whitespaces
-                                    store(doushi_kouji_2)
-                                    set(doushi_kouji_2)
+                     search in : taken
+                     search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           store(co_similarity)
+                           set(co_similarity)                  
 
 「より同種性の高い（技術者）」: 
-   search in : all
+   search in : region_B
    search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
    if found : 
       take right : 
@@ -207,12 +270,16 @@ name_of :
                                  search text : "同種性が高い施工経験(A)"
                                  if found : 
                                     take left : 
-                                       remove whitespaces
-                                       store(eng_very_high_similarity)
-                                       set(eng_very_high_similarity)
+                                       search in : taken
+                                       search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                       if found : 
+                                          take left : 
+                                             remove whitespaces
+                                             store(eng_very_high_similarity)
+                                             set(eng_very_high_similarity)
 
 「同種性の高い（技術者）」:
-   search in : all
+   search in : region_B
    search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
    if found : 
       take right : 
@@ -236,12 +303,16 @@ name_of :
                                  search text : "同種性が認められる施工経験(B)"
                                  if found : 
                                     take left : 
-                                       remove whitespaces
-                                       store(eng_high_similarity)
-                                       set(eng_high_similarity)
+                                       search in : taken
+                                       search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                       if found : 
+                                          take left : 
+                                             remove whitespaces
+                                             store(eng_high_similarity)
+                                             set(eng_high_similarity)
 
 「同種性が認められる（技術者）」:
-   search in : all
+   search in : region_B
    search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
    if found : 
       take right : 
@@ -265,6 +336,10 @@ name_of :
                                  search text : "| "
                                  if found : 
                                     take left : 
-                                       remove whitespaces
-                                       store(eng_similarity)
-                                       set(eng_similarity)
+                                       search in : taken
+                                       search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                       if found : 
+                                          take left : 
+                                             remove whitespaces
+                                             store(eng_similarity)
+                                             set(eng_similarity)
