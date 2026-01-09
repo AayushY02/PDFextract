@@ -44,11 +44,17 @@ BLOCK_KEYS = {
 }
 
 COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|set|replace)\s*\((?P<arg>.*)\)\s*$')
-PAGE_MARKER_RE = re.compile(r"\[\[PAGE_START\s+\d+\]\]|\[\[PAGE_END\]\]|\[\[HEADING\]\]\s*\d*")
+PAGE_MARKER_RE = re.compile(
+    r"\[\[PAGE_START(?:\s+\d+)?\s*\]\]|\[\[PAGE_END\s*\]\]|\[\[HEADING\]\]\s*\d*"
+)
 
 def _strip_page_markers(s: str) -> str:
-    """Remove [[PAGE_START N]] and [[PAGE_END]] markers from a string."""
+    """Remove [[PAGE_START...]] and [[PAGE_END...]] markers from a string."""
     return PAGE_MARKER_RE.sub("", s)
+
+
+def _remove_empty_lines(s: str) -> str:
+    return "\n".join(line for line in s.splitlines() if line.strip())
 
 
 def strip_comment(line: str) -> str:
@@ -622,7 +628,9 @@ def eval_variable(var_node: Node, global_env: ExecEnv):
     # if not set, default to empty string
     value = env.set_value
     if isinstance(value, str):
-        value = _strip_page_markers(value).strip()
+        value = _strip_page_markers(value)
+        value = _remove_empty_lines(value)
+        value = value.strip()
         
     global_env.outputs[var_name] = value
 
@@ -631,7 +639,7 @@ def _build_page_spans(text: str):
     Scan [[PAGE_START N]] markers and build a list of (page_no:int, start_index:int).
     """
     spans = []
-    for m in re.finditer(r"\[\[PAGE_START\s+(\d+)\]\]", text):
+    for m in re.finditer(r"\[\[PAGE_START\s+(\d+)\s*\]\]", text):
         page_no = int(m.group(1))
         spans.append((page_no, m.start()))
     spans.sort(key=lambda x: x[1])
@@ -689,8 +697,14 @@ def run(script_text: str, input_text: str) -> Dict[str, Any]:
 def _write_csv(out_path, headers, outputs, source_name):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     full_headers = ['file name'] + headers
+    def _csv_cell(v):
+        if v is None:
+            return ""
+        if isinstance(v, str):
+            return _remove_empty_lines(v)
+        return v
     row = [source_name] + [
-        (outputs.get(h, "") if outputs.get(h, "") is not None else "")
+        _csv_cell(outputs.get(h, ""))
         for h in headers
     ]
     with open(out_path, "w", newline="", encoding="utf-8-sig") as f:
@@ -804,9 +818,15 @@ def main():
             _write_csv(out_path, var_order, outputs, source_name=src_name)
         else:
             if args.json:
-                print(json.dumps(outputs, ensure_ascii=False, indent=2))
+                cleaned = {
+                    k: (_remove_empty_lines(v) if isinstance(v, str) else v)
+                    for k, v in outputs.items()
+                }
+                print(json.dumps(cleaned, ensure_ascii=False, indent=2))
             else:
                 for k, v in outputs.items():
+                    if isinstance(v, str):
+                        v = _remove_empty_lines(v)
                     print(f"{k}: {v}")
         return
 

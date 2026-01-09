@@ -94,6 +94,8 @@ reg_B :
                      if found : 
                         take left : 
                            remove whitespaces
+                           replace("5", "")
+                           replace("\n", "")
                            store(exception8)
                            set(exception8)
                if not found : 
@@ -102,6 +104,8 @@ reg_B :
                   if found : 
                      take left : 
                         remove whitespaces
+                        replace("5", "")
+                        replace("\n", "")
                         store(exception7)
                         set(exception7)
    if not found : 
@@ -119,6 +123,7 @@ reg_B :
                   if found : 
                      take left : 
                         remove whitespaces
+                        replace("5", "")
                         store(var6)
                         set(var6)
         
@@ -140,6 +145,7 @@ reg_B :
                if found :
                   take left : 
                      replace("を有すること。", "")
+                     replace("5", "")
                      store(var1)
                      set(var1)
    if false:

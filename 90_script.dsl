@@ -56,327 +56,183 @@ name_of :
                         store(var_kouji)
                         set(var_kouji)
 
+reg_A : 
+   search in : all
+   search text : ("4.競争参加資格" , "4. 競争参加資格")
+   if found : 
+      take right : 
+         search in : taken
+         search text : ("5.総合評価に関する事項", "5. 総合評価に関する事項")
+         if found : 
+            take left : 
+               store(region_A)
+         
+reg_B : 
+   search in : all
+   search text : ("5.総合評価に関する事項", "5.　総合評価に関する事項")
+   if found : 
+      take right : 
+        store(region_B)
+
 「同種工事(企業)」:
-    search in : all
-    search text : ["「同種工事」は、次の要件を満たす" , "同種工事とは4.(4)に明示"]
-    if found : 
-        search in : all
-        search text : "次に掲げる施工実績を有すること。"
-        if found : 
-            take right : 
-                store(text0)
-                search in : text0
-                search text : "※施工実績が確認できる資料(コリンズ"
-                if found :
-                    take left : 
-                        remove whitespaces
-                        store(text1)
-                        set(text1)
-    if not found : 
-        search in : all
-        search text : ["･同種工事", "･より同種工事"]
-        if found :
-            search in : all
+    search in : region_A
+    search text : "1社以上が次に掲げる施工実績を有すること。"
+    if found :
+        take right :  
+            search in : taken
             search text : "次の要件を満たす施工実績を有すること。"
-            if found :  
+            if found : 
                 take right : 
-                    store(text0)
-                    search in : text0
-                    search text : "･同種工事:"
+                    search in : taken
+                    search text : "同種工事:"
                     if found : 
                         take right : 
                             search in : taken
-                            search text : "･より同種工事:"
-                            if found :
+                            search text : ("※コリンズで施工実績が確認" , "･より同種工事:")
+                            if found : 
                                 take left :
                                     remove whitespaces
-                                    store(text1)
-                                    set(text1)
-        if not found : 
-            search in : all
-            search text : "同種工事:"
-            if found : 
-                search in : all
-                search text : "次の要件を満たす施工実績を有すること。"
-                if found :
-                    take right : 
-                        store(text0)
-                        search in : text0
-                        search text : "同種工事:"
-                        if found : 
-                            take right :
-                                search in : taken
-                                search text : ("※コリンズで" , "【注】 コリンズで")
-                                if found : 
-                                    take left : 
-                                        remove whitespaces
-                                        store(text1)
-                                        set(text1)
-            if not found : 
-                search in : all
-                search text : ["次の(ア)、(イ)の要件を満たす施工実績を有すること。", "同種工事とは4.(4)に明示"]
-                if found : 
-                    search in : all
-                    search text : "次に掲げる施工実績を有すること。"
-                    if found : 
-                        take right : 
-                            store(text0)
-                            search in : text0
-                            search text : "(イ)の要件を満たす施工実績を有すること。"
-                            if found : 
-                                take right : 
-                                    search in : taken
-                                    search text : ("※コリンズで" , "【注】 コリンズで")
-                                    if found : 
-                                        take left : 
-                                            remove whitespaces
-                                            store(text1)
-                                            set(text1)
-                if not found :
-                    search in : all
-                    search text : ["次の要件を満たす施工実績を有すること", "同種工事とは4.(4)に明示"]
-                    if found : 
-                        search in : all
-                        search text : "次の要件を満たす施工実績を有すること"
-                        if found : 
-                            take right : 
-                                store(text0)
-                                search in : taken
-                                search text : "同種工事:"
-                                if found : 
-                                    take right : 
-                                        search in : taken
-                                        search text : ("※コリンズで" , "【注】 コリンズで")
-                                        if found : 
-                                            take left : 
-                                                remove whitespaces
-                                                store(text1)
-                                                set(text1)
-                                if not found : 
-                                    search in : taken
-                                    search text : "･"
-                                    if found : 
-                                        take right : 
-                                            search in : taken
-                                            search text : ("※コリンズで" , "【注】 コリンズで")
-                                            if found : 
-                                                take left : 
-                                                    remove whitespaces
-                                                    store(text1)
-                                                    set(text1)
+                                    replace("の施工実績" , "")
+                                    replace("であること。" , "")
+                                    store(var1)
+                                    set(var1)
                     if not found : 
-                        set("記載なし")
-
-「同種工事(技術者)」 :
-    search in : all
-    search text : ["工事に専任で配置できること", "に掲げる同種工事の要件を満たす工事現場に従事した経験を有する者"]
-    if found :
-        set(「同種工事(企業)」)
-    if not found :
-        search in : all
-        search text : ["工事に専任で配置できること", "に掲げる要件の施工経験を有する者であること。"]
-        if found :
-            set(「同種工事(企業)」)
-        if not found :
-            set("記載なし")
-
-「より同種性の高い(企業)」:
-    check : name_of
-    has value : 本官
-    if true : 
-        search in : all
-        search text : ["同種工事:", "より同種工事:"]
-        if found : 
-            search in : text0
-            search text : "同種工事とは4"
-            if found : 
-                take right : 
-                    search in : taken
-                    search text : "より同種工事とは、"
-                    if found : 
-                        take right : 
-                            search in : taken
-                            search text : "より同種工事:"
-                            if found : 
-                                take right : 
-                                    search in : taken
-                                    search text : "◇施工実績"
-                                    if found : 
-                                        take left : 
-                                            remove whitespaces
-                                            store(var30)
-                                            set(var30)
-    if false :     
-        search in : all
-        search text : ["同種工事とは", "より同種工事とは"]
-        if found :
-            search in : all
-            search text : ["同種工事:", "より同種工事:"]
-            if found : 
-                search in : all
-                search text : "同種工事とは4"
-                if found : 
-                    take right :
                         search in : taken
-                        search text : "より同種工事とは、"
+                        search text : "※コリンズで施工実績が確認"
                         if found : 
-                            take right : 
-                                search in : taken
-                                search text : "より同種工事:"
-                                if found : 
-                                    take right : 
-                                        search in : taken
-                                        search text : "◇施工実績"
-                                        if found : 
-                                            take left : 
-                                                remove whitespaces
-                                                store(var10)
-                                                set(var10) 
-                                if not found : 
-                                    search in : taken
-                                    search text : "次のとおりとする。\n･" 
-                                    if found : 
-                                        take right : 
-                                            search in : taken
-                                            search text : "◇施工実績"
-                                            if found : 
-                                                take left : 
-                                                    remove whitespaces
-                                                    store(exception1)
-                                                    set(exception1)
+                            take left : 
+                                remove whitespaces
+                                replace("の施工実績。" , "")
+                                replace("の施工実績" , "")
+                                replace("であること。" , "")
+                                store(var2)
+                                set(var2)
             if not found : 
-                search in : all
-                search text : "同種工事とは4"
+                search in : taken
+                search text : "次の(ア)、(イ)の要件を満たす施工実績を有すること。"
                 if found : 
-                    take right : 
-                        search in : taken
-                        search text : "より同種工事とは、"
-                        if found : 
-                            take right : 
-                                search in : taken
-                                search text :  "次のとおりとする。･"
-                                if found : 
-                                    take right : 
-                                        search in : taken
-                                        search text : "◇施工実績"
-                                        if found : 
-                                            take left : 
-                                                remove whitespaces
-                                                store(var20)
-                                                set(var20)
-                                if not found : 
-                                    search in : taken
-                                    search text : "次のとおりとする。\n･"
-                                    if found : 
-                                        take right : 
-                                            search in : taken
-                                            search text : "◇施工実績"
-                                            if found : 
-                                                take left : 
-                                                    remove whitespaces
-                                                    store(var20)
-                                                    set(var20)
+                    search in : taken
+                    search text : "※コリンズで施工実績が確認"
+                    if found : 
+                        take left : 
+                            remove whitespaces
+                            store(var3)
+                            set(var3)
+                if not found : 
+                    search in : taken
+                    search text : "※コリンズで施工実績が確認"
+                    if found : 
+                        take left : 
+                            remove whitespaces
+                            replace("を有すること" , "")
+                            store(var3)
+                            set(var3)
 
-
-「同種工事(企業)」_doushu_co2 :
-    check : name_of
-    has value : 本官
-    if true : 
-        search in : all
-        search text : ["同種工事:", "より同種工事:"]
-        if found : 
-            search in : all
-            search text : "同種工事とは4"
+「同種工事(技術者)」:
+    search in : region_A
+    search text : "次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置"
+    if found :
+        take right : 
+            search in : taken
+            search text : "専任補助者を配置する場合、主任技術者又は監理技術者"
             if found : 
                 take right : 
                     search in : taken
-                    search text : "より同種工事とは、"
+                    search text : "以下の"
                     if found : 
                         take right : 
                             search in : taken
-                            search text : "より同種工事:"
+                            search text : "があること"
+                            if found : 
+                                take left : 
+                                    remove whitespaces
+                                    store(temp1)
+                            search in : taken
+                            search text : "65点未満のものは除く。"
                             if found : 
                                 take right : 
                                     search in : taken
-                                    search text : "◇施工実績"
+                                    search text : "また、配置予定主任技術者又は監理技術者"
                                     if found : 
                                         take left : 
                                             remove whitespaces
-                                            store(var30)
-                                            set(var30)
-    if false :     
-        search in : all
-        search text : ["同種工事とは", "より同種工事とは"]
-        if found :
-            search in : all
-            search text : ["同種工事:", "より同種工事:"]
-            if found : 
-                search in : all
-                search text : "同種工事とは4"
+                                            store(temp2)
+                                            add in left(temp1)
+                                            store(temp3)
+                                            set(temp3)
+            if not found : 
+                search in : taken
+                search text : "上記(4)に掲げる同種工事の要件を満たす工事現場に従事した経験を有"
                 if found : 
-                    take right :
-                        search in : taken
-                        search text : "同種工事:"
-                        if found : 
-                            take right : 
+                    set(「同種工事(企業)」)
+
+「同種工事(企業)」_doushu_co2:
+    search in : region_B
+    search text : "2)評価基準及び得点配分"
+    if found :
+        take right : 
+            search in : taken
+            search text : "企業の能力等(加算点1)"
+            if found : 
+                take right : 
+                    search in : taken
+                    search text : "◇同種工事とは4.(4)に明示しているとおりである。"
+                    if found : 
+                        take right : 
+                            search in : taken
+                            search text : "◇同種工事とは4.(4)に明示しているとおりである。"
+                            if found : 
+                                take right : 
+                                    search in : taken
+                                    search text : "◇より同種工事とは"
+                                    if found : 
+                                        take left : 
+                                            search in : taken
+                                            search text : "同種工事:"
+                                            if found : 
+                                                take right : 
+                                                    remove whitespaces
+                                                    replace("の施工実績。", "")
+                                                    replace("の施工実績", "")
+                                                    replace("を有すること。", "")
+                                                    replace("であること。", "")
+                                                    replace("|", "")
+                                                    store(varA)
+                                                    set(varA)
+                                            if not found : 
+                                                remove whitespaces
+                                                replace("の施工実績。", "")
+                                                replace("の施工実績", "")
+                                                replace("を有すること。", "")
+                                                replace("であること。", "")
+                                                replace("|", "")
+                                                store(varB)
+                                                set(varB)
+                            if not found : 
                                 search in : taken
                                 search text : "◇より同種工事とは"
                                 if found : 
                                     take left : 
-                                        remove whitespaces
-                                        store(var50)
-                                        set(var50) 
-                        if not found : 
-                            search in : taken 
-                            search text : "おりである。"
-                            if found : 
-                                take right : 
-                                    search in : taken
-                                    search text : "･"
-                                    if found : 
-                                        take right : 
-                                            search in : taken
-                                            search text : "◇より同種工事とは"
-                                            if found : 
-                                                take left : 
-                                                    remove whitespaces
-                                                    store(exception2)
-                                                    set(exception2) 
-            if not found : 
-                search in : all
-                search text : "同種工事とは4"
-                if found : 
-                    take right : 
-                        search in : taken
-                        search text : ")に明示しているとおりである。\n･"
-                        if found : 
-                            take right : 
-                                search in : taken
-                                search text :  "◇より同種工事とは"
-                                if found : 
-                                    take left : 
-                                        remove whitespaces
-                                        store(var40)
-                                        set(var40)
+                                        search in : taken
+                                        search text : "同種工事:"
+                                        if found : 
+                                            take right : 
+                                                remove whitespaces
+                                                replace("の施工実績。", "")
+                                                replace("の施工実績", "")
+                                                replace("を有すること。", "")
+                                                replace("であること。", "")
+                                                replace("|", "")
+                                                store(varC)
+                                                set(varC)
+                                        if not found : 
+                                            remove whitespaces
+                                            replace("の施工実績。", "")
+                                            replace("の施工実績", "")
+                                            replace("を有すること。", "")
+                                            replace("であること。", "")
+                                            replace("|", "")
+                                            store(varD)
+                                            set(varD)
 
-「より同種性の高い(技術者) doushu_en01」 :
-    search in : all
-    search text : "配置予定技術者の能力等(加算点2)"
-    if found :
-        search in : all
-        search text : ("配置予定技術者に関する発注機関別の評価方法は、施工実績に準ずる" , "配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。")
-        if found :
-            set(「より同種性の高い(企業)」)
-        if not found :
-            set("")
 
-「同種工事（技術者） doushu_en02」 :
-    search in : text0
-    search text : "配置予定技術者の能力等(加算点2)"
-    if found :
-        search in : all
-        search text : ("配置予定技術者に関する発注機関別の評価方法は、施工実績に準ずる" , "配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。")
-        if found :
-            set(「同種工事(企業)」_doushu_co2)
-        if not found :
-            set("")
