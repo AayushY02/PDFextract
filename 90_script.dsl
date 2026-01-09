@@ -236,3 +236,98 @@ reg_B :
                                             set(varD)
 
 
+
+「より同種性の高い(企業)」:
+    search in : region_B
+    search text : "2)評価基準及び得点配分"
+    if found :
+        take right : 
+            search in : taken
+            search text : "企業の能力等(加算点1)"
+            if found : 
+                take right : 
+                    search in : taken
+                    search text : "◇同種工事とは4.(4)に明示しているとおりである。"
+                    if found : 
+                        take right : 
+                            search in : taken
+                            search text : "「より同種性の高い工事」"
+                            if found : 
+                                take right : 
+                                    search in : taken
+                                    search text : "次のとおりとする。"
+                                    if found : 
+                                        take right : 
+                                            search in : taken
+                                            search text : "◇施工実績"
+                                            if found : 
+                                                take left : 
+                                                    search in : taken
+                                                    search text : "より同種工事:"
+                                                    if found : 
+                                                        take right : 
+                                                            remove whitespaces
+                                                            replace("の施工実績。", "")
+                                                            replace("の施工実績", "")
+                                                            replace("を有すること。", "")
+                                                            replace("であること。", "")
+                                                            replace("|", "")
+                                                            store(varA1)
+                                                            set(varA1)
+                                                    if not found : 
+                                                        remove whitespaces
+                                                        replace("の施工実績。", "")
+                                                        replace("の施工実績", "")
+                                                        replace("を有すること。", "")
+                                                        replace("であること。", "")
+                                                        replace("|", "")
+                                                        store(varA2)
+                                                        set(varA2)
+
+「より同種性の高い(技術者) doushu_en01」:
+    search in : region_B
+    search text : "2)評価基準及び得点配分"
+    if found :
+        take right : 
+            search in : taken
+            search text : "企業の能力等(加算点1)"
+            if found : 
+                take right : 
+                    search in : taken
+                    search text : "((2))配置予定技術者の能力等(加算点2)"
+                    if found : 
+                        take right : 
+                            search in : taken
+                            search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
+                            if found : 
+                                set(「より同種性の高い(企業)」)
+                            if not found : 
+                                search in : taken
+                                search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
+                                if found : 
+                                    set(「より同種性の高い(企業)」)
+
+
+「同種工事（技術者） doushu_en02」:
+    search in : region_B
+    search text : "2)評価基準及び得点配分"
+    if found :
+        take right : 
+            search in : taken
+            search text : "企業の能力等(加算点1)"
+            if found : 
+                take right : 
+                    search in : taken
+                    search text : "((2))配置予定技術者の能力等(加算点2)"
+                    if found : 
+                        take right : 
+                            search in : taken
+                            search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
+                            if found : 
+                                set(「同種工事(企業)」_doushu_co2)
+                            if not found : 
+                                search in : taken
+                                search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
+                                if found : 
+                                    set(「同種工事(企業)」_doushu_co2)
+                                    

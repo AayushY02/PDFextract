@@ -47,10 +47,17 @@ COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|se
 PAGE_MARKER_RE = re.compile(
     r"\[\[PAGE_START(?:\s+\d+)?\s*\]\]|\[\[PAGE_END\s*\]\]|\[\[HEADING\]\]\s*\d*"
 )
+TABLE_MARKER_RE = re.compile(
+    r"\[\[TABLE_START(?:\s+\d+)?\s*\]\]|\[\[TABLE_END\s*\]\]|\[\[HEADING\]\]\s*\d*"
+)
 
 def _strip_page_markers(s: str) -> str:
     """Remove [[PAGE_START...]] and [[PAGE_END...]] markers from a string."""
     return PAGE_MARKER_RE.sub("", s)
+
+def _strip_table_markers(s: str) -> str:
+    """Remove [[PAGE_START...]] and [[PAGE_END...]] markers from a string."""
+    return TABLE_MARKER_RE.sub("", s)
 
 
 def _remove_empty_lines(s: str) -> str:
@@ -629,6 +636,7 @@ def eval_variable(var_node: Node, global_env: ExecEnv):
     value = env.set_value
     if isinstance(value, str):
         value = _strip_page_markers(value)
+        value = _strip_table_markers(value)
         value = _remove_empty_lines(value)
         value = value.strip()
         
