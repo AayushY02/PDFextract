@@ -185,8 +185,7 @@ def clean_fullwidth_to_halfwidth(text: str) -> str:
     text = unicodedata.normalize("NFKC", text)
 
     # Manual mappings for characters not handled by NFKC
-    replacements = {
-        "ー": "-",     # long vowel mark
+    replacements = {     # long vowel mark
         "〜": "~",     # wave dash
         "～": "~",     # fullwidth tilde variant
         "・": "･",     # middle dot → half-width dot

@@ -130,7 +130,7 @@ reg_B :
 
 「同種工事(技術者)」:
     search in : region_A
-    search text : "次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置"
+    search text : ("次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置", "次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に配置")
     if found :
         take right : 
             search in : taken
@@ -162,7 +162,7 @@ reg_B :
                                             set(temp3)
             if not found : 
                 search in : taken
-                search text : "上記(4)に掲げる同種工事の要件を満たす工事現場に従事した経験を有"
+                search text : "技術資料等の提出期限日までに上記(4)に掲げる同種工事の要件を満たす工事現場に従事した経験を有する者であること(共同企業体"
                 if found : 
                     set(「同種工事(企業)」)
 

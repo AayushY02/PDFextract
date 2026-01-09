@@ -35,6 +35,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import os
 import csv
+import unicodedata
 
 # --------------------------- Parsing ---------------------------
 
@@ -705,6 +706,9 @@ def run(script_text: str, input_text: str) -> Dict[str, Any]:
 def _write_csv(out_path, headers, outputs, source_name):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     full_headers = ['file name'] + headers
+
+    outputs = _normalize_outputs_for_csv(outputs)
+
     def _csv_cell(v):
         if v is None:
             return ""
@@ -720,6 +724,67 @@ def _write_csv(out_path, headers, outputs, source_name):
         w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
         w.writerow(full_headers)
         w.writerow(row)
+
+
+HALFWIDTH_KANA_RE = re.compile(r"[\uFF61-\uFF9F]+")
+DOUBLE_PAREN_POINTER_RE = re.compile(r"[(（]{2}\s*([0-9０-９]{1,3})\s*[)）]{2}")
+
+def _circled_number(n: int) -> Optional[str]:
+    if n == 0:
+        return "⓪"
+    # ①..⑳ (1..20)
+    if 1 <= n <= 20:
+        return chr(0x2460 + (n - 1))
+    # ㉑..㉟ (21..35)
+    if 21 <= n <= 35:
+        return chr(0x3251 + (n - 21))
+    # ㊱..㊿ (36..50)
+    if 36 <= n <= 50:
+        return chr(0x32B1 + (n - 36))
+    return None
+
+def _replace_double_paren_pointers(s: str) -> str:
+    if not s:
+        return s
+
+    def repl(m: re.Match) -> str:
+        raw = m.group(1)
+        try:
+            n = int(unicodedata.normalize("NFKC", raw))
+        except ValueError:
+            return m.group(0)
+        enclosed = _circled_number(n)
+        return enclosed if enclosed is not None else m.group(0)
+
+    return DOUBLE_PAREN_POINTER_RE.sub(repl, s)
+
+def _to_fullwidth(s: str) -> str:
+    if not s:
+        return s
+
+    # Convert halfwidth Katakana (and related marks) to fullwidth without touching other chars.
+    s = HALFWIDTH_KANA_RE.sub(lambda m: unicodedata.normalize("NFKC", m.group(0)), s)
+
+    # Convert ASCII to fullwidth (e.g., 0-9/A-Z/a-z/- etc.) and space to ideographic space.
+    trans = {0x20: 0x3000}
+    trans.update({code: code + 0xFEE0 for code in range(0x21, 0x7F)})
+    return s.translate(trans)
+
+def _is_kouji_name_key(name: Any) -> bool:
+    if not isinstance(name, str):
+        return False
+    # DSL variable names often use Japanese corner quotes: 「工事名」
+    return name.strip().strip("「」") == "工事名"
+
+def _normalize_outputs_for_csv(outputs: Dict[str, Any]) -> Dict[str, Any]:
+    if not outputs:
+        return outputs
+    normalized = dict(outputs)
+    for k, v in list(normalized.items()):
+        if _is_kouji_name_key(k) and isinstance(v, str):
+            v = _replace_double_paren_pointers(v)
+            normalized[k] = _to_fullwidth(v)
+    return normalized
 
 
 def main():
@@ -778,15 +843,16 @@ def main():
                 with open(fpath, "r", encoding="utf-8") as f:
                     text = f.read()
                 outputs = run(script_text, text)
+                outputs_csv = _normalize_outputs_for_csv(outputs)
 
                 dest_dir = out_dir if not rel_dir else os.path.join(out_dir, rel_dir)
                 os.makedirs(dest_dir, exist_ok=True)
                 base = os.path.splitext(fname)[0]
                 out_path = os.path.join(dest_dir, base + ".csv")
-                _write_csv(out_path, var_order, outputs, source_name=fname)
+                _write_csv(out_path, var_order, outputs_csv, source_name=fname)
 
                 row_vals = [
-                    (outputs.get(h, "") if outputs.get(h, "") is not None else "")
+                    (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
                     for h in var_order
                 ]
                 folder_rows.setdefault(rel_dir or ".", []).append([fname] + row_vals)
@@ -823,10 +889,11 @@ def main():
         outputs = run(script_text, input_text)
         # If outdir is provided, write one CSV for this file; else keep old behavior
         if args.outdir:
+            outputs_csv = _normalize_outputs_for_csv(outputs)
             base = os.path.splitext(os.path.basename(args.input))[0]
             out_path = os.path.join(args.outdir, base + ".csv")
             src_name = os.path.basename(args.input)
-            _write_csv(out_path, var_order, outputs, source_name=src_name)
+            _write_csv(out_path, var_order, outputs_csv, source_name=src_name)
         else:
             if args.json:
                 cleaned = {

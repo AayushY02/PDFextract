@@ -39,7 +39,7 @@ name_of :
                               store(var_nameof)
                               set(var_nameof)
 
-「工事名・作業名」:
+「工事名」:
    search in : all
    search text : "工 事 名"
    if found : 
@@ -121,11 +121,17 @@ reg_B :
                         if found : 
                            take left : 
                               remove whitespaces
+                              replace("であること。" , "")
+                              replace("の施工実績を有すること。" , "")
+                              replace("。" , "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
                         if not found : 
                            take left : 
                               remove whitespaces
+                              replace("であること。" , "")
+                              replace("の施工実績" , "")
+                              replace("。" , "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
             if not found : 
@@ -142,11 +148,17 @@ reg_B :
                            if found : 
                               take left : 
                                  remove whitespaces
+                                 replace("であること。" , "")
+                                 replace("の施工実績" , "")
+                                 replace("。" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
                            if not found : 
                               take left : 
                                  remove whitespaces
+                                 replace("であること。" , "")
+                                 replace("の施工実績" , "")
+                                 replace("。" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
 
@@ -183,7 +195,7 @@ reg_B :
                   set(「同種工事（企業）」)
 
 「より同種性の高い（企業）」: 
-   search in : region_Bchou
+   search in : region_B
    search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
    if found : 
       take right : 
@@ -200,6 +212,9 @@ reg_B :
                      if found : 
                         take left : 
                            remove whitespaces
+                           replace(" " , "")
+                           replace("敷設の施工実績を有する" , "")
+                           replace("実績を有する" , "")
                            store(co_very_high_similarity)
                            set(co_very_high_similarity)
 

@@ -97,10 +97,46 @@ reg_B :
                   search in : taken
                   search text : "ただし、申請できる同種工事の施工実績"
                   if found : 
-                     take left : 
-                        remove whitespaces
-                        store(doushi_kouji_1)
-                        set(doushi_kouji_1)
+                     take left :
+                        search in : taken
+                        search text : "なお、"
+                        if found : 
+                           take left : 
+                              search in : taken
+                              search text : "(イ)"
+                              if found : 
+                                 remove whitespaces
+                                 replace("であること。" , "")
+                                 replace("下記", "")
+                                 replace("ボックスカルバート", "")
+                                 store(doushi_kouji_1)
+                                 set(doushi_kouji_1)
+                              if not found : 
+                                 remove whitespaces
+                                 replace("であること。" , "")
+                                 replace("(ア)", "")
+                                 replace("下記", "")
+                                 replace("ボックスカルバート", "")
+                                 store(doushi_kouji_1)
+                                 set(doushi_kouji_1)
+                        if not found :
+                           search in : taken
+                           search text : "(イ)"
+                           if found :
+                              remove whitespaces
+                              replace("であること。" , "")
+                              replace("下記", "")
+                              replace("ボックスカルバート", "")
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)
+                           if not found : 
+                              remove whitespaces
+                              replace("であること。" , "")
+                              replace("(ア)", "")
+                              replace("下記", "")
+                              replace("ボックスカルバート", "")
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)
       if not found : 
          search in : taken
          search text : "完成･引渡しが完了した下記(ア)又は(イ)"
@@ -113,10 +149,24 @@ reg_B :
                   search text : "ただし、申請できる同種工事の施工実績"
                   if found : 
                      take left : 
-                        replace("(共同企業体の構成員としての実績は、出資比率が20%以上の場合のものに限る。(ただし、異工種建設工事共同企業体については適用しない。))" , "")
-                        remove whitespaces
-                        store(doushi_kouji_1)
-                        set(doushi_kouji_1)
+                        search in : taken
+                        search text : "(イ)"
+                        if found : 
+                           replace("(共同企業体の構成員としての実績は、出資比率が20%以上の場合のものに限る。(ただし、異工種建設工事共同企業体については適用しない。))" , "")
+                           remove whitespaces
+                           replace("下記", "")
+                           replace("ボックスカルバート", "")
+                           store(doushi_kouji_1)
+                           set(doushi_kouji_1)
+                        if not found : 
+                           replace("(共同企業体の構成員としての実績は、出資比率が20%以上の場合のものに限る。(ただし、異工種建設工事共同企業体については適用しない。))" , "")
+                           remove whitespaces
+                           replace("(ア)", "")
+                           replace("下記", "")
+                           replace("ボックスカルバート", "")
+                           store(doushi_kouji_1)
+                           set(doushi_kouji_1)
+                        
 
 
 
@@ -219,6 +269,9 @@ reg_B :
                   if found : 
                      take left : 
                         remove whitespaces
+                        replace("「", "")
+                        replace("」", "")
+                        replace("ボックスカルバ ート", "")
                         store(eng_very_high_similarity)
                         set(eng_very_high_similarity)
 
