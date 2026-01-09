@@ -739,8 +739,11 @@ def main():
     tree_for_header = parse_script(script_text)
     base_vars  = [n.name for n in tree_for_header if n.kind == 'var']
 
+    excluded_csv_vars = {"reg_A", "reg_B"}
     var_order = []
     for name in base_vars:
+        if name in excluded_csv_vars:
+            continue
         var_order.append(name)
         var_order.append(f"{name} pageNo")
 
