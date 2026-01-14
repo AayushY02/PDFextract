@@ -53,10 +53,12 @@ name_of :
                if found : 
                   take left :
                      remove whitespaces
+                     replace("A工事" , "")
                      store(var_kouji)
                      set(var_kouji)
                if not found : 
                   remove whitespaces
+                  replace("A工事" , "")
                   store(var_kouji)
                   set(var_kouji)
    if not found : 
@@ -73,10 +75,12 @@ name_of :
                   if found : 
                      take left :
                         remove whitespaces
+                        replace("A工事" , "")
                         store(var_kouji)
                         set(var_kouji)
                   if not found : 
                      remove whitespaces
+                     replace("A工事" , "")
                      store(var_kouji)
                      set(var_kouji)
 
@@ -121,17 +125,17 @@ reg_B :
                         if found : 
                            take left : 
                               remove whitespaces
-                              replace("であること。" , "")
+                              replace("であること。" , "。")
                               replace("の施工実績を有すること。" , "")
-                              replace("。" , "")
+                              replace("ものとする" , "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
                         if not found : 
                            take left : 
                               remove whitespaces
-                              replace("であること。" , "")
+                              replace("であること。" , "。")
                               replace("の施工実績" , "")
-                              replace("。" , "")
+                              replace("ものとする" , "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
             if not found : 
@@ -148,17 +152,15 @@ reg_B :
                            if found : 
                               take left : 
                                  remove whitespaces
-                                 replace("であること。" , "")
+                                 replace("であること。" , "。")
                                  replace("の施工実績" , "")
-                                 replace("。" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
                            if not found : 
                               take left : 
                                  remove whitespaces
-                                 replace("であること。" , "")
+                                 replace("であること。" , "。")
                                  replace("の施工実績" , "")
-                                 replace("。" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
 
@@ -212,9 +214,13 @@ reg_B :
                      if found : 
                         take left : 
                            remove whitespaces
-                           replace(" " , "")
                            replace("敷設の施工実績を有する" , "")
                            replace("実績を有する" , "")
+                           replace("の施工" , "")
+                           replace("S又はA以外の" , "")
+                           replace("敷設の施 工" , "")
+                           replace("の 施工実績" , "")
+                           replace("を含む施工実 績を有する" , "")
                            store(co_very_high_similarity)
                            set(co_very_high_similarity)
 
@@ -236,6 +242,14 @@ reg_B :
                      if found : 
                         take left : 
                            remove whitespaces
+                           replace("を含む施工実 績を有する" , "")
+                           replace("敷設の施工実績 を有する" , "")
+                           replace("の施工実績 を有する" , "")
+                           replace("の施工実績を有する" , "")
+                           replace("S以外の" , "")
+                           replace("の施工実績を 有する" , "")
+                           replace("の施工実績" , "")
+                           replace("上記(S)を除く、" , "")
                            store(co_high_similarity)
                            set(co_high_similarity)
 
@@ -257,6 +271,15 @@ reg_B :
                      if found : 
                         take left : 
                            remove whitespaces
+                           replace("上記S、A以外の" , "")
+                           replace("の施工実績を有する" , "")
+                           replace("(S)･(A)を除く" , "")
+                           replace("の施工実績 を有する" , "")
+                           replace("を有する" , "")
+                           replace("S又はA以外の" , "")
+                           replace("SおよびA以外の" , "")
+                           replace("の施工 実績" , "")
+                           replace("上記(S)(A)を除く、" , "")
                            store(co_similarity)
                            set(co_similarity)                  
 
@@ -290,6 +313,14 @@ reg_B :
                                        if found : 
                                           take left : 
                                              remove whitespaces
+                                             replace("敷設の施工実績を有する" , "")
+                                             replace("実績を有する" , "")
+                                             replace("の施工" , "")
+                                             replace("敷設の施 工" , "")
+                                             replace("の 施工実績" , "")
+                                             replace("を含む施工経 験を有する" , "")
+                                             replace("経験を有する" , "")
+                                             replace("S又はA以外の" , "")
                                              store(eng_very_high_similarity)
                                              set(eng_very_high_similarity)
 
@@ -323,6 +354,16 @@ reg_B :
                                        if found : 
                                           take left : 
                                              remove whitespaces
+                                             replace("経験を有する" , "")
+                                             replace("の施工経験 を有する" , "")
+                                             replace("の 施工経験を有する" , "")
+                                             replace("の施工経験を有する" , "")
+                                             replace("S以外の" , "")
+                                             replace("を含む施工経 験を有する" , "")
+                                             replace("の施工" , "")
+                                             replace("敷設" , "")
+                                             replace("上記(S)を除く、" , "")
+                                             replace("経験を 有する" , "")
                                              store(eng_high_similarity)
                                              set(eng_high_similarity)
 
@@ -350,11 +391,52 @@ reg_B :
                                  search in : taken
                                  search text : "| "
                                  if found : 
-                                    take left : 
+                                    take left :
                                        search in : taken
-                                       search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                       search text : "[[TABLE_END]]"
                                        if found : 
-                                          take left : 
-                                             remove whitespaces
-                                             store(eng_similarity)
-                                             set(eng_similarity)
+                                          take left :  
+                                             search in : taken
+                                             search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   replace("上記S、A以外の" , "")
+                                                   replace("SおよびA以外の" , "")
+                                                   replace("の施工経験を有する" , "")
+                                                   replace("S又はA以外の" , "")
+                                                   replace("(S)･(A)を除く" , "")
+                                                   replace("の施工経験 を有する" , "")
+                                                   replace("上記(S)(A)を除く、" , "")
+                                                   replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                   store(eng_similarity)
+                                                   set(eng_similarity)
+                                             if not found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   replace("上記S、A以外の" , "")
+                                                   replace("SおよびA以外の" , "")
+                                                   replace("の施工経験を有する" , "")
+                                                   replace("S又はA以外の" , "")
+                                                   replace("(S)･(A)を除く" , "")
+                                                   replace("の施工経験 を有する" , "")
+                                                   replace("上記(S)(A)を除く、" , "")
+                                                   replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                   store(eng_similarity)
+                                                   set(eng_similarity)
+                                       if not found : 
+                                          search in : taken
+                                          search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                replace("上記S、A以外の" , "")
+                                                replace("SおよびA以外の" , "")
+                                                replace("の施工経験を有する" , "")
+                                                replace("(S)･(A)を除く" , "")
+                                                replace("の施工経験 を有する" , "")
+                                                replace("上記(S)(A)を除く、" , "")
+                                                replace("S又はA以外の" , "")
+                                                replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                store(eng_similarity)
+                                                set(eng_similarity)

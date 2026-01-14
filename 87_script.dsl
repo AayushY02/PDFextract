@@ -88,10 +88,27 @@ reg_B :
          search text : "なお、同種工事の施工実績は"
          if found : 
             take left : 
-               remove whitespaces
-               replace("下記の" ,"")
-               store(var3)
-               set(var3)  
+               search in : taken
+               search text : ("(ウ)" , "(イ)")
+               if found : 
+                  remove whitespaces
+                  replace("下記の" ,"")
+                  replace("･" ,"")
+                  store(var3)
+                  set(var3)  
+               if not found : 
+                  remove whitespaces
+                  replace("下記の" ,"")
+                  replace("･" ,"")
+                  replace("の施工実績を有することとする。" ,"")
+                  replace("の施工実績を有すること。" ,"")
+                  replace("(ア)の要件を満たす工事とする。" ,"")
+                  replace("要件を満たす工事とする。" ,"")
+                  replace("(ア)" ,"")
+                  replace("(ア)" ,"")
+                  store(var3)
+                  set(var3)  
+                  
 
 
 「同種工事(技術者)」:
@@ -151,10 +168,23 @@ reg_B :
                         search text : ("| 5.0点" , "| 4.0点")
                         if found : 
                            take left :
-                              remove whitespaces
-                              replace("|", "")
-                              store(var10)
-                              set(var10)
+                              search in : taken
+                              search text : "こ れに該当する工事を同種工事として申請する場合 は"
+                              if found :
+                                 take left : 
+                                    remove whitespaces
+                                    replace("|", "")
+                                    store(var10)
+                                    set(var10)
+                              if not found :
+                                 remove whitespaces
+                                 replace("|", "")
+                                 store(var10)
+                                 set(var10)
+      if not found : 
+         set("該当無し")
+
+                                    
 
 「同種性(企業)doushusei_co_2」:  
    check : name_of
@@ -190,6 +220,8 @@ reg_B :
                                        replace("|", "")
                                        store(var11)
                                        set(var11)
+      if not found : 
+         set("該当無し")
 
 
 
@@ -219,10 +251,19 @@ reg_B :
                               search text : ("| 6.0点" , "| 5.0点" , "| 4.0点")
                               if found : 
                                  take left :
-                                    remove whitespaces
-                                    replace("|", "")
-                                    store(x)
-                                    set(x)
+                                    search in : taken
+                                    search text : "これに該当する 工事を同種工事として申請する場合は"
+                                    if found : 
+                                       take left : 
+                                          whitespaces
+                                          replace("|", "")
+                                          store(x)
+                                          set(x)
+                                    if not found :
+                                       remove whitespaces
+                                       replace("|", "")
+                                       store(x)
+                                       set(x)
 
 
                         
@@ -364,179 +405,3 @@ reg_B :
                                        add in left(temp4)
                                        store(temp6)
                                        set(temp6)
-
-「配点(企業)」: 
-   check : name_of
-   has value : 本官
-   if true : 
-   if false : 
-      search in : all
-      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
-      if found : 
-         search in : all
-         search text : "企業の能力等(加算点)で提出した企業において"
-         if found : 
-            take right:
-               search in : taken
-               search text : "企業の能力等(加算点)"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "で評価し、それぞれ"
-                     if found : 
-                        take right :  
-                           search in : taken
-                           search text : "の加算点を"
-                           if found : 
-                              take left : 
-                                 remove whitespaces 
-                                 store(score_co)
-                                 set(score_co)
-      if not found : 
-         search in : all
-         search text : "企業の能力等("
-         if found : 
-            take right : 
-               search in : taken
-               search text : "、それぞれ"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "の加算点を与える。"
-                     if found : 
-                        take left : 
-                           remove whitespaces
-                           store(score_co)
-                           set(score_co)
-
-
-「配点(技術者)」: 
-   check : name_of
-   has value : 本官
-   if true : 
-      search in : all
-      search text : "技術者の能力等("
-      if found :  
-         take right : 
-            search in : taken
-            search text : "で評価し、"
-            if found :  
-               take right : 
-                  search in : taken
-                  search text : "の加算点を与える。"
-                  if found : 
-                     take left : 
-                        replace("それぞれ","")
-                        remove whitespaces
-                        store(score_en)
-                        set(score_en)
-
-   if false : 
-      search in : all
-      search text : ("より高い同種性が認められる工事:" , "高い同種性が認められる工事:")
-      if found : 
-         search in : all
-         search text : "企業の能力等(加算点)で提出した企業において"
-         if found : 
-            take right:
-               search in : taken
-               search text : "企業の能力等(加算点)"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "より高い同種性が認められる工事:"
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "同種性が認められる工事:"
-                           if found : 
-                              take right : 
-                                 search in : taken
-                                 search text : "技術者の能力等(加算点)"
-                                 if found : 
-                                    take right : 
-                                       search in : taken
-                                       search text : "で評価し、それぞれ"
-                                       if found : 
-                                          take right : 
-                                             search in : taken
-                                             search text : "の加算点を"
-                                             if found : 
-                                                take left : 
-                                                   remove whitespaces
-                                                   store(score_en)
-                                                   set(score_en)
-                           if not found : 
-                              search in : taken
-                              search text : "技術者の能力等(加算点)"
-                              if found : 
-                                 take right : 
-                                    search in : taken
-                                    search text : "で評価し、それぞれ"
-                                    if found : 
-                                       take right : 
-                                          search in : taken
-                                          search text : "の加算点を"
-                                          if found : 
-                                             take left : 
-                                                remove whitespaces
-                                                store(score_en)
-                                                set(score_en)
-                     if not found :    
-                        search in : taken
-                        search text : "同種性が認められる工事:"
-                        if found : 
-                           take right : 
-                              search in : taken
-                              search text : "技術者の能力等(加算点)"
-                              if found : 
-                                 take right : 
-                                    search in : taken
-                                    search text : "で評価し、それぞれ"
-                                    if found : 
-                                       take right : 
-                                          search in : taken
-                                          search text : "の加算点を"
-                                          if found : 
-                                             take left : 
-                                                remove whitespaces
-                                                store(score_en)
-                                                set(score_en)
-                        if not found : 
-                           search in : taken
-                           search text : "技術者の能力等(加算点)"
-                           if found : 
-                              take right : 
-                                 search in : taken
-                                 search text : "で評価し、それぞれ"
-                                 if found : 
-                                    take right : 
-                                       search in : taken
-                                       search text : "の加算点を"
-                                       if found : 
-                                          take left : 
-                                             remove whitespaces
-                                             store(score_en)
-                                             set(score_en)
-      if not found : 
-         search in : all
-         search text : "企業の能力等("
-         if found : 
-            take right : 
-               search in : taken
-               search text : "技術者の能力等("
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "で評価し、"
-                     if found : 
-                        take right :  
-                           search in : taken
-                           search text : "の加算点を与える。"
-                           if found : 
-                              take left : 
-                                 replace("それぞれ","")
-                                 remove whitespaces
-                                 store(score_en)
-                                 set(score_en)
-                        

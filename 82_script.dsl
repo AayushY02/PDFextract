@@ -114,15 +114,25 @@ reg_B :
             search text : "((2)) 当該施工実績"
             if found : 
                take left :
-                  remove whitespaces
-                  store(doushi_kouji_1)
-                  set(doushi_kouji_1)
+                  search in : taken
+                  search text : "((2))"
+                  if found : 
+                     remove whitespaces
+                     replace(" " , "")
+                     store(doushi_kouji_1)
+                     set(doushi_kouji_1)
+                  if not found : 
+                     remove whitespaces
+                     replace("((1))" , "")
+                     replace(" " , "")
+                     store(doushi_kouji_1)
+                     set(doushi_kouji_1)
+
 
 「同種工事（技術者）」:
    check : name_of
    has value : 本官
    if true : 
-     
    if false:
       search in : region_A
       search text : ("(5) 次に掲げる基準を満たす主任技術者、監理技術者又は特例監理技術者を本工事に配置できること" , "(5) 次に掲げる基準を満たす主任技術者、監理技術者を本工事に配置できること。")
@@ -141,6 +151,8 @@ reg_B :
                         if found : 
                            take left : 
                               remove whitespaces
+                              replace("(ア)" , "")
+                              replace(" " , "")
                               store(doushi_kouji_gijutsusha)
                               set(doushi_kouji_gijutsusha)
 
@@ -164,6 +176,7 @@ reg_B :
                         take left :  
                            remove whitespaces
                            replace(" | ", "")
+                           replace(" " , "")
                            store(co_very_high_similarity)
                            set(co_very_high_similarity)
 
@@ -189,6 +202,7 @@ reg_B :
                            if found : 
                               take left : 
                                  remove whitespaces
+                                 replace(" " , "")
                                  store(co_similarity)
                                  set(co_similarity)
 

@@ -94,6 +94,7 @@ reg_B :
                                     remove whitespaces
                                     replace("の施工実績" , "")
                                     replace("であること。" , "")
+                                    replace("を有すること。" , "")
                                     store(var1)
                                     set(var1)
                     if not found : 
@@ -105,6 +106,7 @@ reg_B :
                                 replace("の施工実績。" , "")
                                 replace("の施工実績" , "")
                                 replace("であること。" , "")
+                                replace("を有すること。" , "")
                                 store(var2)
                                 set(var2)
             if not found : 
@@ -116,6 +118,8 @@ reg_B :
                     if found : 
                         take left : 
                             remove whitespaces
+                            replace("であること。" , "")
+                            replace("を有すること" , "")
                             store(var3)
                             set(var3)
                 if not found : 
@@ -125,6 +129,7 @@ reg_B :
                         take left : 
                             remove whitespaces
                             replace("を有すること" , "")
+                            replace("であること。" , "")
                             store(var3)
                             set(var3)
 
@@ -158,6 +163,9 @@ reg_B :
                                             remove whitespaces
                                             store(temp2)
                                             add in left(temp1)
+                                            replace("を有すること。" , "")
+                                            replace("であること。" , "")
+                                            replace("があること" , "")
                                             store(temp3)
                                             set(temp3)
             if not found : 
@@ -195,6 +203,7 @@ reg_B :
                                                     replace("の施工実績。", "")
                                                     replace("の施工実績", "")
                                                     replace("を有すること。", "")
+                                                    replace("を有すること", "")
                                                     replace("であること。", "")
                                                     replace("|", "")
                                                     store(varA)
@@ -205,6 +214,7 @@ reg_B :
                                                 replace("の施工実績", "")
                                                 replace("を有すること。", "")
                                                 replace("であること。", "")
+                                                replace("を有すること", "")
                                                 replace("|", "")
                                                 store(varB)
                                                 set(varB)
@@ -221,6 +231,7 @@ reg_B :
                                                 replace("の施工実績。", "")
                                                 replace("の施工実績", "")
                                                 replace("を有すること。", "")
+                                                replace("を有すること", "")
                                                 replace("であること。", "")
                                                 replace("|", "")
                                                 store(varC)
@@ -271,6 +282,7 @@ reg_B :
                                                             replace("の施工実績", "")
                                                             replace("を有すること。", "")
                                                             replace("であること。", "")
+                                                            replace("同種工事の要件に加え、", "")
                                                             replace("|", "")
                                                             store(varA1)
                                                             set(varA1)
@@ -280,6 +292,7 @@ reg_B :
                                                         replace("の施工実績", "")
                                                         replace("を有すること。", "")
                                                         replace("であること。", "")
+                                                        replace("同種工事の要件に加え、", "")
                                                         replace("|", "")
                                                         store(varA2)
                                                         set(varA2)

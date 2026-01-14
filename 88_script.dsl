@@ -93,21 +93,49 @@ reg_B :
                      search text : "なお、当該実績が"
                      if found : 
                         take left : 
-                           remove whitespaces
-                           replace("5", "")
-                           replace("\n", "")
-                           store(exception8)
-                           set(exception8)
+                           search in : taken
+                           search text : ("1)" , "･" , "ア)")
+                           if found : 
+                              remove whitespaces
+                              replace("5", "")
+                              replace("\n", "")
+                              replace("を有すること。", "")
+                              replace("以下の", "")
+                              store(exception8)
+                              set(exception8)
+                           if not found : 
+                              remove whitespaces
+                              replace("5", "")
+                              replace("\n", "")
+                              replace("の施工実績を有すること。", "")
+                              replace("を有すること。", "")
+                              replace("以下の", "")
+                              store(exception8)
+                              set(exception8)
                if not found : 
                   search in : taken
                   search text : "なお、当該実績が"
                   if found : 
                      take left : 
-                        remove whitespaces
-                        replace("5", "")
-                        replace("\n", "")
-                        store(exception7)
-                        set(exception7)
+                        search in : taken
+                        search text : ("1)" , "･" , "ア)")
+                        if found : 
+                           remove whitespaces
+                           replace("5", "")
+                           replace("\n", "")
+                           replace("を有すること。", "")
+                           replace("以下の", "")
+                           store(exception8)
+                           set(exception8)
+                        if not found : 
+                           remove whitespaces
+                           replace("5", "")
+                           replace("\n", "")
+                           replace("の施工実績を有すること。", "")
+                           replace("を有すること。", "")
+                           replace("以下の", "")
+                           store(exception7)
+                           set(exception7)
    if not found : 
       search in : all
       search text : "下記の条件を満足する同種工事1を施工した実績を有すること"
@@ -198,6 +226,10 @@ reg_B :
                         if found : 
                            take left :
                               remove whitespaces
+                              replace("の施工実績" , "")
+                              replace("による施工実績" , "")
+                              replace("同種工事のうち" , "")
+                              replace("を施工した実績" , "")
                               store(var4)
                               set(var4)
 
@@ -231,6 +263,7 @@ reg_B :
                                        if found : 
                                           take left :  
                                              remove whitespaces
+                                             replace("の施工実績" , "")
                                              store(exception6)
                                              set(exception6)
 
@@ -271,7 +304,7 @@ reg_B :
                         if found : 
                            take right :
                               search in : taken
-                              search text : ("「同種性が認められる工事」とは、上記4" , "「同種性が認められる工事」とは、4" , "「同種性が認められる工事」 とは、4.")
+                              search text : ("「同種性が認められる工事」とは、上記4" , "「同種性が認められる工事」とは、4" , "「同種性が認められる工事」 とは、4." , "「同種性が認められる工事」とは、 上記4")
                               if found : 
                                  set(「同種工事（技術者）」)
                               if not found : 
@@ -288,6 +321,7 @@ reg_B :
                                              if found : 
                                                 take left : 
                                                    remove whitespaces
+                                                   replace("の施工実績は" , "")
                                                    store(exception5)
                                                    set(exception5)
                                  if not found : 
@@ -296,6 +330,7 @@ reg_B :
                                     if found : 
                                        take left : 
                                           remove whitespaces
+                                          replace("の施工実績は" , "")
                                           store(exception5)
                                           set(exception5)
 
@@ -311,7 +346,7 @@ reg_B :
          if found : 
             take right : 
                search in : taken
-               search text : "．企業の施工実績"
+               search text : "．企業の施工実績" 
                if found : 
                   take right : 
                      search in : taken
@@ -342,6 +377,10 @@ reg_B :
                         if found : 
                            take left :
                               remove whitespaces
+                              replace("同種工事のうち" , "")
+                              replace("による施工実績" , "")
+                              replace("の施工実績" , "")
+                              replace("を施工した実績" , "")
                               store(var7)
                               set(var7)
                   if not found : 
@@ -358,6 +397,10 @@ reg_B :
                                  if found : 
                                     take left :
                                        remove whitespaces
+                                       replace("同種工事のうち" , "")
+                                       replace("による施工実績" , "")
+                                       replace("の施工実績" , "")
+                                       replace("を施工した実績" , "")
                                        store(var7)
                                        set(var7)
 
@@ -403,7 +446,7 @@ reg_B :
                         if found : 
                            take right :
                               search in : taken
-                              search text : ("「同種性が認められる工事」とは、上記4" , "「同種性が認められる工事」とは、4." , "「同種性が認められる工事」 とは、4." , "「同種性が認められる工事」とは、\n4.")
+                              search text : ("「同種性が認められる工事」とは、上記4" , "「同種性が認められる工事」とは、4." , "「同種性が認められる工事」 とは、4." , "「同種性が認められる工事」とは、\\n4.")
                               if found : 
                                  set(「同種工事（技術者）」)
                   if not found : 

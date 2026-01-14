@@ -109,6 +109,7 @@ reg_B :
                                  replace("であること。" , "")
                                  replace("下記", "")
                                  replace("ボックスカルバート", "")
+                                 replace("の施工実績を有すること。", "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
                               if not found : 
@@ -117,6 +118,7 @@ reg_B :
                                  replace("(ア)", "")
                                  replace("下記", "")
                                  replace("ボックスカルバート", "")
+                                 replace("の施工実績を有すること。", "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
                         if not found :
@@ -127,6 +129,7 @@ reg_B :
                               replace("であること。" , "")
                               replace("下記", "")
                               replace("ボックスカルバート", "")
+                              replace("の施工実績を有すること。", "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
                            if not found : 
@@ -135,8 +138,13 @@ reg_B :
                               replace("(ア)", "")
                               replace("下記", "")
                               replace("ボックスカルバート", "")
+                              replace("の施工実績を有すること。", "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
       if not found : 
          search in : taken
          search text : "完成･引渡しが完了した下記(ア)又は(イ)"
@@ -156,6 +164,7 @@ reg_B :
                            remove whitespaces
                            replace("下記", "")
                            replace("ボックスカルバート", "")
+                           replace("の施工実績を有すること。", "")
                            store(doushi_kouji_1)
                            set(doushi_kouji_1)
                         if not found : 
@@ -164,11 +173,15 @@ reg_B :
                            replace("(ア)", "")
                            replace("下記", "")
                            replace("ボックスカルバート", "")
+                           replace("の施工実績を有すること。", "")
                            store(doushi_kouji_1)
                            set(doushi_kouji_1)
-                        
-
-
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+         if not found : 
+            set("記載なし")
 
 「同種工事（技術者）」:
    check : name_of
@@ -180,6 +193,8 @@ reg_B :
       search text : ("引渡しが完了した上記(5)(ア)に掲げる工事の経験を有する" , "引渡しが完了した上記(5)(ア)")
       if found : 
          set(「同種工事（企業）」)
+      if not found : 
+         set("記載なし")
 
 
 「より同種性の高い（企業）」: 
@@ -202,6 +217,14 @@ reg_B :
                            remove whitespaces
                            store(co_very_high_similarity)
                            set(co_very_high_similarity)
+                     if not found : 
+                        set("記載なし")
+               if not found : 
+                  set("記載なし")         
+         if not found : 
+            set("記載なし")
+   if not found : 
+      set("記載なし")
 
 「同種性が高い（企業）」: 
    search in : region_B
@@ -223,6 +246,14 @@ reg_B :
                            remove whitespaces
                            store(co_high_similarity)
                            set(co_high_similarity)
+                     if not found : 
+                        set("記載なし")
+               if not found : 
+                  set("記載なし")
+         if not found : 
+            set("記載なし")
+   if not found : 
+      set("記載なし")
 
 「同種性が認められる（企業）」: 
    search in : region_B
@@ -247,8 +278,17 @@ reg_B :
                               set(「同種工事（企業）」)
                            if not found :
                               remove whitespaces
+                              replace("の施工実績を有すること。" , "")
                               store(co_similarity)
                               set(co_similarity)
+                     if not found : 
+                        set("記載なし")
+               if not found : 
+                  set("記載なし")
+         if not found : 
+            set("記載なし")
+   if not found : 
+      set("記載なし")
 
    
 
@@ -271,9 +311,16 @@ reg_B :
                         remove whitespaces
                         replace("「", "")
                         replace("」", "")
-                        replace("ボックスカルバ ート", "")
                         store(eng_very_high_similarity)
                         set(eng_very_high_similarity)
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+      if not found : 
+         set("記載なし")
+   if not found : 
+      set("記載なし")
 
 「同種性の高い（技術者）」:
    search in : region_B
@@ -294,6 +341,14 @@ reg_B :
                         remove whitespaces
                         store(eng_high_similarity)
                         set(eng_high_similarity)
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+      if not found : 
+         set("記載なし")
+   if not found : 
+      set("記載なし")
 
 「同種性が認められる（技術者）」:
    search in : region_B
@@ -319,6 +374,13 @@ reg_B :
                            remove whitespaces
                            store(eng_similarity)
                            set(eng_similarity)
-
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+      if not found : 
+         set("記載なし")
+   if not found : 
+      set("記載なし")
 
  
