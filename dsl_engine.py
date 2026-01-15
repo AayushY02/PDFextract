@@ -67,6 +67,10 @@ def _remove_empty_lines(s: str) -> str:
 
 def strip_comment(line: str) -> str:
     # remove '#' comments outside quotes
+    # - full-line comments: lines that start with '##' (optionally indented) are treated as empty
+    # - inline comments: everything after the first '#' (outside quotes) is stripped
+    if line.lstrip().startswith("##"):
+        return ""
     s = []
     in_q = False
     q = ''
@@ -209,6 +213,8 @@ def parse_script(text: str) -> List[Node]:
             stack[-1].children.append(node)
 
     for raw in lines:
+        # Tolerate UTF-8 BOM if present at start-of-file / start-of-line
+        raw = raw.lstrip("\ufeff")
         line = strip_comment(raw).rstrip()
         if not line.strip():
             continue

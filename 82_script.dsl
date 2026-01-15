@@ -237,6 +237,7 @@ reg_B :
 
 「同種性が認められる（技術者）」:
    search in : region_B
+   ## this is a comment
    search text : "((2)) 加算点"
    if found : 
       take right : 

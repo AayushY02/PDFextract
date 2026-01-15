@@ -42,6 +42,7 @@ python dsl_engine.py --script 85_script.dsl --input your_text.txt --json
 ## 5) Notes
 - All text matching is **literal** (no regex).
 - `search in : taken` always uses the current slice from the nearest `take left/right` scope.
+- Comments: any line starting with `##` (optionally indented) is ignored; inline `# ...` comments also work (outside quotes).
 - The engine tolerates the typo `seach` → treats as `search`.
 - If a search list `[A, B]` is used, it sets only a boolean (no anchor). To anchor for slicing, do a regular `search text : "A"` first.
 
