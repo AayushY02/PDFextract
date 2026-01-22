@@ -8,9 +8,9 @@ has_eval_phrase :
 
 name_bu : 
    search in : all
-   search text : "東北地方整備局"
+   search text : "北海道開発局札幌開発建設部"
    if found : 
-      set("東北地方整備局")
+      set("北海道開発局札幌開発建設部")
 
 name_of :
    search in first : 20
@@ -27,7 +27,7 @@ name_of :
             if found :
                take right :
                   search in : taken
-                  search text : "東北地方整備局"
+                  search text : "北海道開発局札幌開発建設部"
                   if found:
                      take right:
                         search in : taken
@@ -48,7 +48,7 @@ name_of :
                if found : 
                   take right : 
                      search in : taken
-                     search text : "東北地方整備局"
+                     search text : "北海道開発局札幌開発建設部"
                      if found : 
                         take right : 
                            search in : taken

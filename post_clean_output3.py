@@ -14,8 +14,8 @@ import shutil
 import re
 
 
-INPUT_DIR = Path("results/output2")
-OUTPUT_DIR = Path("results/output3")
+INPUT_DIR = Path("results/test2")
+OUTPUT_DIR = Path("results/test3")
 
 TABLE_START = "[[TABLE_START "
 TABLE_END = "[[TABLE_END]]"
