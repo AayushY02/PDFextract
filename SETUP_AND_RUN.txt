@@ -1,0 +1,278 @@
+プロジェクトセットアップおよび実行ガイド（Windows）
+====================================
+
+本プロジェクトは、PDF／DOCX／XLS／XLSX ファイルからテキストを抽出し、
+そのテキストをクレンジングした後、DSL スクリプトを実行して CSV 出力を生成します。
+
+事前準備
+--------
+- Windows 環境
+- Python 3.10 以上（3.13 で動作確認済み）
+- Git（任意。リポジトリを clone する場合のみ必要）
+- プロジェクト配下に results/ を作成できる十分なディスク容量
+
+1) コードの取得
+---------------
+【GitHub から clone する場合】
+git clone <repo-url>
+cd PDFextract
+
+【ZIP をダウンロードした場合】
+ZIP を解凍し、プロジェクトのルートフォルダで PowerShell を開いてください。
+
+2) 仮想環境の作成と有効化
+--------------------------
+python -m venv .venv
+.\.venv\Scripts\Activate
+
+3) 依存関係のインストール
+--------------------------
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+【任意】簡易動作確認：
+python -c "import fitz, pandas, yaml; print('ok')"
+
+4) 入力ファイルの準備
+----------------------
+- PDF／DOCX／XLS／XLSX ファイルを input/ 配下に配置してください
+- サブフォルダの使用は可能で、フォルダ構成は出力結果にも保持されます
+
+5) テキスト抽出の実行
+----------------------
+地域に応じて抽出スクリプトを選択してください。
+
+【オプションA（北海道 810〜819、【89】九州 のファイルの場合）】
+python hybrid_extraction.py
+出力先：results/test/
+CSV ログが生成されます
+
+【その他のファイルの場合】
+python text_extractor.py
+出力先：results/output1/
+ログ：results/extraction_log.csv
+
+6) 抽出テキストのクレンジング
+------------------------------
+実行前に text_cleaner.py を開き、
+INPUT_DIR と OUTPUT_DIR が抽出結果と一致していることを確認してください。
+
+【推奨設定】
+- 北海道 810〜819、【89】九州
+  INPUT_DIR = results/test
+  OUTPUT_DIR = results/test2
+- その他
+  INPUT_DIR = results/output1
+  OUTPUT_DIR = results/output2
+
+実行：
+python text_cleaner.py
+
+7) ポストクレンジング
+----------------------
+実行前に post_clean_output3.py を開き、
+INPUT_DIR と OUTPUT_DIR がクレンジング後の出力と一致していることを確認してください。
+
+【推奨設定】
+- 北海道 810〜819、【89】九州
+  INPUT_DIR = results/test2
+  OUTPUT_DIR = results/test3
+- その他
+  INPUT_DIR = results/output2
+  OUTPUT_DIR = results/output3
+
+実行：
+python post_clean_output3.py
+
+8) 【89】九州向けの追加ポスト処理
+--------------------------------
+一部地域では、抽出対象のデータが複数 PDF に分かれているため、
+それらを統合する追加スクリプトが存在します。
+
+例：
+python merge_89_texts.py
+
+9) DSL 抽出の実行
+-----------------
+対象地域に応じた DSL スクリプトを選択して実行してください。
+
+python dsl_engine.py --script 82_script.dsl --input_dir "results/output3/【82】東北" --outdir "results/csv/【82】東北"
+python dsl_engine.py --script 83_script.dsl --input_dir "results/output3/【83】関東" --outdir "results/csv/【83】関東"
+python dsl_engine.py --script 84_script.dsl --input_dir "results/output3/【84】北陸" --outdir "results/csv/【84】北陸"
+python dsl_engine.py --script 85_script.dsl --input_dir "results/output3/【85】中部" --outdir "results/csv/【85】中部"
+python dsl_engine.py --script 87_script.dsl --input_dir "results/output3/【87】中国" --outdir "results/csv/【87】中国"
+python dsl_engine.py --script 88_script.dsl --input_dir "results/output3/【88】四国" --outdir "results/csv/【88】四国"
+python dsl_engine.py --script 89_script.dsl --input_dir "results/test4/【89】九州" --outdir "results/csv/【89】九州"
+python dsl_engine.py --script 90_script.dsl --input_dir "results/output3/【90】沖縄" --outdir "results/csv/【90】沖縄"
+
+python dsl_engine.py --script 810_script.dsl --input_dir "results/test3/【810】" --outdir "results/csv/【810】"
+python dsl_engine.py --script 811_script.dsl --input_dir "results/test3/【811】" --outdir "results/csv/【811】"
+python dsl_engine.py --script 812_script.dsl --input_dir "results/test3/【812】" --outdir "results/csv/【812】"
+python dsl_engine.py --script 813_script.dsl --input_dir "results/test3/【813】" --outdir "results/csv/【813】"
+python dsl_engine.py --script 814_script.dsl --input_dir "results/test3/【814】" --outdir "results/csv/【814】"
+python dsl_engine.py --script 815_script.dsl --input_dir "results/test3/【815】" --outdir "results/csv/【815】"
+python dsl_engine.py --script 816_script.dsl --input_dir "results/test3/【816】" --outdir "results/csv/【816】"
+python dsl_engine.py --script 817_script.dsl --input_dir "results/test3/【817】" --outdir "results/csv/【817】"
+python dsl_engine.py --script 819_script.dsl --input_dir "results/test3/【819】" --outdir "results/csv/【819】"
+
+【注意事項】
+- ステップ7で生成されたクレンジング後のフォルダを使用してください
+- --outdir で指定したフォルダは存在しない場合、自動的に作成されます
+
+10) 出力先一覧
+---------------
+- 抽出テキスト：results/test または results/output1
+- クレンジング後テキスト：results/test2 または results/output2
+- ポストクレンジング後テキスト：results/test3 または results/output3
+- CSV 出力：results/csv/<地域名>
+
+最終的な実行順
+--------------
+1) python -m venv .venv
+2) .\.venv\Scripts\Activate
+3) python -m pip install --upgrade pip
+4) pip install -r requirements.txt
+5) python text_extractor.py
+6) python hybrid_extraction.py
+7) python text_cleaner.py
+   - 1回目：INPUT_DIR = results/output1
+   - 2回目：INPUT_DIR = results/test
+8) python post_clean_output3.py
+   - 1回目：INPUT_DIR = results/test2, OUTPUT_DIR = results/test3
+   - 2回目：INPUT_DIR = results/output2, OUTPUT_DIR = results/output3
+9) python merge_89_texts.py
+10) 地域別 DSL コマンドを実行
+
+
+ENGLISH
+
+PROJECT SETUP AND RUN GUIDE (Windows)
+====================================
+
+This project extracts text from PDF/DOCX/XLS/XLSX files, cleans it, then runs
+DSL scripts to produce CSV outputs.
+
+Prerequisites
+-------------
+- Windows with Python 3.10+ (tested with 3.13)
+- Git (optional, only needed if you want to clone)
+- Enough disk space under the project for results/
+
+1) Get the code
+--------------
+If cloning from GitHub:
+  git clone <repo-url>
+  cd PDFextract
+
+If you downloaded a ZIP:
+  Unzip it and open PowerShell in the project root folder.
+
+2) Create and activate a virtual environment
+---------------------------------------------
+  python -m venv .venv
+  .\.venv\Scripts\Activate
+
+3) Install dependencies
+-----------------------
+  python -m pip install --upgrade pip
+  pip install -r requirements.txt
+
+Optional sanity check:
+  python -c "import fitz, pandas, yaml; print('ok')"
+
+4) Prepare input files
+----------------------
+- Put PDF/DOCX/XLS/XLSX files under input/
+- Subfolders are allowed; the folder structure is preserved in outputs.
+
+5) Run extraction
+-----------------
+select the extractor based on the region
+
+Option A (for files  hokkaido 810 - 819 , 【89】九州 ):
+  python hybrid_extraction.py
+  Outputs go to results/test/ with a CSV log.
+  
+for other files :
+  python text_extractor.py
+Outputs go to results/output1/ and results/extraction_log.csv.
+
+6) Clean extracted text
+-----------------------
+Before running, open text_cleaner.py and confirm:
+  INPUT_DIR and OUTPUT_DIR match your extractor output.
+
+Recommended settings:
+  - For hokkaido 810 - 819 , 【89】九州 : INPUT_DIR = results/test, OUTPUT_DIR = results/test2
+  - For others : INPUT_DIR = results/output1, OUTPUT_DIR = results/output2
+
+Run:
+  python text_cleaner.py
+
+7) Post-clean
+-------------
+Before running, open post_clean_output3.py and confirm:
+  INPUT_DIR and OUTPUT_DIR match your cleaner output.
+
+Recommended settings:
+  - For hokkaido 810 - 819 , 【89】九州: INPUT_DIR = results/test2, OUTPUT_DIR = results/test3
+  - For others = results/output2, OUTPUT_DIR = results/output3
+    
+
+Run:
+  python post_clean_output3.py
+
+8)  post-processing for 【89】九州
+---------------------------
+Some regions have extra merge scripts for merging 2 pdfs in one in the case data to be extracted lies in different pdfs. Examples:
+  python merge_89_texts.py
+
+9) Run DSL extraction
+---------------------
+Pick a DSL script (for example, 85_script.dsl) and run either of these.
+
+python dsl_engine.py --script 82_script.dsl --input_dir "results/output3/【82】東北"  --outdir  "results/csv/【82】東北"
+python dsl_engine.py --script 83_script.dsl --input_dir "results/output3/【83】関東"  --outdir  "results/csv/【83】関東"
+python dsl_engine.py --script 84_script.dsl --input_dir "results/output3/【84】北陸"  --outdir  "results/csv/【84】北陸"
+python dsl_engine.py --script 85_script.dsl --input_dir "results/output3/【85】中部"  --outdir  "results/csv/【85】中部"
+python dsl_engine.py --script 87_script.dsl --input_dir "results/output3/【87】中国"  --outdir  "results/csv/【87】中国"
+python dsl_engine.py --script 88_script.dsl --input_dir "results/output3/【88】四国"  --outdir  "results/csv/【88】四国"
+python dsl_engine.py --script 89_script.dsl --input_dir "results/test4/【89】九州"  --outdir  "results/csv/【89】九州"
+python dsl_engine.py --script 90_script.dsl --input_dir "results/output3/【90】沖縄"  --outdir  "results/csv/【90】沖縄"
+
+python dsl_engine.py --script 810_script.dsl --input_dir "results/test3/【810】"  --outdir  "results/csv/【810】"
+python dsl_engine.py --script 811_script.dsl --input_dir "results/test3/【811】"  --outdir  "results/csv/【811】"
+python dsl_engine.py --script 812_script.dsl --input_dir "results/test3/【812】"  --outdir  "results/csv/【812】"
+python dsl_engine.py --script 813_script.dsl --input_dir "results/test3/【813】"  --outdir  "results/csv/【813】"
+python dsl_engine.py --script 814_script.dsl --input_dir "results/test3/【814】"  --outdir  "results/csv/【814】"
+python dsl_engine.py --script 815_script.dsl --input_dir "results/test3/【815】"  --outdir  "results/csv/【815】"
+python dsl_engine.py --script 816_script.dsl --input_dir "results/test3/【816】"  --outdir  "results/csv/【816】"
+python dsl_engine.py --script 817_script.dsl --input_dir "results/test3/【817】"  --outdir  "results/csv/【817】"
+python dsl_engine.py --script 819_script.dsl --input_dir "results/test3/【819】"  --outdir  "results/csv/【819】"
+
+
+Notes:
+- Use the cleaned output folder from step 7.
+- The --outdir folder is created automatically if it does not exist.
+
+
+10) Where outputs go
+--------------------
+- Extracted text: results/test or results/output1
+- Cleaned text: results/test2 or results/output2
+- Post-cleaned text: results/test3 or results/output3
+- CSV outputs: results/csv/<region>
+
+
+final order : 
+
+1) python -m venv .venv
+2) .\.venv\Scripts\Activate
+3) python -m pip install --upgrade pip
+4) pip install -r requirements.txt
+5) python text_extractor.py
+6) python hybrid_extraction.py
+7) python text_cleaner.py (run twice first - INPUT_DIR = results/output1, second - INPUT_DIR = results/test )
+8) python post_clean_output3.py (run twice 1) set - INPUT_DIR = results/test2, OUTPUT_DIR = results/test3 , 2) set - INPUT_DIR = results/output2, OUTPUT_DIR = results/output3 )
+9) python merge_89_texts.py
+10) Run the respective region wise command from above.

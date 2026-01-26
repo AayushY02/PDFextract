@@ -47,16 +47,28 @@ name_of :
                     if found : 
                         take right : 
                             search in : taken
-                            search text : "北海道開発局"
-                            if found : 
-                                take right : 
+                            search text : "工事概要"
+                            if found :
+                                take left :
                                     search in : taken
-                                    search text : "長"
+                                    search text : "北海道開発局"
                                     if found : 
-                                        take left : 
-                                            remove whitespaces
-                                            store(var_nameof)
-                                            set(var_nameof)
+                                        take right : 
+                                            search in : taken
+                                            search text : "長"
+                                            if found : 
+                                                take left : 
+                                                    remove whitespaces
+                                                    store(var_nameof)
+                                                    set(var_nameof)
+                                    if not found : 
+                                        search in : taken
+                                        search text : "長"
+                                        if found : 
+                                            take left : 
+                                                remove whitespaces
+                                                store(var_nameof)
+                                                set(var_nameof)
 
 「工事名」:
     search in : all
@@ -72,10 +84,16 @@ name_of :
                     if found : 
                         take left :
                             remove whitespaces
+                            replace("石狩川維持工事の内" , "")
+                            replace("石狩川改修工事の内" , "")
+                            replace("天塩川改修工事の内" , "")
                             store(var_kouji)
                             set(var_kouji)
                     if not found : 
                         remove whitespaces
+                        replace("石狩川維持工事の内" , "")
+                        replace("石狩川改修工事の内" , "")
+                        replace("天塩川改修工事の内" , "")
                         store(var_kouji)
                         set(var_kouji)
 
@@ -112,8 +130,10 @@ reg_B :
                 if found : 
                     take left :
                         remove whitespaces
-                        replace("の施工実績を有すること。" , "。")
-                        replace("の施工。" , "。")
+                        replace("の施工実績を有すること。" , "")
+                        replace("の施工。" , "")
+                        replace(")" , "")
+                        replace("(" , "")
                         store(doushi_kouji_1)
                         set(doushi_kouji_1)
                                 
@@ -137,8 +157,11 @@ reg_B :
                         if found : 
                             take left : 
                                 remove whitespaces
-                                replace("の施工実績を有すること。" , "。")
-                                replace("の施工。" , "。")
+                                replace("の施工実績を有すること。" , "")
+                                replace("の施工。" , "")
+                                replace(")" , "")
+                                replace("(" , "")
+                                replace("･" , "")
                                 store(doushi_kouji_1)
                                 set(doushi_kouji_1)
 
@@ -157,6 +180,8 @@ reg_B :
                 search text : "上記(4)に掲げる工事の経験を有する者であること"
                 if found : 
                     set(「同種工事（企業）」)
+                if not found : 
+                    set("記載なし")
         
 
 
@@ -175,5 +200,7 @@ reg_B :
                 search text : "上記(4)に掲げる工事の経験を有する者であること"
                 if found : 
                     set(「より同種性の高い工事（企業）」)
+                if not found : 
+                    set("記載なし")
     
 

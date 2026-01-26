@@ -10,7 +10,7 @@ name_bu :
    search in : all
    search text : "北海道開発局網走開発建設部"
    if found : 
-      set("北海道開発局網走開発建設部")
+      set("網走開発建設部")
 
 name_of :
    search in first : 20
@@ -35,7 +35,6 @@ name_of :
                         if found : 
                            take left:
                               remove whitespaces
-                              add in right(所)
                               store(var_nameof)
                               set(var_nameof)
       if not found : 
@@ -56,7 +55,6 @@ name_of :
                            if found : 
                               take left : 
                                  remove whitespaces
-                                 add in right(所)
                                  store(var_nameof)
                                  set(var_nameof)
 
@@ -118,7 +116,15 @@ reg_B :
                   if found : 
                      take left : 
                         remove whitespaces
-                        replace("の施工実績を有すること。" , "。")
+                        replace("の施工実績を有すること。" , "")
+                        replace("(H" , "")
+                        replace("(" , "")
+                        replace(")" , "")
+                        replace("- -5" , "")
+                        replace("- -4" , "")
+                        replace("1" , "")
+                        replace("の施工実" , "")
+                        replace("績を有すること。" , "")
                         store(doushi_kouji_1)
                         set(doushi_kouji_1)
                                 
@@ -129,6 +135,7 @@ reg_B :
    if true : 
       set("本官")
    if false:
+      set("該当無し")
       
 
 
@@ -151,6 +158,10 @@ reg_B :
                search text : "上記(4)本文に掲げる工事の経験(主任技術者、監理技術者、"
                if found : 
                   set(「同種工事（企業）」)
+               if not found : 
+                  set("該当無し")
+      if not found : 
+         set("該当無し")
         
 
 
@@ -174,6 +185,10 @@ reg_B :
                search text : "上記(4)本文に掲げる工事の経験(主任技術者、監理技術者、"
                if found : 
                   set(「より同種性の高い工事（企業）」)
+               if not found : 
+                  set("該当無し")
+      if not found : 
+         set("該当無し")
 
     
 

@@ -35,7 +35,6 @@ name_of :
                            if found : 
                               take left:
                                  remove whitespaces
-                                 add in right(所)
                                  store(var_nameof)
                                  set(var_nameof)
       if not found : 
@@ -56,7 +55,6 @@ name_of :
                            if found : 
                               take left : 
                                  remove whitespaces
-                                 add in right(所)
                                  store(var_nameof)
                                  set(var_nameof)
 
@@ -126,6 +124,7 @@ reg_B :
                            replace("･" , "")
                            replace(":" , "")
                            replace("○" , "")
+                           replace("。" , "")
                            store(doushi_kouji_1)
                            set(doushi_kouji_1)
 
@@ -163,6 +162,7 @@ reg_B :
                   replace("とする。" , "")
                   replace("「" , "")
                   replace("」" , "")
+                  replace("。" , "")
                   store(temop)
                   set(temop)
      
@@ -190,6 +190,7 @@ reg_B :
                         replace("とする。" , "")
                         replace("「" , "")
                         replace("」" , "")
+                        replace("。" , "")
                         store(temop)
                         set(temop)
 

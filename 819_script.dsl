@@ -35,7 +35,6 @@ name_of :
                         if found : 
                            take left:
                               remove whitespaces
-                              add in right(所)
                               store(var_nameof)
                               set(var_nameof)
       if not found : 
@@ -56,7 +55,6 @@ name_of :
                            if found : 
                               take left : 
                                  remove whitespaces
-                                 add in right(所)
                                  store(var_nameof)
                                  set(var_nameof)
 
@@ -122,7 +120,7 @@ reg_B :
                   if found : 
                      take left : 
                         remove whitespaces
-                        replace("の施工実績を有すること。" , "。")
+                        replace("の施工実績を有すること。" , "")
                         replace("|" , "")
                         replace("･" , "")
                         store(doushi_kouji_1)
@@ -151,7 +149,7 @@ reg_B :
                         if found : 
                            take left : 
                               remove whitespaces
-                              replace("の施工実績を有すること。" , "。")
+                              replace("の施工実績を有すること。" , "")
                               replace("|" , "")
                               replace("･" , "")
                               store(doushi_kouji_1)
@@ -171,6 +169,8 @@ reg_B :
             search text : "上記(4)ア又はイに掲げる工事の経験を有する者であること"
             if found : 
                set(「同種工事（企業）」)
+            if not found : 
+               set("該当無し")
 
 「より同種性の高い工事（技術者）」: 
    check : name_of
@@ -186,6 +186,8 @@ reg_B :
             search text : "上記(4)ア又はイに掲げる工事の経験を有する者であること"
             if found : 
                set(「より同種性の高い工事（企業）」)
+            if not found : 
+               set("該当無し")
 
     
 
