@@ -36,6 +36,7 @@ from typing import List, Dict, Any, Optional
 import os
 import csv
 import unicodedata
+import pandas as pd
 
 # --------------------------- Parsing ---------------------------
 
@@ -732,6 +733,33 @@ def _write_csv(out_path, headers, outputs, source_name):
         w.writerow(row)
 
 
+def _write_excel(out_path, headers, outputs, source_name):
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    full_headers = ['file name'] + headers
+
+    outputs = _normalize_outputs_for_csv(outputs)
+
+    def _excel_cell(v):
+        if v is None:
+            return ""
+        if isinstance(v, str):
+            return _remove_empty_lines(v)
+        return v
+
+    row = [source_name] + [
+        _excel_cell(outputs.get(h, ""))
+        for h in headers
+    ]
+    df = pd.DataFrame([row], columns=full_headers)
+    df.to_excel(out_path, index=False, engine="openpyxl")
+
+
+def _write_excel_table(out_path, headers, rows):
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    df = pd.DataFrame(rows, columns=headers)
+    df.to_excel(out_path, index=False, engine="openpyxl")
+
+
 HALFWIDTH_KANA_RE = re.compile(r"[\uFF61-\uFF9F]+")
 DOUBLE_PAREN_POINTER_RE = re.compile(r"[(（]{2}\s*([0-9０-９]{1,3})\s*[)）]{2}")
 
@@ -856,6 +884,8 @@ def main():
                 base = os.path.splitext(fname)[0]
                 out_path = os.path.join(dest_dir, base + ".csv")
                 _write_csv(out_path, var_order, outputs_csv, source_name=fname)
+                excel_path = os.path.join(dest_dir, base + ".xlsx")
+                _write_excel(excel_path, var_order, outputs_csv, source_name=fname)
 
                 row_vals = [
                     (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
@@ -876,6 +906,8 @@ def main():
                 w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
                 w.writerow(['file name'] + var_order)
                 w.writerows(rows)
+            summary_xlsx_path = os.path.join(summary_dir, f"{folder_label}_summary.xlsx")
+            _write_excel_table(summary_xlsx_path, ['file name'] + var_order, rows)
 
         # write overall summary for every text file processed
         if overall_rows:
@@ -886,6 +918,8 @@ def main():
                 w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
                 w.writerow(['file name'] + var_order)
                 w.writerows(overall_rows)
+            overall_xlsx_path = os.path.join(out_dir, f"{root_label}_all_texts_summary.xlsx")
+            _write_excel_table(overall_xlsx_path, ['file name'] + var_order, overall_rows)
         return
 
  # --- Single-file mode ---
@@ -900,6 +934,8 @@ def main():
             out_path = os.path.join(args.outdir, base + ".csv")
             src_name = os.path.basename(args.input)
             _write_csv(out_path, var_order, outputs_csv, source_name=src_name)
+            excel_path = os.path.join(args.outdir, base + ".xlsx")
+            _write_excel(excel_path, var_order, outputs_csv, source_name=src_name)
         else:
             if args.json:
                 cleaned = {
