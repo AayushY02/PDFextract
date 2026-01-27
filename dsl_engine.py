@@ -804,6 +804,11 @@ def _to_fullwidth(s: str) -> str:
     trans.update({code: code + 0xFEE0 for code in range(0x21, 0x7F)})
     return s.translate(trans)
 
+def _remove_halfwidth_spaces(s: str) -> str:
+    if not s:
+        return s
+    return s.replace(" ", "")
+
 def _is_kouji_name_key(name: Any) -> bool:
     if not isinstance(name, str):
         return False
@@ -815,9 +820,13 @@ def _normalize_outputs_for_csv(outputs: Dict[str, Any]) -> Dict[str, Any]:
         return outputs
     normalized = dict(outputs)
     for k, v in list(normalized.items()):
-        if _is_kouji_name_key(k) and isinstance(v, str):
+        if not isinstance(v, str):
+            continue
+        if _is_kouji_name_key(k):
             v = _replace_double_paren_pointers(v)
             normalized[k] = _to_fullwidth(v)
+        else:
+            normalized[k] = _remove_halfwidth_spaces(v)
     return normalized
 
 
