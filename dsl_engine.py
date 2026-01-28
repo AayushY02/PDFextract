@@ -65,6 +65,13 @@ def _strip_table_markers(s: str) -> str:
 def _remove_empty_lines(s: str) -> str:
     return "\n".join(line for line in s.splitlines() if line.strip())
 
+def _cell_value(v: Any) -> Any:
+    if v is None:
+        return ""
+    if isinstance(v, str):
+        return _remove_empty_lines(v)
+    return v
+
 
 def strip_comment(line: str) -> str:
     # remove '#' comments outside quotes
@@ -716,21 +723,19 @@ def _write_csv(out_path, headers, outputs, source_name):
 
     outputs = _normalize_outputs_for_csv(outputs)
 
-    def _csv_cell(v):
-        if v is None:
-            return ""
-        if isinstance(v, str):
-            return _remove_empty_lines(v)
-        return v
     row = [source_name] + [
-        _csv_cell(outputs.get(h, ""))
+        outputs.get(h, "")
         for h in headers
     ]
+    table = _transpose_table([
+        full_headers,
+        row,
+    ])
     with open(out_path, "w", newline="", encoding="utf-8-sig") as f:
         # 🔽 force quoting so line breaks stay inside the cell
         w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
-        w.writerow(full_headers)
-        w.writerow(row)
+        for r in table:
+            w.writerow([_cell_value(v) for v in r])
 
 
 def _write_excel(out_path, headers, outputs, source_name):
@@ -739,25 +744,23 @@ def _write_excel(out_path, headers, outputs, source_name):
 
     outputs = _normalize_outputs_for_csv(outputs)
 
-    def _excel_cell(v):
-        if v is None:
-            return ""
-        if isinstance(v, str):
-            return _remove_empty_lines(v)
-        return v
-
     row = [source_name] + [
-        _excel_cell(outputs.get(h, ""))
+        outputs.get(h, "")
         for h in headers
     ]
-    df = pd.DataFrame([row], columns=full_headers)
-    df.to_excel(out_path, index=False, engine="openpyxl")
+    table = _transpose_table([
+        full_headers,
+        row,
+    ])
+    df = pd.DataFrame([[_cell_value(v) for v in r] for r in table])
+    df.to_excel(out_path, index=False, header=False, engine="openpyxl")
 
 
 def _write_excel_table(out_path, headers, rows):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    df = pd.DataFrame(rows, columns=headers)
-    df.to_excel(out_path, index=False, engine="openpyxl")
+    table = _transpose_table([headers] + rows)
+    df = pd.DataFrame([[_cell_value(v) for v in r] for r in table])
+    df.to_excel(out_path, index=False, header=False, engine="openpyxl")
 
 
 HALFWIDTH_KANA_RE = re.compile(r"[\uFF61-\uFF9F]+")
@@ -808,6 +811,13 @@ def _remove_halfwidth_spaces(s: str) -> str:
     if not s:
         return s
     return s.replace(" ", "")
+
+def _transpose_table(rows: List[List[Any]]) -> List[List[Any]]:
+    if not rows:
+        return rows
+    max_len = max(len(r) for r in rows)
+    padded = [list(r) + [""] * (max_len - len(r)) for r in rows]
+    return [list(col) for col in zip(*padded)]
 
 def _is_kouji_name_key(name: Any) -> bool:
     if not isinstance(name, str):
@@ -913,8 +923,9 @@ def main():
             summary_path = os.path.join(summary_dir, f"{folder_label}_summary.csv")
             with open(summary_path, "w", newline="", encoding="utf-8-sig") as f:
                 w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
-                w.writerow(['file name'] + var_order)
-                w.writerows(rows)
+                table = _transpose_table([['file name'] + var_order] + rows)
+                for r in table:
+                    w.writerow([_cell_value(v) for v in r])
             summary_xlsx_path = os.path.join(summary_dir, f"{folder_label}_summary.xlsx")
             _write_excel_table(summary_xlsx_path, ['file name'] + var_order, rows)
 
@@ -925,8 +936,9 @@ def main():
             os.makedirs(os.path.dirname(overall_path), exist_ok=True)
             with open(overall_path, "w", newline="", encoding="utf-8-sig") as f:
                 w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
-                w.writerow(['file name'] + var_order)
-                w.writerows(overall_rows)
+                table = _transpose_table([['file name'] + var_order] + overall_rows)
+                for r in table:
+                    w.writerow([_cell_value(v) for v in r])
             overall_xlsx_path = os.path.join(out_dir, f"{root_label}_all_texts_summary.xlsx")
             _write_excel_table(overall_xlsx_path, ['file name'] + var_order, overall_rows)
         return
