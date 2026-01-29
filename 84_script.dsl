@@ -125,7 +125,7 @@ reg_B :
                         if found : 
                            take left : 
                               remove whitespaces
-                              replace("であること。" , "。")
+                              replace("であること。" , "")
                               replace("の施工実績を有すること。" , "")
                               replace("ものとする" , "")
                               store(doushi_kouji_1)
@@ -133,7 +133,7 @@ reg_B :
                         if not found : 
                            take left : 
                               remove whitespaces
-                              replace("であること。" , "。")
+                              replace("であること。" , "")
                               replace("の施工実績" , "")
                               replace("ものとする" , "")
                               store(doushi_kouji_1)
@@ -152,14 +152,14 @@ reg_B :
                            if found : 
                               take left : 
                                  remove whitespaces
-                                 replace("であること。" , "。")
+                                 replace("であること。" , "")
                                  replace("の施工実績" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
                            if not found : 
                               take left : 
                                  remove whitespaces
-                                 replace("であること。" , "。")
+                                 replace("であること。" , "")
                                  replace("の施工実績" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
@@ -270,18 +270,23 @@ reg_B :
                      search text : ("の場合", "の場 合", "場合", "場 合", ":")
                      if found : 
                         take left : 
-                           remove whitespaces
-                           replace("上記S、A以外の" , "")
-                           replace("の施工実績を有する" , "")
-                           replace("(S)･(A)を除く" , "")
-                           replace("の施工実績 を有する" , "")
-                           replace("を有する" , "")
-                           replace("S又はA以外の" , "")
-                           replace("SおよびA以外の" , "")
-                           replace("の施工 実績" , "")
-                           replace("上記(S)(A)を除く、" , "")
-                           store(co_similarity)
-                           set(co_similarity)                  
+                           search in : taken
+                           search text : "上記(S)(A)を除く、施工実績"
+                           if found : 
+                              set(「同種工事（企業）」)
+                           if not found : 
+                              remove whitespaces
+                              replace("上記S、A以外の" , "")
+                              replace("の施工実績を有する" , "")
+                              replace("(S)･(A)を除く" , "")
+                              replace("の施工実績 を有する" , "")
+                              replace("を有する" , "")
+                              replace("S又はA以外の" , "")
+                              replace("SおよびA以外の" , "")
+                              replace("の施工 実績" , "")
+                              replace("上記(S)(A)を除く、" , "")
+                              store(co_similarity)
+                              set(co_similarity)                  
 
 「より同種性の高い（技術者）」: 
    search in : region_B
@@ -400,43 +405,58 @@ reg_B :
                                              search text : ("の場合", "の場 合", "場合", "場 合", ":")
                                              if found : 
                                                 take left : 
-                                                   remove whitespaces
-                                                   replace("上記S、A以外の" , "")
-                                                   replace("SおよびA以外の" , "")
-                                                   replace("の施工経験を有する" , "")
-                                                   replace("S又はA以外の" , "")
-                                                   replace("(S)･(A)を除く" , "")
-                                                   replace("の施工経験 を有する" , "")
-                                                   replace("上記(S)(A)を除く、" , "")
-                                                   replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
-                                                   store(eng_similarity)
-                                                   set(eng_similarity)
+                                                   search in : taken
+                                                   search text : "上記(S)(A)を除く、施工経験の"
+                                                   if found : 
+                                                      set(「同種工事（技術者）」)
+                                                   if not found :
+                                                      remove whitespaces
+                                                      replace("上記S、A以外の" , "")
+                                                      replace("SおよびA以外の" , "")
+                                                      replace("の施工経験を有する" , "")
+                                                      replace("S又はA以外の" , "")
+                                                      replace("(S)･(A)を除く" , "")
+                                                      replace("の施工経験 を有する" , "")
+                                                      replace("上記(S)(A)を除く、" , "")
+                                                      replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                      store(eng_similarity)
+                                                      set(eng_similarity)
                                              if not found : 
                                                 take left : 
-                                                   remove whitespaces
-                                                   replace("上記S、A以外の" , "")
-                                                   replace("SおよびA以外の" , "")
-                                                   replace("の施工経験を有する" , "")
-                                                   replace("S又はA以外の" , "")
-                                                   replace("(S)･(A)を除く" , "")
-                                                   replace("の施工経験 を有する" , "")
-                                                   replace("上記(S)(A)を除く、" , "")
-                                                   replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
-                                                   store(eng_similarity)
-                                                   set(eng_similarity)
+                                                   search in : taken
+                                                   search text : "上記(S)(A)を除く、施工経験の"
+                                                   if found : 
+                                                      set(「同種工事（技術者）」)
+                                                   if not found :
+                                                      remove whitespaces
+                                                      replace("上記S、A以外の" , "")
+                                                      replace("SおよびA以外の" , "")
+                                                      replace("の施工経験を有する" , "")
+                                                      replace("S又はA以外の" , "")
+                                                      replace("(S)･(A)を除く" , "")
+                                                      replace("の施工経験 を有する" , "")
+                                                      replace("上記(S)(A)を除く、" , "")
+                                                      replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                      store(eng_similarity)
+                                                      set(eng_similarity)
                                        if not found : 
                                           search in : taken
                                           search text : ("の場合", "の場 合", "場合", "場 合", ":")
                                           if found : 
-                                             take left : 
-                                                remove whitespaces
-                                                replace("上記S、A以外の" , "")
-                                                replace("SおよびA以外の" , "")
-                                                replace("の施工経験を有する" , "")
-                                                replace("(S)･(A)を除く" , "")
-                                                replace("の施工経験 を有する" , "")
-                                                replace("上記(S)(A)を除く、" , "")
-                                                replace("S又はA以外の" , "")
-                                                replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
-                                                store(eng_similarity)
-                                                set(eng_similarity)
+                                             take left :
+                                                search in : taken
+                                                search text : "上記(S)(A)を除く、施工経験の"
+                                                if found : 
+                                                   set(「同種工事（技術者）」) 
+                                                if not found :
+                                                   remove whitespaces
+                                                   replace("上記S、A以外の" , "")
+                                                   replace("SおよびA以外の" , "")
+                                                   replace("の施工経験を有する" , "")
+                                                   replace("(S)･(A)を除く" , "")
+                                                   replace("の施工経験 を有する" , "")
+                                                   replace("上記(S)(A)を除く、" , "")
+                                                   replace("S又はA以外の" , "")
+                                                   replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                   store(eng_similarity)
+                                                   set(eng_similarity)

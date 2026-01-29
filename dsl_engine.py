@@ -880,7 +880,6 @@ def main():
         out_dir = args.outdir
 
         overall_rows = []      # summary for all text files (with relative path)
-        folder_rows = {}       # folder-specific summaries keyed by rel path
 
         # recursive walk to pick up nested folders
         for dirpath, _, filenames in os.walk(in_dir):
@@ -903,31 +902,12 @@ def main():
                 base = os.path.splitext(fname)[0]
                 out_path = os.path.join(dest_dir, base + ".csv")
                 _write_csv(out_path, var_order, outputs_csv, source_name=fname)
-                excel_path = os.path.join(dest_dir, base + ".xlsx")
-                _write_excel(excel_path, var_order, outputs_csv, source_name=fname)
-
                 row_vals = [
                     (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
                     for h in var_order
                 ]
-                folder_rows.setdefault(rel_dir or ".", []).append([fname] + row_vals)
                 rel_name = fname if not rel_dir else os.path.join(rel_dir, fname)
                 overall_rows.append([rel_name] + row_vals)
-
-        # write per-folder summaries
-        for rel_dir, rows in folder_rows.items():
-            folder_abs = in_dir if rel_dir in ("", ".") else os.path.join(in_dir, rel_dir)
-            folder_label = os.path.basename(os.path.normpath(folder_abs))
-            summary_dir = out_dir if rel_dir in ("", ".") else os.path.join(out_dir, rel_dir)
-            os.makedirs(summary_dir, exist_ok=True)
-            summary_path = os.path.join(summary_dir, f"{folder_label}_summary.csv")
-            with open(summary_path, "w", newline="", encoding="utf-8-sig") as f:
-                w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
-                table = _transpose_table([['file name'] + var_order] + rows)
-                for r in table:
-                    w.writerow([_cell_value(v) for v in r])
-            summary_xlsx_path = os.path.join(summary_dir, f"{folder_label}_summary.xlsx")
-            _write_excel_table(summary_xlsx_path, ['file name'] + var_order, rows)
 
         # write overall summary for every text file processed
         if overall_rows:
@@ -955,8 +935,6 @@ def main():
             out_path = os.path.join(args.outdir, base + ".csv")
             src_name = os.path.basename(args.input)
             _write_csv(out_path, var_order, outputs_csv, source_name=src_name)
-            excel_path = os.path.join(args.outdir, base + ".xlsx")
-            _write_excel(excel_path, var_order, outputs_csv, source_name=src_name)
         else:
             if args.json:
                 cleaned = {

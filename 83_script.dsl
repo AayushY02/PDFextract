@@ -108,7 +108,6 @@ reg_B :
                                  remove whitespaces
                                  replace("であること。" , "")
                                  replace("下記", "")
-                                 replace("ボックスカルバート", "")
                                  replace("の施工実績を有すること。", "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
@@ -117,7 +116,6 @@ reg_B :
                                  replace("であること。" , "")
                                  replace("(ア)", "")
                                  replace("下記", "")
-                                 replace("ボックスカルバート", "")
                                  replace("の施工実績を有すること。", "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
@@ -128,7 +126,6 @@ reg_B :
                               remove whitespaces
                               replace("であること。" , "")
                               replace("下記", "")
-                              replace("ボックスカルバート", "")
                               replace("の施工実績を有すること。", "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
@@ -137,7 +134,6 @@ reg_B :
                               replace("であること。" , "")
                               replace("(ア)", "")
                               replace("下記", "")
-                              replace("ボックスカルバート", "")
                               replace("の施工実績を有すること。", "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
@@ -163,7 +159,6 @@ reg_B :
                            replace("(共同企業体の構成員としての実績は、出資比率が20%以上の場合のものに限る。(ただし、異工種建設工事共同企業体については適用しない。))" , "")
                            remove whitespaces
                            replace("下記", "")
-                           replace("ボックスカルバート", "")
                            replace("の施工実績を有すること。", "")
                            store(doushi_kouji_1)
                            set(doushi_kouji_1)
@@ -172,7 +167,6 @@ reg_B :
                            remove whitespaces
                            replace("(ア)", "")
                            replace("下記", "")
-                           replace("ボックスカルバート", "")
                            replace("の施工実績を有すること。", "")
                            store(doushi_kouji_1)
                            set(doushi_kouji_1)
