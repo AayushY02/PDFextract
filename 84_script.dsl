@@ -184,7 +184,7 @@ reg_B :
                   if found : 
                      take right : 
                         search in : taken
-                        search text : "((3)) 監理技術者にあっては"
+                        search text : "③ 監理技術者にあっては"
                         if found : 
                            take left : 
                               remove whitespaces

@@ -49,11 +49,11 @@ name_of :
          if found : 
             take left : 
                search in : taken
-               search text : ("(電子入札対象案件)", "(以下「((1))工事」という)")
+               search text : ("(電子入札対象案件)", "(以下「①工事」という)")
                if found : 
                   take left :
                      remove whitespaces
-                     replace("((1))", "")
+                     replace("①", "")
                      store(var_kouji)
                      set(var_kouji)
                if not found : 
@@ -193,7 +193,7 @@ reg_B :
 
 「より同種性の高い（企業）」: 
    search in : region_B
-   search text : "((1))企業の技術力"
+   search text : "①企業の技術力"
    if found : 
       take right : 
          search in : taken
@@ -222,7 +222,7 @@ reg_B :
 
 「同種性が高い（企業）」: 
    search in : region_B
-   search text : "((1))企業の技術力"
+   search text : "①企業の技術力"
    if found : 
       take right : 
          search in : taken
@@ -251,7 +251,7 @@ reg_B :
 
 「同種性が認められる（企業）」: 
    search in : region_B
-   search text : "((1))企業の技術力"
+   search text : "①企業の技術力"
    if found : 
       take right : 
          search in : taken
@@ -288,7 +288,7 @@ reg_B :
 
 「より同種性の高い（技術者）」: 
    search in : region_B
-   search text : "((2))配置予定技術者の技術力"
+   search text : "②配置予定技術者の技術力"
    if found :  
       search in : region_B
       search text : "〔配置予定技術者の能力〕"
@@ -318,7 +318,7 @@ reg_B :
 
 「同種性の高い（技術者）」:
    search in : region_B
-   search text : "((2))配置予定技術者の技術力"
+   search text : "②配置予定技術者の技術力"
    if found : 
       search in : region_B
       search text : "〔配置予定技術者の能力〕"
@@ -346,7 +346,7 @@ reg_B :
 
 「同種性が認められる（技術者）」:
    search in : region_B
-   search text : "((2))配置予定技術者の技術力"
+   search text : "②配置予定技術者の技術力"
    if found :  
       search in : taken
       search text : "〔配置予定技術者の能力〕"

@@ -113,7 +113,7 @@ reg_B :
 
 「同種工事(技術者)」:
    search in : all
-   search text : ("次の1)~5)に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置できること" , "次の1)~4)に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置" , "次の((1))~((4))に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置")
+   search text : ("次の1)~5)に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置できること" , "次の1)~4)に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置" , "次の①~④に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置")
    if found : 
       take right : 
          search in : taken
@@ -157,7 +157,7 @@ reg_B :
       if found : 
          take right :
             search in : taken
-            search text : ("((1))同種工事" , "((1)) 同種工事の")
+            search text : ("①同種工事" , "① 同種工事の")
             if found : 
                take right:
                   search in : taken
@@ -196,7 +196,7 @@ reg_B :
       if found : 
          take right :
             search in : taken
-            search text : ("((1))同種工事" , "((1)) 同種工事の")
+            search text : ("①同種工事" , "① 同種工事の")
             if found : 
                take right:
                   search in : taken
@@ -240,7 +240,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : ("((1))同種工事" , "((1)) 同種工事の")
+                  search text : ("①同種工事" , "① 同種工事の")
                   if found : 
                      take right:
                         search in : taken
@@ -279,7 +279,7 @@ reg_B :
       if found : 
          take right :
             search in : taken
-            search text : ("((1))同種工事" , "((1)) 同種工事の")
+            search text : ("①同種工事" , "① 同種工事の")
             if found : 
                take right:
                   search in : taken
@@ -343,7 +343,7 @@ reg_B :
       if found : 
          take right :
             search in : taken
-            search text : ("((1))同種工事" , "((1)) 同種工事の")
+            search text : ("①同種工事" , "① 同種工事の")
             if found : 
                take right:
                   search in : taken

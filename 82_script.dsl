@@ -110,11 +110,11 @@ reg_B :
       if found : 
          take right : 
             search in : taken
-            search text : "((2)) 当該施工実績"
+            search text : "② 当該施工実績"
             if found : 
                take left :
                   search in : taken
-                  search text : "((2))"
+                  search text : "②"
                   if found : 
                      remove whitespaces
                      replace(" " , "")
@@ -122,7 +122,7 @@ reg_B :
                      set(doushi_kouji_1)
                   if not found : 
                      remove whitespaces
-                     replace("((1))" , "")
+                     replace("①" , "")
                      replace(" " , "")
                      store(doushi_kouji_1)
                      set(doushi_kouji_1)
@@ -156,7 +156,7 @@ reg_B :
 
 「より同種性の高い（企業）」: 
    search in : region_B
-   search text : "((2)) 加算点"
+   search text : "② 加算点"
    if found : 
       take right : 
          search in : taken
@@ -179,7 +179,7 @@ reg_B :
 
 「同種性が認められる（企業）」: 
    search in : region_B
-   search text : "((2)) 加算点"
+   search text : "② 加算点"
    if found : 
       take right : 
          search in : taken
@@ -205,7 +205,7 @@ reg_B :
 
 「より同種性の高い（技術者）」: 
    search in : region_B
-   search text : "((2)) 加算点"
+   search text : "② 加算点"
    if found : 
       take right : 
          search in : taken
@@ -232,7 +232,7 @@ reg_B :
 「同種性が認められる（技術者）」:
    search in : region_B
    ## this is a comment
-   search text : "((2)) 加算点"
+   search text : "② 加算点"
    if found : 
       take right : 
          search in : taken

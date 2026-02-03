@@ -178,7 +178,7 @@ reg_B :
                      set(var1)
    if false:
       search in: region_A
-      search text: "次に掲げる((1))から((5))の基準を満たす主任技術者"
+      search text: "次に掲げる①から⑤の基準を満たす主任技術者"
       if found :
          take right : 
             search in : taken

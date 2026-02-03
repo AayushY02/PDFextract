@@ -190,7 +190,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : "((1)) 元請けとして、平成21年度以降に完成した工事で"
+                  search text : "① 元請けとして、平成21年度以降に完成した工事で"
                   if found : 
                      take right : 
                         search in : taken
@@ -222,7 +222,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : "((1)) 元請けとして、平成21年度以降に完成した工事で"
+                  search text : "① 元請けとして、平成21年度以降に完成した工事で"
                   if found : 
                      take right : 
                         search in : taken
@@ -241,7 +241,7 @@ reg_B :
                                     set(doushi_kouji_1)
                               if not found : 
                                  search in : taken
-                                 search text : "((2)) 当該実績"
+                                 search text : "② 当該実績"
                                  if found : 
                                     take left : 
                                        remove whitespaces
@@ -267,7 +267,7 @@ reg_B :
                                        set(doushi_kouji_1)
                                  if not found : 
                                     search in : taken
-                                    search text : "((2)) 当該実績"
+                                    search text : "② 当該実績"
                                     if found : 
                                        take left : 
                                           remove whitespaces
@@ -294,7 +294,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : "((1)) 参加資格要件の同種工事"
+                  search text : "① 参加資格要件の同種工事"
                   if found : 
                      take right : 
                         search in : taken
@@ -312,7 +312,7 @@ reg_B :
                                     set(doushi_kouji_1)
                               if not found : 
                                  search in : taken
-                                 search text : "((2)) 評価は"
+                                 search text : "② 評価は"
 
 「より同種性の高い工事（企業）」:
    check : name_of
@@ -329,7 +329,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : "((1)) 参加資格要件の同種工事"
+                  search text : "① 参加資格要件の同種工事"
                   if found : 
                      take right : 
                         search in : taken
@@ -361,7 +361,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : "((1)) 参加資格要件の同種工事"
+                  search text : "① 参加資格要件の同種工事"
                   if found : 
                      take right : 
                         search in : taken
@@ -373,7 +373,7 @@ reg_B :
                               if found : 
                                  take right : 
                                     search in : taken
-                                    search text : "((2)) 評価は"
+                                    search text : "② 評価は"
                                     if found : 
                                        take left :
                                           remove whitespaces

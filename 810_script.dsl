@@ -106,15 +106,15 @@ reg_B :
         set("本官")    
     if false:
         search in : region_A
-        search text : "公告開始日までに、次の((1))又は((2))の要件を満たす工事を元請けとし"
+        search text : "公告開始日までに、次の①又は②の要件を満たす工事を元請けとし"
         if found : 
             take right : 
                 search in : taken
-                search text : "((1))【同種条件】"
+                search text : "①【同種条件】"
                 if found : 
                     take right :
                         search in : taken
-                        search text : "((2))【より同種性の高い工事条件】"
+                        search text : "②【より同種性の高い工事条件】"
                         if found : 
                             take left : 
                                 search in : taken
@@ -132,11 +132,11 @@ reg_B :
                                     set(doushi_kouji_1)
         if not found : 
             search in : region_A
-            search text : "公告開始日までに完成･引渡しが完了した、次の((1))の要件を満たす工事を元請として施工した実績を有すること"
+            search text : "公告開始日までに完成･引渡しが完了した、次の①の要件を満たす工事を元請として施工した実績を有すること"
             if found : 
                 take right : 
                     search in : taken
-                    search text : "公告開始日までに完成･引渡しが完了した、次の((2))の要件を満たす工事を元請として施工した実績を有すること"
+                    search text : "公告開始日までに完成･引渡しが完了した、次の②の要件を満たす工事を元請として施工した実績を有すること"
                     if found : 
                         take right : 
                             search in : taken
@@ -144,7 +144,7 @@ reg_B :
                             if found : 
                                 take right : 
                                     search in : taken
-                                    search text : ("((2))" , "(施工実績が確認できる資料を添付すること。)")
+                                    search text : ("②" , "(施工実績が確認できる資料を添付すること。)")
                                     if found : 
                                         take left : 
                                             remove whitespaces
@@ -159,15 +159,15 @@ reg_B :
         set("本官")
     if false:
         search in : region_A
-        search text : "公告開始日までに、次の((1))又は((2))の要件を満たす工事を元請けとし"
+        search text : "公告開始日までに、次の①又は②の要件を満たす工事を元請けとし"
         if found : 
             take right : 
                 search in : taken
-                search text : "((1))【同種条件】"
+                search text : "①【同種条件】"
                 if found : 
                     take right :
                         search in : taken
-                        search text : "((2))【より同種性の高い工事条件】"
+                        search text : "②【より同種性の高い工事条件】"
                         if found : 
                             take right : 
                                 search in : taken
@@ -185,11 +185,11 @@ reg_B :
                                     set(doushi_kouji_1)
         if not found : 
             search in : region_A
-            search text : "公告開始日までに完成･引渡しが完了した、次の((1))の要件を満たす工事を元請として施工した実績を有すること"
+            search text : "公告開始日までに完成･引渡しが完了した、次の①の要件を満たす工事を元請として施工した実績を有すること"
             if found : 
                 take right : 
                     search in : taken
-                    search text : "公告開始日までに完成･引渡しが完了した、次の((2))の要件を満たす工事を元請として施工した実績を有すること"
+                    search text : "公告開始日までに完成･引渡しが完了した、次の②の要件を満たす工事を元請として施工した実績を有すること"
                     if found : 
                         take right : 
                             search in : taken
@@ -201,7 +201,7 @@ reg_B :
                                     if found : 
                                         take right : 
                                             search in : taken 
-                                            search text : "((2))"
+                                            search text : "②"
                                             if found : 
                                                 take right : 
                                                     search in : taken
@@ -230,7 +230,7 @@ reg_B :
                     set(「同種工事（企業）」)
                 if not found : 
                     search in : taken
-                    search text : "上記\n(5)((1))に掲げる工事の経験を有する者であること"
+                    search text : "上記\n(5)①に掲げる工事の経験を有する者であること"
                     if found : 
                         set(「同種工事（企業）」)
         

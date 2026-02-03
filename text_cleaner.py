@@ -30,8 +30,13 @@ import re
 
 # ---------- CONFIGURATION ----------
 BASE_DIR = Path("results")
+
 INPUT_DIR = BASE_DIR / "test"
 OUTPUT_DIR = BASE_DIR / "test2"
+
+# INPUT_DIR = BASE_DIR / "output1"
+# OUTPUT_DIR = BASE_DIR / "output2"
+
 LOG_FILE = BASE_DIR / "cleaning_log.txt"
 # ----------------------------------
 
@@ -182,6 +187,12 @@ def clean_fullwidth_to_halfwidth(text: str) -> str:
     - Uses Unicode NFKC normalization for general conversions.
     - Applies an extra mapping for symbols that NFKC does not change.
     """
+    # Preserve circled digits (U+2460..U+2473) across NFKC normalization.
+    circled_tokens = {chr(code): f"__CIRCLED_{i}__" for i, code in enumerate(range(0x2460, 0x2474), start=1)}
+    for ch, token in circled_tokens.items():
+        if ch in text:
+            text = text.replace(ch, token)
+
     text = unicodedata.normalize("NFKC", text)
 
     # Manual mappings for characters not handled by NFKC
@@ -212,6 +223,10 @@ def clean_fullwidth_to_halfwidth(text: str) -> str:
 
     for full, half in replacements.items():
         text = text.replace(full, half)
+
+    for ch, token in circled_tokens.items():
+        if token in text:
+            text = text.replace(token, ch)
 
     return text
 # ----------------------------
@@ -312,12 +327,12 @@ def clean_normalize_numbered_symbols(text: str) -> str:
         ローマ数字 ⅡⅢ… は II, III… に統一（置換表で対応）。
     """
 
-    circled_map = {
-        "①": "((1))", "②": "((2))", "③": "((3))", "④": "((4))", "⑤": "((5))",
-        "⑥": "((6))", "⑦": "((7))", "⑧": "((8))", "⑨": "((9))", "⑩": "((10))",
-        "⑪": "((11))", "⑫": "((12))", "⑬": "((13))", "⑭": "((14))", "⑮": "((15))",
-        "⑯": "((16))", "⑰": "((17))", "⑱": "((18))", "⑲": "((19))", "⑳": "((20))",
-    }
+    # circled_map = {
+        # "①": "((1))", "②": "((2))", "③": "((3))", "④": "((4))", "⑤": "((5))",
+        # "⑥": "((6))", "⑦": "((7))", "⑧": "((8))", "⑨": "((9))", "⑩": "((10))",
+        # "⑪": "((11))", "⑫": "((12))", "⑬": "((13))", "⑭": "((14))", "⑮": "((15))",
+        # "⑯": "((16))", "⑰": "((17))", "⑱": "((18))", "⑲": "((19))", "⑳": "((20))",
+    # }
 
     roman_map = {
         "Ⅰ": "I", "Ⅱ": "II", "Ⅲ": "III", "Ⅳ": "IV", "Ⅴ": "V",
@@ -326,8 +341,8 @@ def clean_normalize_numbered_symbols(text: str) -> str:
     }
 
     # Apply both mappings
-    for k, v in circled_map.items():
-        text = text.replace(k, v)
+    # for k, v in circled_map.items():
+        # text = text.replace(k, v)
     for k, v in roman_map.items():
         text = text.replace(k, v)
 

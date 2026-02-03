@@ -307,7 +307,7 @@ reg_B :
             if found : 
                 take right : 
                     search in : taken
-                    search text : "((2))配置予定技術者の能力等(加算点2)"
+                    search text : "②配置予定技術者の能力等(加算点2)"
                     if found : 
                         take right : 
                             search in : taken
@@ -331,7 +331,7 @@ reg_B :
             if found : 
                 take right : 
                     search in : taken
-                    search text : "((2))配置予定技術者の能力等(加算点2)"
+                    search text : "②配置予定技術者の能力等(加算点2)"
                     if found : 
                         take right : 
                             search in : taken
