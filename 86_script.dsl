@@ -90,8 +90,6 @@ reg_B :
                   take left :  
                      store(region_B)
 
-
-
 「同種工事（企業）」:
    search in : region_A
    search text : "4.競争参加資格に関する事項"
@@ -122,8 +120,6 @@ reg_B :
                                        replace("。" , "")
                                        store(doushikouji_kigyo)
                                        set(doushikouji_kigyo)
-
-      
 
 「同種工事（技術者）」temp:
    search in : region_A
