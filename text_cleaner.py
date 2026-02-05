@@ -1653,6 +1653,41 @@ def clean_start_from_heading2(text: str) -> str:
             return last + 1
         return -1
 
+    # 1c) Stacked marker lines: multiple lines like
+    #     "[[HEADING]] 入" / "[[HEADING]] 札" / "[[HEADING]] 説" / "[[HEADING]] 明" / "[[HEADING]] 書"
+    #     Normalize to a single heading line "入札説明書".
+    j = 0
+    while j < len(lines):
+        s = lines[j].strip()
+        if s.startswith("[[HEADING]]"):
+            after = s[len("[[HEADING]]"):].strip()
+            # Start only if the first unit looks like a single target character
+            if len(after) == 1 and after in "入札説明書":
+                candidate = ""
+                last = j
+                k = j
+                while k < len(lines):
+                    t = lines[k].strip()
+                    if t.startswith("[[HEADING]]"):
+                        ch = t[len("[[HEADING]]"):].strip()
+                        if len(ch) == 1 and ch in "入札説明書":
+                            candidate += ch
+                            last = k
+                            if len(candidate) >= 6:
+                                break
+                            k += 1
+                            continue
+                    break
+                if candidate == "入札説明書":
+                    keep_idx = find_prev_page_start(j)
+                    out = []
+                    if keep_idx != -1:
+                        out.append(lines[keep_idx].strip())
+                    out.append("入札説明書")
+                    out.extend(lines[last + 1 :])
+                    return "\n".join(out)
+        j += 1
+
     # 1) Marker-based exact heading (inline or previous-line marker)
     # 1a) Inline marker: accept "[[HEADING]] 入札説明書" and variants like "[[HEADING]] 入札説明書(個別事項)"
     for j in range(len(lines)):
@@ -1699,40 +1734,7 @@ def clean_start_from_heading2(text: str) -> str:
                 out.extend(lines[j + 1 :])
                 return "\n".join(out)
 
-    # 1c) Stacked marker lines: multiple lines like
-    #     "[[HEADING]] 入" / "[[HEADING]] 札" / "[[HEADING]] 説" / "[[HEADING]] 明" / "[[HEADING]] 書"
-    #     Normalize to a single heading line "入札説明書".
-    j = 0
-    while j < len(lines):
-        s = lines[j].strip()
-        if s.startswith("[[HEADING]]"):
-            after = s[len("[[HEADING]]"):].strip()
-            # Start only if the first unit looks like a single target character
-            if len(after) == 1 and after in "入札説明書":
-                candidate = ""
-                last = j
-                k = j
-                while k < len(lines):
-                    t = lines[k].strip()
-                    if t.startswith("[[HEADING]]"):
-                        ch = t[len("[[HEADING]]"):].strip()
-                        if len(ch) == 1 and ch in "入札説明書":
-                            candidate += ch
-                            last = k
-                            if len(candidate) >= 6:
-                                break
-                            k += 1
-                            continue
-                    break
-                if candidate == "入札説明書":
-                    keep_idx = find_prev_page_start(j)
-                    out = []
-                    if keep_idx != -1:
-                        out.append(lines[keep_idx].strip())
-                    out.append("入札説明書")
-                    out.extend(lines[last + 1 :])
-                    return "\n".join(out)
-        j += 1
+    
 
     # 2) Exact line match
     for j in range(len(lines)):

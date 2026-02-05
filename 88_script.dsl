@@ -41,7 +41,7 @@ name_of :
    if found : 
       take right:
          search in : taken
-         search text : "(2)"
+         search text : ("B.令和6" , "(2)")
          if found : 
             take left : 
                search in : taken
@@ -76,19 +76,76 @@ reg_B :
 
 
 「同種工事（企業）」:
-   search in : region_A
-   search text : "下記の条件を満足する同種工事を施工した実績を有すること"
-   if found : 
-      take right :
-         store(text0)
-         search in : taken
-         search text : "分担工事の実績に限る。"
-         if found : 
-            take right : 
-               search in : taken
-               search text : ("同種工事として、" , "同種工事とは、")
-               if found :
-                  take right : 
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_A
+      search text : "元請けとして、以下に示す工事(以下「同種工事」という。)"
+      if found : 
+         take right : 
+            search in : taken
+            search text : 出資比率に関わらず構成員として施工を行った分担工事の実績に限る。
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "平成21年度以降に元請けとして同種工事における施工実績を有していること。"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "なお、当該実績が大臣官房官庁営繕部又"
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              replace("･" , "")
+                              store(temp1)
+                              set(temp1)
+                  if not found : 
+                     search in : taken
+                     search text : "なお、当該実績が大臣官房官庁営繕部又"
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           replace("･" , "")
+                           store(temp1)
+                           set(temp1)
+   if false : 
+      search in : region_A
+      search text : "下記の条件を満足する同種工事を施工した実績を有すること"
+      if found : 
+         take right :
+            store(text0)
+            search in : taken
+            search text : "分担工事の実績に限る。"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : ("同種工事として、" , "同種工事とは、")
+                  if found :
+                     take right : 
+                        search in : taken
+                        search text : "なお、当該実績が"
+                        if found : 
+                           take left : 
+                              search in : taken
+                              search text : ("1)" , "･" , "ア)")
+                              if found : 
+                                 remove whitespaces
+                                 replace("5", "")
+                                 replace("\n", "")
+                                 replace("を有すること。", "")
+                                 replace("以下の", "")
+                                 store(exception8)
+                                 set(exception8)
+                              if not found : 
+                                 remove whitespaces
+                                 replace("5", "")
+                                 replace("\n", "")
+                                 replace("の施工実績を有すること。", "")
+                                 replace("を有すること。", "")
+                                 replace("以下の", "")
+                                 store(exception8)
+                                 set(exception8)
+                  if not found : 
                      search in : taken
                      search text : "なお、当該実績が"
                      if found : 
@@ -110,50 +167,26 @@ reg_B :
                               replace("の施工実績を有すること。", "")
                               replace("を有すること。", "")
                               replace("以下の", "")
-                              store(exception8)
-                              set(exception8)
-               if not found : 
-                  search in : taken
-                  search text : "なお、当該実績が"
-                  if found : 
-                     take left : 
-                        search in : taken
-                        search text : ("1)" , "･" , "ア)")
-                        if found : 
+                              store(exception7)
+                              set(exception7)
+      if not found : 
+         search in : all
+         search text : "下記の条件を満足する同種工事1を施工した実績を有すること"
+         if found : 
+            take right : 
+               store(text0)
+               search in : taken
+               search text :  "同種工事1とは、"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "なお、当該実績は"
+                     if found : 
+                        take left : 
                            remove whitespaces
                            replace("5", "")
-                           replace("\n", "")
-                           replace("を有すること。", "")
-                           replace("以下の", "")
-                           store(exception8)
-                           set(exception8)
-                        if not found : 
-                           remove whitespaces
-                           replace("5", "")
-                           replace("\n", "")
-                           replace("の施工実績を有すること。", "")
-                           replace("を有すること。", "")
-                           replace("以下の", "")
-                           store(exception7)
-                           set(exception7)
-   if not found : 
-      search in : all
-      search text : "下記の条件を満足する同種工事1を施工した実績を有すること"
-      if found : 
-         take right : 
-            store(text0)
-            search in : taken
-            search text :  "同種工事1とは、"
-            if found : 
-               take right : 
-                  search in : taken
-                  search text : "なお、当該実績は"
-                  if found : 
-                     take left : 
-                        remove whitespaces
-                        replace("5", "")
-                        store(var6)
-                        set(var6)
+                           store(var6)
+                           set(var6)
         
 
 
@@ -161,21 +194,14 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      search in : all
-      search text : "同種工事2の経験を有する者"
+      search in : region_A
+      search text : "次に掲げる1)から5)の基準を満たす主任技術者又は監理技術者"
       if found : 
-         search in : text0
-         search text : "同種工事2とは"
-         if found : 
-            take right :  
-               search in : taken
-               search text : "なお、当該経験は"
-               if found :
-                  take left : 
-                     replace("を有すること。", "")
-                     replace("5", "")
-                     store(var1)
-                     set(var1)
+         take right : 
+            search in : taken
+            search text : "元請けの技術者として、同種工事(上記(4)に掲げる工事)における架設の経験を有する者であること"
+            if found : 
+               set(「同種工事（企業）」)
    if false:
       search in: region_A
       search text: "次に掲げる①から⑤の基準を満たす主任技術者"
@@ -191,23 +217,29 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      search in : all
-      search text : "同種工事2の経験を有する者"
+      search in : region_B
+      search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
       if found : 
-         search in : all
-         search text : "1)技術者評価"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "「より同種性の高い工事」とは、同種工事2のうち「"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "」とする。"
-                     if found : 
-                        take left : 
-                           store(var5)
-                           set(var5)
+         take right : 
+            search in : taken
+            search text : ("2)企業評価" , "3)企業評価" , "企業評価")
+            if found : 
+               take left : 
+                  search in : taken
+                  search text : "「より同種性の高い工事」とは、"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "とする。"
+                        if found : 
+                           take left :
+                              remove whitespaces
+                              replace("の施工実績" , "")
+                              replace("による施工実績" , "")
+                              replace("同種工事のうち" , "")
+                              replace("を施工した実績" , "")
+                              store(var4)
+                              set(var4)
    if false : 
       search in : region_B
       search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
@@ -236,7 +268,35 @@ reg_B :
 「同種性の高い工事（技術者）」:
    check : name_of
    has value : 本官
-   if true :
+   if true : 
+      search in : region_B
+      search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
+      if found : 
+         take right : 
+            search in : taken
+            search text : ("2)企業評価" , "3)企業評価" , "企業評価")
+            if found : 
+               take left : 
+                  search in : taken
+                  search text : "「より同種性の高い工事」とは、"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "とする。"
+                        if found : 
+                           take right :
+                                 search in : taken
+                                 search text : "「同種性の高い工事」とは、"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "とする。"
+                                       if found : 
+                                          take left :  
+                                             remove whitespaces
+                                             replace("の施工実績" , "")
+                                             store(exception6)
+                                             set(exception6)
    if false : 
       search in : region_B
       search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
@@ -271,21 +331,52 @@ reg_B :
    check : name_of
    has value : 本官
    if true :
-      search in : all
-      search text : "同種工事2の経験を有する者"
+      search in : region_B
+      search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
       if found : 
-         search in : all
-         search text : ("1)技術者評価" , "2)技術者評価")
-         if found : 
-            take right : 
-               search in : taken
-               search text : "「より同種性の高い工事」とは"
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : "記載している同種工事2を示す。"
-                     if found : 
-                        set(「同種工事（技術者）」)
+         take right : 
+            search in : taken
+            search text : ("2)企業評価" , "3)企業評価" , "企業評価")
+            if found : 
+               take left : 
+                  search in : taken
+                  search text : "「より同種性の高い工事」とは、"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "とする。"
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : ("「同種性が認められる工事」とは、上記4" , "「同種性が認められる工事」とは、4" , "「同種性が認められる工事」 とは、4." , "「同種性が認められる工事」とは、 上記4")
+                              if found : 
+                                 set(「同種工事（技術者）」)
+                              if not found : 
+                                 search in : taken
+                                 search text : "「同種性の高い工事」とは、"
+                                 if found : 
+                                    take right : 
+                                       search in : taken
+                                       search text : "とする。"
+                                       if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : "「同種性が認められる工事」"
+                                             if found : 
+                                                take left : 
+                                                   remove whitespaces
+                                                   replace("の施工実績は" , "")
+                                                   store(exception5)
+                                                   set(exception5)
+                                 if not found : 
+                                    search in : taken
+                                    search text : "「同種性が認められる工事」"
+                                    if found : 
+                                       take left : 
+                                          remove whitespaces
+                                          replace("の施工実績は" , "")
+                                          store(exception5)
+                                          set(exception5)
    if false : 
       search in : region_B
       search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
@@ -338,27 +429,49 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      search in : all
-      search text : "同種工事2の経験を有する者"
+      search in : region_B
+      search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
       if found : 
-         search in : all
-         search text : ("1)技術者評価" , "2)技術者評価")
-         if found : 
-            take right : 
-               search in : taken
-               search text : "．企業の施工実績" 
-               if found : 
-                  take right : 
+         take right : 
+            search in : taken
+            search text : ("2)企業評価" , "3)企業評価" , "企業評価")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "「より同種性の高い工事」とは、"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "とする。"
+                        if found : 
+                           take left :
+                              remove whitespaces
+                              replace("同種工事のうち" , "")
+                              replace("による施工実績" , "")
+                              replace("の施工実績" , "")
+                              replace("を施工した実績" , "")
+                              store(var7)
+                              set(var7)
+                  if not found : 
                      search in : taken
-                     search text : "「より同種性の高い工事」とは、同種工事1のうち「"
-                     if found :
+                     search text : "「より同種性の高"
+                     if found : 
                         take right : 
                            search in : taken
-                           search text : "」とする。"
+                           search text : "い工事」とは、"
                            if found : 
-                              take left : 
-                                 store(var8)
-                                 set(var8)       
+                              take right : 
+                                 search in : taken
+                                 search text : "とする。"
+                                 if found : 
+                                    take left :
+                                       remove whitespaces
+                                       replace("同種工事のうち" , "")
+                                       replace("による施工実績" , "")
+                                       replace("の施工実績" , "")
+                                       replace("を施工した実績" , "")
+                                       store(var7)
+                                       set(var7)  
    if false : 
       search in : region_B
       search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
@@ -409,25 +522,52 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      search in : all
-      search text : "同種工事2の経験を有する者"
+      search in : region_B
+      search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")
       if found : 
-         search in : all
-         search text : ("1)技術者評価" , "2)技術者評価")
-         if found : 
-            take right : 
-               search in : taken
-               search text : ".企業の施工実績"
-               if found : 
-                  take right : 
+         take right : 
+            search in : taken
+            search text : ("2)企業評価" , "3)企業評価" , "企業評価")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "「より同種性の高い工事」とは、"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "とする。"
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : ("「同種性が認められる工事」とは、上記4" , "「同種性が認められる工事」とは、4." , "「同種性が認められる工事」 とは、4." , "「同種性が認められる工事」とは、\\n4.")
+                              if found : 
+                                 set(「同種工事（技術者）」)
+                  if not found : 
                      search in : taken
-                     search text : "「同種性が認められる工事」\nとは、"
-                     if found :
+                     search text : "「より同種性の高"
+                     if found : 
                         take right : 
                            search in : taken
-                           search text : "記載している同種工事1を示す。"
+                           search text : "い工事」とは、"
                            if found : 
-                              set(「同種工事（企業）」)     
+                              take right : 
+                                 search in : taken
+                                 search text : "とする。"
+                                 if found : 
+                                    take right :
+                                       search in : taken
+                                       search text : ("「同種性が認められる工事」とは、上記4" , "「同種性が認められる工事」とは、4." , "「同種性が認められる工事」 とは、4." , "「同種性が認められる工事」とは、\n4.")
+                                       if found : 
+                                          set(「同種工事（技術者）」)
+                                       if not found : 
+                                          search in : taken
+                                          search text : "「同種性が認められる工事」"
+                                          if found : 
+                                             take right : 
+                                                search in : taken
+                                                search text : "とは、4.(4)に記載"
+                                                if found : 
+                                                   set(「同種工事（技術者）」)
    if false : 
       search in : region_B
       search text : ("1)技術者評価" , "2)技術者評価" , "技術者評価")

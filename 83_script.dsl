@@ -13,7 +13,7 @@ name_bu :
       set("関東地方整備局")
 
 name_of :
-   search in first : 20
+   search in : all
    search text : "支出負担行為担当官関東地方整備局長"
    if found :
       set("本官")
@@ -38,6 +38,19 @@ name_of :
                               add in right(所)
                               store(var_nameof)
                               set(var_nameof)
+            if not found : 
+               search in : taken
+               search text : "契約担当官"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : "長"
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           add in right(所)
+                           store(var_nameof)
+                           set(var_nameof)
 
 「工事名」:
    search in : all
@@ -84,7 +97,21 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      
+      search in : region_A
+      search text : "完成･引渡しが完了した下記(ア)、(イ)に掲げるいずれかの要件を満たす同種工事の施工実績を有すること"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "異工種建設工事共同企業体については適用しない。))"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "申請できる同種工事の施工実績は"
+                  if found : 
+                     take left : 
+                        remove whitespaces
+                        store(temp1212)
+                        set(temp1212)
    if false:
       search in : region_A
       search text : "完成･引渡しが完了した下記(ア)の要件を満たす同種工事の施工実績を有すること。"
@@ -175,16 +202,53 @@ reg_B :
             if not found : 
                set("記載なし")
          if not found : 
-            set("記載なし")
+            search in : taken
+            search text : "完成･引渡しが完了した下記の要件を満たす同種工事の施工実績を有すること"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "ただし、異工種建設工事共同企業体については適用しない。))"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "ただし、申請できる同種工事の施工実績は1件の"
+                        if found : 
+                           take left : 
+                              replace("(共同企業体の構成員としての実績は、出資比率が20%以上の場合のものに限る。(ただし、異工種建設工事共同企業体については適用しない。))" , "")
+                              remove whitespaces
+                              replace("下記", "")
+                              replace("の施工実績を有すること。", "")
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)
+            if not found : 
+               set("記載なし")
 
 「同種工事（技術者）」:
    check : name_of
    has value : 本官
    if true : 
-     
+      search in : region_A
+      search text : "基準を満たす主任(監理)技術者を本発注工事に専任で配置できること。"
+      if found :
+         take right : 
+            search in : taken
+            search text : "完成･引渡しが完了した下記(ア)、 (イ)、(ウ)に掲げるいずれかの工事の経験を有するものであること"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "異工種建設工事共同企業体については適用しない。))"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "申請できる同種工事の工事経験"
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              store(temo11)
+                              set(temo11)
    if false:
       search in : region_A
-      search text : ("引渡しが完了した上記(5)(ア)に掲げる工事の経験を有する" , "引渡しが完了した上記(5)(ア)")
+      search text : ("引渡しが完了した上記(5)(ア)に掲げる工事の経験を有する" , "引渡しが完了した上記(5)(ア)" , "引渡しが完了した上記(5)")
       if found : 
          set(「同種工事（企業）」)
       if not found : 
@@ -192,104 +256,190 @@ reg_B :
 
 
 「より同種性の高い（企業）」: 
-   search in : region_B
-   search text : "①企業の技術力"
-   if found : 
-      take right : 
-         search in : taken
-         search text : "〔企業の施工能力〕"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "| より高い同種性が認められる。"
-               if found : 
-                  take right :
-                     search in : taken
-                     search text : " | "
-                     if found : 
-                        take left : 
-                           remove whitespaces
-                           store(co_very_high_similarity)
-                           set(co_very_high_similarity)
-                     if not found : 
-                        set("記載なし")
-               if not found : 
-                  set("記載なし")         
-         if not found : 
-            set("記載なし")
-   if not found : 
-      set("記載なし")
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : "〔企業の施工能力〕"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "| より高い同種性が認められる。"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take left : 
+                        remove whitespaces
+                        store(co_very_high_similarity)
+                        set(co_very_high_similarity)
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")         
+      if not found : 
+         set("記載なし")
+   if false : 
+      search in : region_B
+      search text : "①企業の技術力"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "〔企業の施工能力〕"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "| より高い同種性が認められる。"
+                  if found : 
+                     take right :
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              store(co_very_high_similarity)
+                              set(co_very_high_similarity)
+                        if not found : 
+                           set("記載なし")
+                  if not found : 
+                     set("記載なし")         
+            if not found : 
+               set("記載なし")
+      if not found : 
+         set("記載なし")
 
 「同種性が高い（企業）」: 
-   search in : region_B
-   search text : "①企業の技術力"
-   if found : 
-      take right : 
-         search in : taken
-         search text : "〔企業の施工能力〕"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "| 高い同種性が認められる。"
-               if found : 
-                  take right :
-                     search in : taken
-                     search text : " | "
-                     if found : 
-                        take left : 
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : "〔企業の施工能力〕"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "| 同種性が認められる。"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : "上記以外の同種工事の実績"
+                        if found : 
+                           set(「同種工事（企業）」)
+                        if not found :
                            remove whitespaces
-                           store(co_high_similarity)
-                           set(co_high_similarity)
-                     if not found : 
-                        set("記載なし")
-               if not found : 
-                  set("記載なし")
-         if not found : 
-            set("記載なし")
-   if not found : 
-      set("記載なし")
+                           replace("の施工実績を有すること。" , "")
+                           store(co_similarity)
+                           set(co_similarity)
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+      if not found : 
+         set("記載なし")
+   if false : 
+      search in : region_B
+      search text : "①企業の技術力"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "〔企業の施工能力〕"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "| 高い同種性が認められる。"
+                  if found : 
+                     take right :
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              store(co_high_similarity)
+                              set(co_high_similarity)
+                        if not found : 
+                           set("記載なし")
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+      if not found : 
+         set("記載なし")
 
 「同種性が認められる（企業）」: 
-   search in : region_B
-   search text : "①企業の技術力"
-   if found : 
-      take right : 
-         search in : taken
-         search text : "〔企業の施工能力〕"
-         if found : 
-            take right : 
-               search in : taken
-               search text : "| 同種性が認められる。"
-               if found : 
-                  take right :
-                     search in : taken
-                     search text : " | "
-                     if found : 
-                        take left : 
-                           search in : taken
-                           search text : "上記以外の同種工事の実績"
-                           if found : 
-                              set(「同種工事（企業）」)
-                           if not found :
-                              remove whitespaces
-                              replace("の施工実績を有すること。" , "")
-                              store(co_similarity)
-                              set(co_similarity)
-                     if not found : 
-                        set("記載なし")
-               if not found : 
-                  set("記載なし")
-         if not found : 
-            set("記載なし")
-   if not found : 
-      set("記載なし")
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : "〔企業の施工能力〕"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "| 同種性が認められる。"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : "上記以外の同種工事の実績"
+                        if found : 
+                           set(「同種工事（企業）」)
+                        if not found :
+                           remove whitespaces
+                           replace("の施工実績を有すること。" , "")
+                           store(co_similarity)
+                           set(co_similarity)
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+      if not found : 
+   if false : 
+      search in : region_B
+      search text : "①企業の技術力"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "〔企業の施工能力〕"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "| 同種性が認められる。"
+                  if found : 
+                     take right :
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take left : 
+                              search in : taken
+                              search text : "上記以外の同種工事の実績"
+                              if found : 
+                                 set(「同種工事（企業）」)
+                              if not found :
+                                 remove whitespaces
+                                 replace("の施工実績を有すること。" , "")
+                                 store(co_similarity)
+                                 set(co_similarity)
+                        if not found : 
+                           set("記載なし")
+                  if not found : 
+                     set("記載なし")
+            if not found : 
+               set("記載なし")
+      if not found : 
+         set("記載なし")
 
    
 
 「より同種性の高い（技術者）」: 
-   search in : region_B
-   search text : "②配置予定技術者の技術力"
-   if found :  
+   check : name_of
+   has value : 本官
+   if true :
       search in : region_B
       search text : "〔配置予定技術者の能力〕"
       if found : 
@@ -313,13 +463,40 @@ reg_B :
                set("記載なし")
       if not found : 
          set("記載なし")
-   if not found : 
-      set("記載なし")
+   if false : 
+      search in : region_B
+      search text : "②配置予定技術者の技術力"
+      if found :  
+         search in : region_B
+         search text : "〔配置予定技術者の能力〕"
+         if found : 
+            take right : 
+               search in : taken
+               search text : "| より高い同種性が認められる。"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : " | "
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           replace("「", "")
+                           replace("」", "")
+                           store(eng_very_high_similarity)
+                           set(eng_very_high_similarity)
+                     if not found : 
+                        set("記載なし")
+               if not found : 
+                  set("記載なし")
+         if not found : 
+            set("記載なし")
+      if not found : 
+         set("記載なし")
 
 「同種性の高い（技術者）」:
-   search in : region_B
-   search text : "②配置予定技術者の技術力"
-   if found : 
+   check : name_of
+   has value : 本官
+   if true : 
       search in : region_B
       search text : "〔配置予定技術者の能力〕"
       if found : 
@@ -341,14 +518,39 @@ reg_B :
                set("記載なし")
       if not found : 
          set("記載なし")
-   if not found : 
-      set("記載なし")
+   if false : 
+      search in : region_B
+      search text : "②配置予定技術者の技術力"
+      if found : 
+         search in : region_B
+         search text : "〔配置予定技術者の能力〕"
+         if found : 
+            take right : 
+               search in : taken
+               search text : "| 高い同種性が認められる。"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : " | "
+                     if found : 
+                        take left : 
+                           remove whitespaces
+                           store(eng_high_similarity)
+                           set(eng_high_similarity)
+                     if not found : 
+                        set("記載なし")
+               if not found : 
+                  set("記載なし")
+         if not found : 
+            set("記載なし")
+      if not found : 
+         set("記載なし")
 
 「同種性が認められる（技術者）」:
-   search in : region_B
-   search text : "②配置予定技術者の技術力"
-   if found :  
-      search in : taken
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
       search text : "〔配置予定技術者の能力〕"
       if found : 
          take right : 
@@ -374,7 +576,37 @@ reg_B :
                set("記載なし")
       if not found : 
          set("記載なし")
-   if not found : 
-      set("記載なし")
+   if false : 
+      search in : region_B
+      search text : "②配置予定技術者の技術力"
+      if found :  
+         search in : taken
+         search text : "〔配置予定技術者の能力〕"
+         if found : 
+            take right : 
+               search in : taken
+               search text : "| 同種性が認められる。"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : " | "
+                     if found : 
+                        take left : 
+                           search in : taken
+                           search text : "上記以外の同種工事の経験"
+                           if found : 
+                              set(「同種工事（技術者）」)
+                           if not found : 
+                              remove whitespaces
+                              store(eng_similarity)
+                              set(eng_similarity)
+                     if not found : 
+                        set("記載なし")
+               if not found : 
+                  set("記載なし")
+         if not found : 
+            set("記載なし")
+      if not found : 
+         set("記載なし")
 
  

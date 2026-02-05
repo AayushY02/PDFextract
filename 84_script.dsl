@@ -13,8 +13,8 @@ name_bu :
       set("北陸地方整備局")
 
 name_of :
-   search in first : 20
-   search text : "支出負担行為担当官北陸地方整備局長"
+   search in : all
+   search text : "支出負担行為担当官 北陸地方整備局長"
    if found :
       set("本官")
    if not found : 
@@ -106,7 +106,21 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      
+      search in : region_A
+      search text : ("平成21年度以降に元請として完成した工事で、下記1) 及び2)の要件を満たす工事の施工実績を有すること" , "平成21年度以降に元請として完成した工事で、次の1)の要件を満たす工事の施工実績を有すること")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "評定点が65点未満のものを除く。"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : ("(7)建設共同企業体" , "(7) 建設共同企業体")
+                  if found : 
+                     take left : 
+                        remove whitespaces
+                        store(doushi_kouji_0)
+                        set(doushi_kouji_0)
    if false:
       search in : region_A
       search text : ("下記1)の要件を満たす工事の施工実績", "下記1)の要件を満たす作業(工事)")
@@ -169,7 +183,14 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-     
+      search in : region_A
+      search text : ("次に掲げる基準を満たす主任技術者、又は監理技術者を本工事に配置できること。" , "次に掲げる基準を満たす主任技術者又は監理技術者を本工事に配置できること。", "次に掲げる基準を満たす主任技術者、又は監理技術者を本作業に配置できること。" , "次に掲げる基準を満たす現場代理人を本作業に配置できること。")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "上記(6)に掲げる要件を満たす工事の施工経験"
+            if found : 
+               set(「同種工事（企業）」)
    if false:
       search in : region_A
       search text : ("次に掲げる基準を満たす主任技術者、又は監理技術者を本工事に配置できること。" , "次に掲げる基準を満たす主任技術者又は監理技術者を本工事に配置できること。", "次に掲げる基準を満たす主任技術者、又は監理技術者を本作業に配置できること。" , "次に掲げる基準を満たす現場代理人を本作業に配置できること。")
@@ -197,266 +218,551 @@ reg_B :
                   set(「同種工事（企業）」)
 
 「より同種性の高い（企業）」: 
-   search in : region_B
-   search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
-   if found : 
-      take right : 
-         search in : taken
-         search text : "より同種性が高い施工実績(S)"
-         if found : 
-            take right :
-               search in : taken
-               search text : "同種性が高い施工実績(A)"
-               if found : 
-                  take left : 
-                     search in : taken
-                     search text : ("の場合", "の場 合", "場合", "場 合", ":")
-                     if found : 
-                        take left : 
-                           remove whitespaces
-                           replace("敷設の施工実績を有する" , "")
-                           replace("実績を有する" , "")
-                           replace("の施工" , "")
-                           replace("S又はA以外の" , "")
-                           replace("敷設の施 工" , "")
-                           replace("の 施工実績" , "")
-                           replace("を含む施工実 績を有する" , "")
-                           store(co_very_high_similarity)
-                           set(co_very_high_similarity)
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : ("企業の施工能 力 | ", "企業の施工能力 | " , "企業の施 工 能力 |")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "より同種性が高い施工実績(S)"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "同種性が高い施工実績(A)"
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : ("の場合", "の場 合", "場合", "場 合")
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              replace("敷設の施工実績を有する" , "")
+                              replace("実績を有する" , "")
+                              replace("の施工" , "")
+                              replace("S又はA以外の" , "")
+                              replace("敷設の施 工" , "")
+                              replace("の 施工実績" , "")
+                              replace("を含む施工実 績を有する" , "")
+                              replace(":3点" , "")
+                              store(co_very_high_similarity)
+                              set(co_very_high_similarity)
+   if false : 
+      search in : region_B
+      search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "より同種性が高い施工実績(S)"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "同種性が高い施工実績(A)"
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              replace("敷設の施工実績を有する" , "")
+                              replace("実績を有する" , "")
+                              replace("の施工" , "")
+                              replace("S又はA以外の" , "")
+                              replace("敷設の施 工" , "")
+                              replace("の 施工実績" , "")
+                              replace("を含む施工実 績を有する" , "")
+                              store(co_very_high_similarity)
+                              set(co_very_high_similarity)
 
 「同種性が高い（企業）」: 
-   search in : region_B
-   search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
-   if found : 
-      take right : 
-         search in : taken
-         search text : "同種性が高い施工実績(A)"
-         if found : 
-            take right :
-               search in : taken
-               search text : "同種性が認められる施工実績(B)"
-               if found : 
-                  take left : 
-                     search in : taken
-                     search text : ("の場合", "の場 合", "場合", "場 合", ":")
-                     if found : 
-                        take left : 
-                           remove whitespaces
-                           replace("を含む施工実 績を有する" , "")
-                           replace("敷設の施工実績 を有する" , "")
-                           replace("の施工実績 を有する" , "")
-                           replace("の施工実績を有する" , "")
-                           replace("S以外の" , "")
-                           replace("の施工実績を 有する" , "")
-                           replace("の施工実績" , "")
-                           replace("上記(S)を除く、" , "")
-                           store(co_high_similarity)
-                           set(co_high_similarity)
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : ("企業の施工能 力 | ", "企業の施工能力 | " , "企業の施 工 能力 |")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "同種性が高い施工実績(A)"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "同種性が認められる施工実績(B)"
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : ("の場合", "の場 合", "場合", "場 合")
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              replace("を含む施工実 績を有する" , "")
+                              replace("敷設の施工実績 を有する" , "")
+                              replace("の施工実績 を有する" , "")
+                              replace("の施工実績を有する" , "")
+                              replace("S以外の" , "")
+                              replace("の施工実績を 有する" , "")
+                              replace("の施工実績" , "")
+                              replace("上記(S)を除く、" , "")
+                              replace(":2点" , "")
+                              store(co_high_similarity)
+                              set(co_high_similarity)
+   if false : 
+      search in : region_B
+      search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "同種性が高い施工実績(A)"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "同種性が認められる施工実績(B)"
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              replace("を含む施工実 績を有する" , "")
+                              replace("敷設の施工実績 を有する" , "")
+                              replace("の施工実績 を有する" , "")
+                              replace("の施工実績を有する" , "")
+                              replace("S以外の" , "")
+                              replace("の施工実績を 有する" , "")
+                              replace("の施工実績" , "")
+                              replace("上記(S)を除く、" , "")
+                              store(co_high_similarity)
+                              set(co_high_similarity)
 
 「同種性が認められる（企業）」: 
-   search in : region_B
-   search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
-   if found : 
-      take right : 
-         search in : taken
-         search text : "同種性が認められる施工実績(B)"
-         if found : 
-            take right :
-               search in : taken
-               search text : "| "
-               if found : 
-                  take left : 
-                     search in : taken
-                     search text : ("の場合", "の場 合", "場合", "場 合", ":")
-                     if found : 
-                        take left : 
-                           search in : taken
-                           search text : "上記(S)(A)を除く、施工実績"
-                           if found : 
-                              set(「同種工事（企業）」)
-                           if not found : 
-                              remove whitespaces
-                              replace("上記S、A以外の" , "")
-                              replace("の施工実績を有する" , "")
-                              replace("(S)･(A)を除く" , "")
-                              replace("の施工実績 を有する" , "")
-                              replace("を有する" , "")
-                              replace("S又はA以外の" , "")
-                              replace("SおよびA以外の" , "")
-                              replace("の施工 実績" , "")
-                              replace("上記(S)(A)を除く、" , "")
-                              store(co_similarity)
-                              set(co_similarity)                  
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : ("企業の施工能 力 | ", "企業の施工能力 | " , "企業の施 工 能力 |")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "同種性が認められる施工実績(B)"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "| "
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : ("の場合", "の場 合", "場合", "場 合")
+                        if found : 
+                           take left : 
+                              search in : taken
+                              search text : "上記(S)(A)を除く、施工実績"
+                              if found : 
+                                 set(「同種工事（企業）」)
+                              if not found : 
+                                 remove whitespaces
+                                 replace("上記S、A以外の" , "")
+                                 replace("の施工実績を有する" , "")
+                                 replace("(S)･(A)を除く" , "")
+                                 replace("の施工実績 を有する" , "")
+                                 replace("を有する" , "")
+                                 replace("S又はA以外の" , "")
+                                 replace("SおよびA以外の" , "")
+                                 replace("の施工 実績" , "")
+                                 replace("上記(S)(A)を除く、" , "")
+                                 replace(":0点" , "")
+                                 store(co_similarity)
+                                 set(co_similarity)     
+   if false : 
+      search in : region_B
+      search text : ("企業の施工能 力 | ", "企業の施工能力 | ")
+      if found : 
+         take right : 
+            search in : taken
+            search text : "同種性が認められる施工実績(B)"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "| "
+                  if found : 
+                     take left : 
+                        search in : taken
+                        search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                        if found : 
+                           take left : 
+                              search in : taken
+                              search text : "上記(S)(A)を除く、施工実績"
+                              if found : 
+                                 set(「同種工事（企業）」)
+                              if not found : 
+                                 remove whitespaces
+                                 replace("上記S、A以外の" , "")
+                                 replace("の施工実績を有する" , "")
+                                 replace("(S)･(A)を除く" , "")
+                                 replace("の施工実績 を有する" , "")
+                                 replace("を有する" , "")
+                                 replace("S又はA以外の" , "")
+                                 replace("SおよびA以外の" , "")
+                                 replace("の施工 実績" , "")
+                                 replace("上記(S)(A)を除く、" , "")
+                                 store(co_similarity)
+                                 set(co_similarity)                  
 
 「より同種性の高い（技術者）」: 
-   search in : region_B
-   search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
-   if found : 
-      take right : 
-         search in : taken
-         search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工")
-         if found : 
-            take right : 
-               search in : taken
-               search text : " | "
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : " | "
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "より同種性が高い施工経験(S)"
-                           if found : 
-                              take right : 
-                                 search in : taken
-                                 search text : "同種性が高い施工経験(A)"
-                                 if found : 
-                                    take left : 
-                                       search in : taken
-                                       search text : ("の場合", "の場 合", "場合", "場 合", ":")
-                                       if found : 
-                                          take left : 
-                                             remove whitespaces
-                                             replace("敷設の施工実績を有する" , "")
-                                             replace("実績を有する" , "")
-                                             replace("の施工" , "")
-                                             replace("敷設の施 工" , "")
-                                             replace("の 施工実績" , "")
-                                             replace("を含む施工経 験を有する" , "")
-                                             replace("経験を有する" , "")
-                                             replace("S又はA以外の" , "")
-                                             store(eng_very_high_similarity)
-                                             set(eng_very_high_similarity)
-
-「同種性の高い（技術者）」:
-   search in : region_B
-   search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
-   if found : 
-      take right : 
-         search in : taken
-         search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工")
-         if found : 
-            take right : 
-               search in : taken
-               search text : " | "
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : " | "
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "同種性が高い施工経験(A)"
-                           if found : 
-                              take right : 
-                                 search in : taken
-                                 search text : "同種性が認められる施工経験(B)"
-                                 if found : 
-                                    take left : 
-                                       search in : taken
-                                       search text : ("の場合", "の場 合", "場合", "場 合", ":")
-                                       if found : 
-                                          take left : 
-                                             remove whitespaces
-                                             replace("経験を有する" , "")
-                                             replace("の施工経験 を有する" , "")
-                                             replace("の 施工経験を有する" , "")
-                                             replace("の施工経験を有する" , "")
-                                             replace("S以外の" , "")
-                                             replace("を含む施工経 験を有する" , "")
-                                             replace("の施工" , "")
-                                             replace("敷設" , "")
-                                             replace("上記(S)を除く、" , "")
-                                             replace("経験を 有する" , "")
-                                             store(eng_high_similarity)
-                                             set(eng_high_similarity)
-
-「同種性が認められる（技術者）」:
-   search in : region_B
-   search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
-   if found : 
-      take right : 
-         search in : taken
-         search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工")
-         if found : 
-            take right : 
-               search in : taken
-               search text : " | "
-               if found : 
-                  take right : 
-                     search in : taken
-                     search text : " | "
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "同種性が認められる施工経験(B)"
-                           if found : 
-                              take right : 
-                                 search in : taken
-                                 search text : "| "
-                                 if found : 
-                                    take left :
-                                       search in : taken
-                                       search text : "[[TABLE_END]]"
-                                       if found : 
-                                          take left :  
-                                             search in : taken
-                                             search text : ("の場合", "の場 合", "場合", "場 合", ":")
-                                             if found : 
-                                                take left : 
-                                                   search in : taken
-                                                   search text : "上記(S)(A)を除く、施工経験の"
-                                                   if found : 
-                                                      set(「同種工事（技術者）」)
-                                                   if not found :
-                                                      remove whitespaces
-                                                      replace("上記S、A以外の" , "")
-                                                      replace("SおよびA以外の" , "")
-                                                      replace("の施工経験を有する" , "")
-                                                      replace("S又はA以外の" , "")
-                                                      replace("(S)･(A)を除く" , "")
-                                                      replace("の施工経験 を有する" , "")
-                                                      replace("上記(S)(A)を除く、" , "")
-                                                      replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
-                                                      store(eng_similarity)
-                                                      set(eng_similarity)
-                                             if not found : 
-                                                take left : 
-                                                   search in : taken
-                                                   search text : "上記(S)(A)を除く、施工経験の"
-                                                   if found : 
-                                                      set(「同種工事（技術者）」)
-                                                   if not found :
-                                                      remove whitespaces
-                                                      replace("上記S、A以外の" , "")
-                                                      replace("SおよびA以外の" , "")
-                                                      replace("の施工経験を有する" , "")
-                                                      replace("S又はA以外の" , "")
-                                                      replace("(S)･(A)を除く" , "")
-                                                      replace("の施工経験 を有する" , "")
-                                                      replace("上記(S)(A)を除く、" , "")
-                                                      replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
-                                                      store(eng_similarity)
-                                                      set(eng_similarity)
-                                       if not found : 
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力" , "配置予定 技 術者の施 工 能力")
+      if found : 
+         take right : 
+            search in : taken
+            search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工" , "| 同種工 事の 施")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : ("より同種性が高い施工経験(S)" , "より同種性が高い施工実績(S)")
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : ("同種性が高い施工経験(A)" , "同種性が高い施工実績(A)")
+                                    if found : 
+                                       take left : 
+                                          search in : taken
+                                          search text : ("の場合", "の場 合", "場合", "場 合")
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                replace("敷設の施工実績を有する" , "")
+                                                replace("実績を有する" , "")
+                                                replace("の施工" , "")
+                                                replace("敷設の施 工" , "")
+                                                replace("の 施工実績" , "")
+                                                replace("を含む施工経 験を有する" , "")
+                                                replace("経験を有する" , "")
+                                                replace("S又はA以外の" , "")
+                                                store(eng_very_high_similarity)
+                                                set(eng_very_high_similarity)
+   if false : 
+      search in : region_B
+      search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
+      if found : 
+         take right : 
+            search in : taken
+            search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : "より同種性が高い施工経験(S)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "同種性が高い施工経験(A)"
+                                    if found : 
+                                       take left : 
                                           search in : taken
                                           search text : ("の場合", "の場 合", "場合", "場 合", ":")
                                           if found : 
-                                             take left :
+                                             take left : 
+                                                remove whitespaces
+                                                replace("敷設の施工実績を有する" , "")
+                                                replace("実績を有する" , "")
+                                                replace("の施工" , "")
+                                                replace("敷設の施 工" , "")
+                                                replace("の 施工実績" , "")
+                                                replace("を含む施工経 験を有する" , "")
+                                                replace("経験を有する" , "")
+                                                replace("S又はA以外の" , "")
+                                                replace(":4点" , "")
+                                                store(eng_very_high_similarity)
+                                                set(eng_very_high_similarity)
+
+「同種性の高い（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力" , "配置予定 技 術者の施 工 能力")
+      if found : 
+         take right : 
+            search in : taken
+            search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工" , "| 同種工 事の 施")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : ("同種性が高い施工経験(A)" , "同種性が高い施工実績(A)")
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : ("同種性が認められる施工経験(B)" , "同種性が認められる施工実績(B)")
+                                    if found : 
+                                       take left : 
+                                          search in : taken
+                                          search text : ("の場合", "の場 合", "場合", "場 合")
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                replace("経験を有する" , "")
+                                                replace("の施工経験 を有する" , "")
+                                                replace("の 施工経験を有する" , "")
+                                                replace("の施工経験を有する" , "")
+                                                replace("S以外の" , "")
+                                                replace("を含む施工経 験を有する" , "")
+                                                replace("の施工" , "")
+                                                replace("敷設" , "")
+                                                replace("上記(S)を除く、" , "")
+                                                replace("経験を 有する" , "")
+                                                replace(":2点" , "")
+                                                store(eng_high_similarity)
+                                                set(eng_high_similarity)
+   if false : 
+      search in : region_B
+      search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
+      if found : 
+         take right : 
+            search in : taken
+            search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : "同種性が高い施工経験(A)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "同種性が認められる施工経験(B)"
+                                    if found : 
+                                       take left : 
+                                          search in : taken
+                                          search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                          if found : 
+                                             take left : 
+                                                remove whitespaces
+                                                replace("経験を有する" , "")
+                                                replace("の施工経験 を有する" , "")
+                                                replace("の 施工経験を有する" , "")
+                                                replace("の施工経験を有する" , "")
+                                                replace("S以外の" , "")
+                                                replace("を含む施工経 験を有する" , "")
+                                                replace("の施工" , "")
+                                                replace("敷設" , "")
+                                                replace("上記(S)を除く、" , "")
+                                                replace("経験を 有する" , "")
+                                                store(eng_high_similarity)
+                                                set(eng_high_similarity)
+
+「同種性が認められる（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : region_B
+      search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力" , "配置予定 技 術者の施 工 能力")
+      if found : 
+         take right : 
+            search in : taken
+            search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工" , "| 同種工 事の 施")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : ("同種性が認められる施工経験(B)" , "同種性が認められる施工実績(B)")
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "| "
+                                    if found : 
+                                       take left :
+                                          search in : taken
+                                          search text : "[[TABLE_END]]"
+                                          if found : 
+                                             take left :  
                                                 search in : taken
-                                                search text : "上記(S)(A)を除く、施工経験の"
+                                                search text : ("の場合", "の場 合", "場合", "場 合")
                                                 if found : 
-                                                   set(「同種工事（技術者）」) 
-                                                if not found :
-                                                   remove whitespaces
-                                                   replace("上記S、A以外の" , "")
-                                                   replace("SおよびA以外の" , "")
-                                                   replace("の施工経験を有する" , "")
-                                                   replace("(S)･(A)を除く" , "")
-                                                   replace("の施工経験 を有する" , "")
-                                                   replace("上記(S)(A)を除く、" , "")
-                                                   replace("S又はA以外の" , "")
-                                                   replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
-                                                   store(eng_similarity)
-                                                   set(eng_similarity)
+                                                   take left : 
+                                                      search in : taken
+                                                      search text : "上記(S)(A)を除く、施工経験の"
+                                                      if found : 
+                                                         set(「同種工事（技術者）」)
+                                                      if not found :
+                                                         remove whitespaces
+                                                         replace("上記S、A以外の" , "")
+                                                         replace("SおよびA以外の" , "")
+                                                         replace("の施工経験を有する" , "")
+                                                         replace("S又はA以外の" , "")
+                                                         replace("(S)･(A)を除く" , "")
+                                                         replace("の施工経験 を有する" , "")
+                                                         replace("上記(S)(A)を除く、" , "")
+                                                         replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                         replace(":0点" , "")
+                                                         store(eng_similarity)
+                                                         set(eng_similarity)
+                                                if not found : 
+                                                   take left : 
+                                                      search in : taken
+                                                      search text : "上記(S)(A)を除く、施工経験の"
+                                                      if found : 
+                                                         set(「同種工事（技術者）」)
+                                                      if not found :
+                                                         remove whitespaces
+                                                         replace("上記S、A以外の" , "")
+                                                         replace("SおよびA以外の" , "")
+                                                         replace("の施工経験を有する" , "")
+                                                         replace("S又はA以外の" , "")
+                                                         replace("(S)･(A)を除く" , "")
+                                                         replace("の施工経験 を有する" , "")
+                                                         replace("上記(S)(A)を除く、" , "")
+                                                         replace(":0点" , "")
+                                                         replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                         store(eng_similarity)
+                                                         set(eng_similarity)
+                                          if not found : 
+                                             search in : taken
+                                             search text : ("の場合", "の場 合", "場合", "場 合")
+                                             if found : 
+                                                take left :
+                                                   search in : taken
+                                                   search text : "上記(S)(A)を除く、施工経験の"
+                                                   if found : 
+                                                      set(「同種工事（技術者）」) 
+                                                   if not found :
+                                                      remove whitespaces
+                                                      replace("上記S、A以外の" , "")
+                                                      replace("SおよびA以外の" , "")
+                                                      replace("の施工経験を有する" , "")
+                                                      replace("(S)･(A)を除く" , "")
+                                                      replace("の施工経験 を有する" , "")
+                                                      replace("上記(S)(A)を除く、" , "")
+                                                      replace("S又はA以外の" , "")
+                                                      replace(":0点" , "")
+                                                      replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                      store(eng_similarity)
+                                                      set(eng_similarity)
+   if false : 
+      search in : region_B
+      search text : ("配置予定技術 者の施工能力" , "配置予定技術 者の施工能力" , "配置予定現場 代理人の施工 能力")
+      if found : 
+         take right : 
+            search in : taken
+            search text : (" | 同種工事の施" , " | 同種作業(工 事)の施工")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : " | "
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : " | "
+                        if found : 
+                           take right :
+                              search in : taken
+                              search text : "同種性が認められる施工経験(B)"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "| "
+                                    if found : 
+                                       take left :
+                                          search in : taken
+                                          search text : "[[TABLE_END]]"
+                                          if found : 
+                                             take left :  
+                                                search in : taken
+                                                search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                                if found : 
+                                                   take left : 
+                                                      search in : taken
+                                                      search text : "上記(S)(A)を除く、施工経験の"
+                                                      if found : 
+                                                         set(「同種工事（技術者）」)
+                                                      if not found :
+                                                         remove whitespaces
+                                                         replace("上記S、A以外の" , "")
+                                                         replace("SおよびA以外の" , "")
+                                                         replace("の施工経験を有する" , "")
+                                                         replace("S又はA以外の" , "")
+                                                         replace("(S)･(A)を除く" , "")
+                                                         replace("の施工経験 を有する" , "")
+                                                         replace("上記(S)(A)を除く、" , "")
+                                                         replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                         store(eng_similarity)
+                                                         set(eng_similarity)
+                                                if not found : 
+                                                   take left : 
+                                                      search in : taken
+                                                      search text : "上記(S)(A)を除く、施工経験の"
+                                                      if found : 
+                                                         set(「同種工事（技術者）」)
+                                                      if not found :
+                                                         remove whitespaces
+                                                         replace("上記S、A以外の" , "")
+                                                         replace("SおよびA以外の" , "")
+                                                         replace("の施工経験を有する" , "")
+                                                         replace("S又はA以外の" , "")
+                                                         replace("(S)･(A)を除く" , "")
+                                                         replace("の施工経験 を有する" , "")
+                                                         replace("上記(S)(A)を除く、" , "")
+                                                         replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                         store(eng_similarity)
+                                                         set(eng_similarity)
+                                          if not found : 
+                                             search in : taken
+                                             search text : ("の場合", "の場 合", "場合", "場 合", ":")
+                                             if found : 
+                                                take left :
+                                                   search in : taken
+                                                   search text : "上記(S)(A)を除く、施工経験の"
+                                                   if found : 
+                                                      set(「同種工事（技術者）」) 
+                                                   if not found :
+                                                      remove whitespaces
+                                                      replace("上記S、A以外の" , "")
+                                                      replace("SおよびA以外の" , "")
+                                                      replace("の施工経験を有する" , "")
+                                                      replace("(S)･(A)を除く" , "")
+                                                      replace("の施工経験 を有する" , "")
+                                                      replace("上記(S)(A)を除く、" , "")
+                                                      replace("S又はA以外の" , "")
+                                                      replace("又は配置予定技術者が、通信設 備工事(工事の内容が有線通信線 路)" , "")
+                                                      store(eng_similarity)
+                                                      set(eng_similarity)
