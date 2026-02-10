@@ -17,6 +17,8 @@ Concepts:
   - take right: ... / take left: ...  (switch the working text to right/left side of the last match)
   - remove whitespaces
   - add in right(XX) / add in left(XX)
+  - replace(old, new)  (global replace in current working text)
+  - replace(start, old, new) / replace(end, old, new) (only at start/end)
   - store(varName)  (stores current working text to a temp)
   - set(XX)         (sets the outer variable to temp var or literal; supports true/false)
   - check : varName + has value : XXX + if true/if false blocks
@@ -48,11 +50,20 @@ BLOCK_KEYS = {
 
 COMMAND_PATTERN_PARENS = re.compile(r'^(?P<cmd>add in right|add in left|store|set|replace)\s*\((?P<arg>.*)\)\s*$')
 PAGE_MARKER_RE = re.compile(
-    r"\[\[PAGE_START(?:\s+\d+)?\s*\]\]|\[\[PAGE_END\s*\]\]|\[\[HEADING\]\]\s*\d*"
+    r"\[\[PAGE_START(?:\s*\d+)?\s*\]\]|\[\[PAGE_END\s*\]\]|\[\[HEADING\]\]\s*\d*"
 )
 TABLE_MARKER_RE = re.compile(
-    r"\[\[TABLE_START(?:\s+\d+)?\s*\]\]|\[\[TABLE_END\s*\]\]|\[\[HEADING\]\]\s*\d*"
+    r"\[\[TABLE_START(?:\s*\d+)?\s*\]\]|\[\[TABLE_END\s*\]\]|\[\[HEADING\]\]\s*\d*"
 )
+TRAILING_MARKER_RE = re.compile(
+    r"(?:\s*(?:\[\[PAGE_START(?:\s*\d+)?\s*\]\]|\[\[PAGE_END\s*\]\]|\[\[HEADING\]\]\s*\d*|\[\[TABLE_START(?:\s*\d+)?\s*\]\]|\[\[TABLE_END\s*\]\]))\s*$"
+)
+LEADING_MARKER_RE = re.compile(
+    r"^\s*(?:\[\[PAGE_START(?:\s*\d+)?\s*\]\]|\[\[PAGE_END\s*\]\]|\[\[HEADING\]\]\s*\d*|\[\[TABLE_START(?:\s*\d+)?\s*\]\]|\[\[TABLE_END\s*\]\])\s*"
+)
+EDGE_INVISIBLE_RE = re.compile(r"[\s\u200b\u200c\u200d\u2060\ufeff\u00ad\u200e\u200f\u202a-\u202e]+$")
+EDGE_INVISIBLE_LEAD_RE = re.compile(r"^[\s\u200b\u200c\u200d\u2060\ufeff\u00ad\u200e\u200f\u202a-\u202e]+")
+INVISIBLE_CHARS_CLASS = r"[\u200b\u200c\u200d\u2060\ufeff\u00ad\u200e\u200f\u202a-\u202e]*"
 
 def _strip_page_markers(s: str) -> str:
     """Remove [[PAGE_START...]] and [[PAGE_END...]] markers from a string."""
@@ -193,6 +204,46 @@ def _resolve_add_arg(arg: Any, env: "ExecEnv") -> str:
     # fallback: treat as literal text
     return _decode_escapes_for_add(s)
 
+def _split_trailing_markers_and_ws(s: str):
+    """Split text into (base, suffix) by stripping trailing whitespace/markers from the end."""
+    base = s
+    while True:
+        new = EDGE_INVISIBLE_RE.sub("", base)
+        m = TRAILING_MARKER_RE.search(new)
+        if m:
+            base = new[:m.start()]
+            continue
+        if new == base:
+            base = new
+            break
+        base = new
+    suffix = s[len(base):]
+    return base, suffix
+
+def _split_leading_markers_and_ws(s: str):
+    """Split text into (prefix, rest) by stripping leading whitespace/markers from the start."""
+    rest = s
+    prefix = ""
+    while True:
+        m_ws = EDGE_INVISIBLE_LEAD_RE.match(rest)
+        if m_ws:
+            prefix += m_ws.group(0)
+            rest = rest[m_ws.end():]
+            continue
+        m = LEADING_MARKER_RE.match(rest)
+        if m:
+            prefix += m.group(0)
+            rest = rest[m.end():]
+            continue
+        break
+    return prefix, rest
+
+def _fuzzy_invisible_pattern(text: str) -> str:
+    """Build a regex that matches text allowing invisible chars between characters."""
+    if not text:
+        return ""
+    return INVISIBLE_CHARS_CLASS.join(re.escape(ch) for ch in text)
+
 
 @dataclass
 class Node:
@@ -306,8 +357,11 @@ def parse_script(text: str) -> List[Node]:
 def _parse_two_args_quoted(argstr: str):
     s = argstr.strip()
     items, buf = [], []
+    quoted_flags = []
     in_q = None
     escape = False
+    quoted = False
+    after_quote = False
     for ch in s:
         if escape:
             buf.append(ch); escape = False; continue
@@ -316,26 +370,96 @@ def _parse_two_args_quoted(argstr: str):
         if in_q:
             if ch == in_q:
                 in_q = None
+                after_quote = True
             else:
                 buf.append(ch)
             continue
         if ch in ('"', "'"):
             in_q = ch
+            quoted = True
             continue
         if ch == ',' and len(items) == 0:
-            items.append(''.join(buf).strip()); buf = []
+            item = ''.join(buf)
+            if not quoted:
+                item = item.strip()
+            items.append(item); quoted_flags.append(quoted); buf = []
+            quoted = False
+            after_quote = False
+            continue
+        if after_quote:
+            if ch.isspace():
+                continue
+            after_quote = False
+        if not quoted and not buf and ch.isspace():
             continue
         buf.append(ch)
-    items.append(''.join(buf).strip())
+    item = ''.join(buf)
+    if not quoted:
+        item = item.strip()
+    items.append(item); quoted_flags.append(quoted)
 
-    def unq(x: str) -> str:
+    def clean(x: str, was_quoted: bool) -> str:
+        if was_quoted:
+            return x
         x = x.strip()
         if (x.startswith('"') and x.endswith('"')) or (x.startswith("'") and x.endswith("'")):
             return x[1:-1]
         return x
-    a = unq(items[0]) if items else ''
-    b = unq(items[1]) if len(items) > 1 else ''
+    a = clean(items[0], quoted_flags[0]) if items else ''
+    b = clean(items[1], quoted_flags[1]) if len(items) > 1 else ''
     return a, b
+
+def _parse_three_args_quoted(argstr: str):
+    s = argstr.strip()
+    items, buf = [], []
+    quoted_flags = []
+    in_q = None
+    escape = False
+    quoted = False
+    after_quote = False
+    for ch in s:
+        if escape:
+            buf.append(ch); escape = False; continue
+        if ch == '\\':
+            escape = True; continue
+        if in_q:
+            if ch == in_q:
+                in_q = None
+                after_quote = True
+            else:
+                buf.append(ch)
+            continue
+        if ch in ('"', "'"):
+            in_q = ch
+            quoted = True
+            continue
+        if ch == ',' and len(items) < 2:
+            item = ''.join(buf)
+            if not quoted:
+                item = item.strip()
+            items.append(item); quoted_flags.append(quoted); buf = []
+            quoted = False
+            after_quote = False
+            continue
+        if after_quote:
+            if ch.isspace():
+                continue
+            after_quote = False
+        if not quoted and not buf and ch.isspace():
+            continue
+        buf.append(ch)
+    item = ''.join(buf)
+    if not quoted:
+        item = item.strip()
+    items.append(item); quoted_flags.append(quoted)
+    def clean(x: str, was_quoted: bool) -> str:
+        if was_quoted:
+            return x
+        x = x.strip()
+        if (x.startswith('"') and x.endswith('"')) or (x.startswith("'") and x.endswith("'")):
+            return x[1:-1]
+        return x
+    return [clean(x, q) for x, q in zip(items, quoted_flags)]
 
 
 # --------------------------- Execution ---------------------------
@@ -614,8 +738,41 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                 env.current_text = _remove_tables(env.current_text)
             elif cmd.startswith('replace'):
                 raw = node.value if node.value is not None else (m.group('arg') if m else '')
-                old, new = _parse_two_args_quoted(raw)
-                env.current_text = env.current_text.replace(old, new)
+                args3 = _parse_three_args_quoted(raw)
+                if len(args3) >= 3 and args3[0].strip().lower() in ("start", "end"):
+                    mode = args3[0].strip().lower()
+                    old = args3[1]
+                    new = args3[2]
+                    if old:
+                        if mode == "start":
+                            if env.current_text.startswith(old):
+                                env.current_text = f"{new}{env.current_text[len(old):]}"
+                            else:
+                                prefix, rest = _split_leading_markers_and_ws(env.current_text)
+                                if rest.startswith(old):
+                                    env.current_text = f"{prefix}{new}{rest[len(old):]}"
+                                else:
+                                    pat = _fuzzy_invisible_pattern(old)
+                                    if pat:
+                                        m = re.search(rf"^{pat}", rest)
+                                        if m:
+                                            env.current_text = f"{prefix}{new}{rest[m.end():]}"
+                        else:
+                            if env.current_text.endswith(old):
+                                env.current_text = f"{env.current_text[:-len(old)]}{new}"
+                            else:
+                                base, suffix = _split_trailing_markers_and_ws(env.current_text)
+                                if base.endswith(old):
+                                    env.current_text = f"{base[:-len(old)]}{new}{suffix}"
+                                else:
+                                    pat = _fuzzy_invisible_pattern(old)
+                                    if pat:
+                                        m = re.search(rf"{pat}$", base)
+                                        if m:
+                                            env.current_text = f"{base[:m.start()]}{new}{base[m.end():]}{suffix}"
+                else:
+                    old, new = _parse_two_args_quoted(raw)
+                    env.current_text = env.current_text.replace(old, new)
             else:
                 # unknown bare command -> ignore
                 pass
@@ -701,7 +858,7 @@ def _build_page_spans(text: str):
     Scan [[PAGE_START N]] markers and build a list of (page_no:int, start_index:int).
     """
     spans = []
-    for m in re.finditer(r"\[\[PAGE_START\s+(\d+)\s*\]\]", text):
+    for m in re.finditer(r"\[\[PAGE_START\s*(\d+)\s*\]\]", text):
         page_no = int(m.group(1))
         spans.append((page_no, m.start()))
     spans.sort(key=lambda x: x[1])

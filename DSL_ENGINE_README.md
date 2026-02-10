@@ -31,6 +31,8 @@ python dsl_engine.py --script 85_script.dsl --input your_text.txt --json
 - **Mutations on working text**
   - `remove whitespaces` — trims leading/trailing whitespace
   - `add in right(XX)` / `add in left(XX)` — append/prepend text
+  - `replace(old, new)` — replace all occurrences in current text
+  - `replace(start, old, new)` / `replace(end, old, new)` — replace only if the current text starts/ends with `old` (leading/trailing whitespace and page/table markers are ignored for this check; invisible zero-width chars between letters are tolerated)
 - **Temp variables**
   - `store(varX)` — saves current working text to a temp `varX`
   - `set(varX)` — sets the top-level variable to the temp’s value

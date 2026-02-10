@@ -160,12 +160,14 @@ reg_B :
                   if found : 
                      remove whitespaces
                      replace(" " , "")
+                     replace(end, "の施工実績" , "")
                      store(doushi_kouji_1)
                      set(doushi_kouji_1)
                   if not found : 
                      remove whitespaces
                      replace("①" , "")
                      replace(" " , "")
+                     replace(end, "の施工実績" , "")
                      store(doushi_kouji_1)
                      set(doushi_kouji_1)
 
@@ -216,7 +218,7 @@ reg_B :
                               remove whitespaces
                               replace("(ア)" , "")
                               replace(" " , "")
-                              replace("の施工経験" , "")
+                              replace(end, "の施工経験" , "")
                               store(doushi_kouji_gijutsusha)
                               set(doushi_kouji_gijutsusha)
 
@@ -268,6 +270,8 @@ reg_B :
                               replace(" | ", "")
                               replace(" " , "")
                               replace("工事の施工実績" , "")
+                              replace("における造園" , "")
+                              replace(end, "の施工実績" , "")
                               store(co_very_high_similarity)
                               set(co_very_high_similarity)
 
@@ -325,6 +329,7 @@ reg_B :
                                  take left : 
                                     remove whitespaces
                                     replace(" " , "")
+                                    replace(end, "の施工実績" , "")
                                     store(co_similarity)
                                     set(co_similarity)
 
