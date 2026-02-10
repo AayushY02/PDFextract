@@ -716,6 +716,10 @@ def clean_cut_at_end_headings(text: str, file_name: str = "") -> str:
         "別表", "様式", "仕様書", "参考資料", "添付", "別紙"
     then remove that line and everything after it.
     """
+    # Skip this rule for 86 Osaka files (to avoid trimming actual data)
+    if "【86】大阪" in file_name or ("大阪" in file_name and "86" in file_name):
+        return text
+
     end_keywords = ["別表", "様式", "仕様書", "参考資料", "添付", "別紙"]
     lines = text.splitlines()
 

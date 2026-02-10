@@ -26,6 +26,7 @@ Notes:
 - "search in : all" or "search in first : N" operate on the full original input.
 - After a "take right/left" block finishes, the working text reverts to previous (nested-scope style).
 - Minor typos tolerated: "seach" is treated as "search".
+- "remove tables" removes any [[TABLE_START...]] ... [[TABLE_END]] blocks from the working text.
 """
 
 import argparse
@@ -60,6 +61,40 @@ def _strip_page_markers(s: str) -> str:
 def _strip_table_markers(s: str) -> str:
     """Remove [[PAGE_START...]] and [[PAGE_END...]] markers from a string."""
     return TABLE_MARKER_RE.sub("", s)
+
+def _remove_tables(s: str) -> str:
+    """
+    Remove any table blocks from text. A table block is defined as:
+      [[TABLE_START...]] ... [[TABLE_END]]
+    If a start marker is found without a matching end marker, the rest of the
+    text is dropped (defensive).
+    """
+    start_token = "[[TABLE_START"
+    end_token = "[[TABLE_END]]"
+    if start_token not in s and end_token not in s:
+        return s
+
+    out = []
+    i = 0
+    n = len(s)
+    while i < n:
+        start = s.find(start_token, i)
+        if start == -1:
+            out.append(s[i:])
+            break
+        out.append(s[i:start])
+        end = s.find(end_token, start)
+        if end == -1:
+            # Drop rest if table end is missing
+            break
+        i = end + len(end_token)
+
+    result = "".join(out)
+    # Remove any stray markers left behind (e.g., unmatched end markers).
+    if start_token in result or end_token in result:
+        result = re.sub(r"\[\[TABLE_START[^\]]*\]\]", "", result)
+        result = result.replace(end_token, "")
+    return result
 
 
 def _remove_empty_lines(s: str) -> str:
@@ -501,6 +536,8 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                     do_search(env, scalar)
             elif key == 'remove whitespaces':
                 env.current_text = env.current_text.strip()
+            elif key == 'remove tables':
+                env.current_text = _remove_tables(env.current_text)
             elif key == 'add in right':
                 # value might be "(所)" if parsed as kv; but in sample it's a command form add in right(所)
                 to_add = _resolve_add_arg(val_raw, env)
@@ -573,6 +610,8 @@ def eval_nodes(nodes: List[Node], env: ExecEnv, var_name: Optional[str]=None):
                         env.set_value = arg
             elif cmd == 'remove whitespaces':
                 env.current_text = env.current_text.strip()
+            elif cmd == 'remove tables':
+                env.current_text = _remove_tables(env.current_text)
             elif cmd.startswith('replace'):
                 raw = node.value if node.value is not None else (m.group('arg') if m else '')
                 old, new = _parse_two_args_quoted(raw)

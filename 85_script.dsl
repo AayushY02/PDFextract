@@ -90,13 +90,17 @@ reg_B :
                         search text : ("同種工事の要件を満たす場合、「同種性が認められる工事」と評価する。更に" , "企業の同種条件")
                         if found : 
                            take left : 
+                              remove tables
                               remove whitespaces
                               replace("の施工実績", "")
+                              replace("注)△:単純鈑桁橋は認めない。", "")
                               store(new)
                               set(new)
                         if not found : 
+                           remove tables
                            remove whitespaces
                            replace("の施工実績", "")
+                           replace("注)△:単純鈑桁橋は認めない。", "")
                            store(new)
                            set(new)
    if false:
@@ -133,13 +137,17 @@ reg_B :
                         search text : "同種工事の要件を満たす場合"
                         if found : 
                            take left : 
+                              remove tables
                               remove whitespaces
                               replace("の施工実績", "")
+                              replace("注)△:単純鈑桁橋は認めない。", "")
                               store(new)
                               set(new)
                         if not found : 
+                           remove tables
                            remove whitespaces
                            replace("の施工実績", "")
+                           replace("注)△:単純鈑桁橋は認めない。", "")
                            store(new)
                            set(new)
    if false:
