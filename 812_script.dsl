@@ -143,7 +143,7 @@ reg_B :
             if found : 
                set(「同種工事（企業）」)                         
 
-「同種工事」:
+「temp_同種工事」:
    check : name_of
    has value : 本官
    if true : 
@@ -167,7 +167,7 @@ reg_B :
                   set(temop)
      
 
-「より同種性の高い工事」:
+「より同種性が高い（企業）」:
    check : name_of
    has value : 本官
    if true : 

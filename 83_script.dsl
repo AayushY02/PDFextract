@@ -255,7 +255,7 @@ reg_B :
          set("記載なし")
 
 
-「より同種性の高い（企業）」: 
+「より同種性が高い（企業）」: 
    check : name_of
    has value : 本官
    if true : 
@@ -436,7 +436,7 @@ reg_B :
 
    
 
-「より同種性の高い（技術者）」: 
+「より同種性が高い（技術者）」: 
    check : name_of
    has value : 本官
    if true :
@@ -493,7 +493,7 @@ reg_B :
       if not found : 
          set("記載なし")
 
-「同種性の高い（技術者）」:
+「同種性が高い（技術者）」:
    check : name_of
    has value : 本官
    if true : 

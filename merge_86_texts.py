@@ -25,8 +25,8 @@ import os
 import re
 
 
-DEFAULT_INPUT_DIR = Path("results") / "test3" / "【86】大阪"
-DEFAULT_OUTPUT_DIR = Path("results") / "test4" / "【86】大阪"
+DEFAULT_INPUT_DIR = Path("results") / "test3" / "【86】近畿"
+DEFAULT_OUTPUT_DIR = Path("results") / "test4" / "【86】近畿"
 TOKEN_ORDER = [
     ("【個別_入札説明書】", "MAIN"),
     ("【個別_入札説明書_別紙-4】", "ANNEX-4"),

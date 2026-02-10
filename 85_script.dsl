@@ -168,7 +168,7 @@ reg_B :
                         store(var_ts_gijutsu_false)
                         set(var_ts_gijutsu_false)
 
-「より同種性の高い」:
+「より同種性が高い（企業）」:
    search in : region_A
    search text : "同種工事:"
    if found : 
@@ -206,7 +206,7 @@ reg_B :
                            set(var_high)    
 
 
-「より同種性の高い（企業）」:
+「temp_より同種性が高い工事（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -257,7 +257,7 @@ reg_B :
                   if not found : 
                      set("該当無し")
 
-「より同種性の高い（技術者）」:
+「より同種性が高い（技術者）」:
    check : name_of
    has value : 本官
    if true : 

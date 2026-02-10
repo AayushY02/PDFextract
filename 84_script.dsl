@@ -142,6 +142,8 @@ reg_B :
                               replace("であること。" , "")
                               replace("の施工実績を有すること。" , "")
                               replace("ものとする" , "")
+                              replace("据付工事なお" , "。")
+                              replace(end , "。" , "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
                         if not found : 
@@ -150,6 +152,8 @@ reg_B :
                               replace("であること。" , "")
                               replace("の施工実績" , "")
                               replace("ものとする" , "")
+                              replace("据付工事なお" , "。")
+                              replace(end , "。" , "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
             if not found : 
@@ -168,6 +172,8 @@ reg_B :
                                  remove whitespaces
                                  replace("であること。" , "")
                                  replace("の施工実績" , "")
+                                 replace("据付工事なお" , "。")
+                                 replace(end , "。" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
                            if not found : 
@@ -175,6 +181,8 @@ reg_B :
                                  remove whitespaces
                                  replace("であること。" , "")
                                  replace("の施工実績" , "")
+                                 replace("据付工事なお" , "。")
+                                 replace(end , "。" , "")
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)
 
@@ -209,6 +217,8 @@ reg_B :
                         if found : 
                            take left : 
                               remove whitespaces
+                              replace(end , "。" , "")
+                              replace(end , "であること" , "")
                               store(doushi_kouji_2)
                               set(doushi_kouji_2)
             if not found : 
@@ -217,7 +227,7 @@ reg_B :
                if found : 
                   set(「同種工事（企業）」)
 
-「より同種性の高い（企業）」: 
+「より同種性が高い（企業）」: 
    check : name_of
    has value : 本官
    if true : 
@@ -410,7 +420,7 @@ reg_B :
                                  store(co_similarity)
                                  set(co_similarity)                  
 
-「より同種性の高い（技術者）」: 
+「より同種性が高い（技術者）」: 
    check : name_of
    has value : 本官
    if true : 
@@ -495,7 +505,7 @@ reg_B :
                                                 store(eng_very_high_similarity)
                                                 set(eng_very_high_similarity)
 
-「同種性の高い（技術者）」:
+「同種性が高い（技術者）」:
    check : name_of
    has value : 本官
    if true : 

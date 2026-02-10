@@ -31,11 +31,11 @@ import re
 # ---------- CONFIGURATION ----------
 BASE_DIR = Path("results")
 
-INPUT_DIR = BASE_DIR / "test"
-OUTPUT_DIR = BASE_DIR / "test2"
+# INPUT_DIR = BASE_DIR / "test"
+# OUTPUT_DIR = BASE_DIR / "test2"
 
-# INPUT_DIR = BASE_DIR / "output1"
-# OUTPUT_DIR = BASE_DIR / "output2"
+INPUT_DIR = BASE_DIR / "output1"
+OUTPUT_DIR = BASE_DIR / "output2"
 
 LOG_FILE = BASE_DIR / "cleaning_log.txt"
 # ----------------------------------

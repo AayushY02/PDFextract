@@ -261,7 +261,7 @@ reg_B :
                                     if found : 
                                        set(「同種工事（技術者）」temp)
 
-「より同種性が高い工事（企業）」:
+「より同種性が高い（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -324,7 +324,7 @@ reg_B :
                   if not found : 
                      set("（該当無し）")
 
-「高い同種性が認められる工事（企業）」:
+「高い同種性が認められる（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -394,7 +394,7 @@ reg_B :
                   if not found : 
                      set("（該当無し）")
 
-「より同種性が高い工事（技術者）」: 
+「より同種性が高い（技術者）」: 
    check : name_of
    has value : 本官
    if true : 
@@ -457,7 +457,7 @@ reg_B :
             if not found : 
                set("（該当無し）")
 
-「高い同種性が認められる工事（技術者）」: 
+「高い同種性が認められる（技術者）」: 
    check : name_of
    has value : 本官
    if true : 

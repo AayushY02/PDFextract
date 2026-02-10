@@ -133,7 +133,7 @@ reg_B :
                                  store(doushi_kouji_1)
                                  set(doushi_kouji_1)                         
 
-「より同種性の高い工事（企業）」:
+「より同種性が高い（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -181,7 +181,7 @@ reg_B :
             if not found : 
                set("該当無し")
 
-「より同種性の高い工事（技術者）」: 
+「より同種性が高い（技術者）」: 
    check : name_of
    has value : 本官
    if true : 

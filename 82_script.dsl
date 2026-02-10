@@ -222,7 +222,7 @@ reg_B :
                               store(doushi_kouji_gijutsusha)
                               set(doushi_kouji_gijutsusha)
 
-「より同種性の高い（企業）」: 
+「より同種性が高い（企業）」: 
    check : name_of
    has value : 本官
    if true : 
@@ -333,7 +333,7 @@ reg_B :
                                     store(co_similarity)
                                     set(co_similarity)
 
-「より同種性の高い（技術者）」: 
+「より同種性が高い（技術者）」: 
    check : name_of
    has value : 本官
    if true : 

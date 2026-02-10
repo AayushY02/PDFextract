@@ -198,7 +198,7 @@ reg_B :
                   set(「同種工事(企業)」)
 
 
-「より高い同種性(企業)doushusei_co_0」:  
+「より同種性が高い（企業）」:  
    check : name_of
    has value : 本官
    if true : 
@@ -268,7 +268,7 @@ reg_B :
 
                                     
 
-「同種性(企業)doushusei_co_2」:  
+「同種性（企業）」:  
    check : name_of
    has value : 本官
    if true : 
@@ -338,7 +338,7 @@ reg_B :
 
 
 
-「より高い同種性(技術者) doushusei_en_0」:
+「より同種性が高い（技術者）」:
    check : name_of
    has value : 本官
    if true : 
@@ -413,7 +413,7 @@ reg_B :
 
                         
 
-「高い同種性(技術者) doushusei_en_1」:
+「同種性が高い（技術者）」:
    check : name_of
    has value : 本官
    if true : 
@@ -530,7 +530,7 @@ reg_B :
 
 
 
-「同種性(技術者) doushusei_en_2」:
+「同種性（技術者）」:
    check : name_of
    has value : 本官
    if true : 

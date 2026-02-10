@@ -1053,11 +1053,38 @@ def main():
     tree_for_header = parse_script(script_text)
     base_vars  = [n.name for n in tree_for_header if n.kind == 'var']
 
-    excluded_csv_vars = {"reg_A", "reg_B"}
+    excluded_csv_vars = {
+        "reg_A",
+        "reg_B",
+        "「temp_より同種性が高い工事（企業）」",
+        "「temp_同種工事」",
+        "「同種工事（技術者）」temp",
+        "file_1",
+        "file_2",
+    }
+    preferred_order = [
+        "has_eval_phrase",
+        "name_bu",
+        "name_of",
+        "「工事名」",
+        "「同種工事（企業）」",
+        "「同種工事（技術者）」",
+        "「同種性が認められる（企業）」",
+        "「同種性が認められる（技術者）」",
+        "「同種性(企業)」",
+        "「同種性(技術者)」",
+        "「同種性が高い（企業）」",
+        "「同種性が高い（技術者）」",
+        "「高い同種性が認められる（企業）」",
+        "「高い同種性が認められる（技術者）」",
+        "「より同種性が高い（企業）」",
+        "「より同種性が高い（技術者）」",
+    ]
     var_order = []
-    for name in base_vars:
-        if name in excluded_csv_vars:
-            continue
+    # Always include preferred_order in CSV/Excel headers, even if not present in the script.
+    # Missing outputs will render as empty cells.
+    ordered_vars = [v for v in preferred_order if v not in excluded_csv_vars]
+    for name in ordered_vars:
         var_order.append(name)
         var_order.append(f"{name} pageNo")
 

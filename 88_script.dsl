@@ -213,7 +213,7 @@ reg_B :
                set(「同種工事（企業）」)
 
 
-「より同種性の高い（技術者）」: 
+「より同種性が高い（技術者）」: 
    check : name_of
    has value : 本官
    if true : 
@@ -265,7 +265,7 @@ reg_B :
                               store(var4)
                               set(var4)
 
-「同種性の高い工事（技術者）」:
+「同種性が高い（技術者）」:
    check : name_of
    has value : 本官
    if true : 
@@ -425,7 +425,7 @@ reg_B :
                                           store(exception5)
                                           set(exception5)
 
-「より同種性の高い（企業）」:
+「より同種性が高い（企業）」:
    check : name_of
    has value : 本官
    if true : 

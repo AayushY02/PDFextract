@@ -353,7 +353,7 @@ reg_B :
 
 
 
-「より同種性の高い(企業)」:
+「より同種性が高い（企業）」:
     check : name_of
     has value : 本官
     if true : 
@@ -453,7 +453,7 @@ reg_B :
                                                             store(varA2)
                                                             set(varA2)
 
-「より同種性の高い(技術者) doushu_en01」:
+「より同種性が高い（技術者）」:
     check : name_of
     has value : 本官
     if true : 

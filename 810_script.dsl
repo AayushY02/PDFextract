@@ -152,7 +152,7 @@ reg_B :
                                             store(xyz)
                                             set(xyz)
 
-「より同種性の高い工事（企業）」:
+「より同種性が高い（企業）」:
     check : name_of
     has value : 本官
     if true : 
