@@ -74,7 +74,7 @@ reg_B :
       take right : 
         store(region_B)
 
-「同種工事(企業)」:
+「同種工事（企業）」:
     check : name_of
     has value : 本官
     if true : 
@@ -152,7 +152,7 @@ reg_B :
                                 store(var3)
                                 set(var3)
 
-「同種工事(技術者)」: 
+「同種工事（技術者）」: 
     check : name_of
     has value : 本官
     if true : 
@@ -163,7 +163,7 @@ reg_B :
                 search in : taken
                 search text : "平成21年4月1日から技術資料等の提出期限日までに上記(4)に掲げる同種工事の要件を満たす工事現場に従事した経験を有する者であること"
                 if found : 
-                    set(「同種工事(企業)」)
+                    set(「同種工事（企業）」)
     if false : 
         search in : region_A
         search text : ("次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に専任で配置", "次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に配置")
@@ -203,9 +203,9 @@ reg_B :
                     search in : taken
                     search text : "技術資料等の提出期限日までに上記(4)に掲げる同種工事の要件を満たす工事現場に従事した経験を有する者であること(共同企業体"
                     if found : 
-                        set(「同種工事(企業)」)
+                        set(「同種工事（企業）」)
 
-「同種工事(企業)」_doushu_co2:
+「同種工事（企業）」_doushu_co2:
     check : name_of
     has value : 本官
     if true : 
@@ -472,12 +472,12 @@ reg_B :
                                 search in : taken
                                 search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
                                 if found : 
-                                    set(「より同種性の高い(企業)」)
+                                    set(「より同種性の高い（企業）」)
                                 if not found : 
                                     search in : taken
                                     search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
                                     if found : 
-                                        set(「より同種性の高い(企業)」)
+                                        set(「より同種性の高い（企業）」)
     if false : 
         search in : region_B
         search text : "2)評価基準及び得点配分"
@@ -494,12 +494,12 @@ reg_B :
                                 search in : taken
                                 search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
                                 if found : 
-                                    set(「より同種性の高い(企業)」)
+                                    set(「より同種性の高い（企業）」)
                                 if not found : 
                                     search in : taken
                                     search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
                                     if found : 
-                                        set(「より同種性の高い(企業)」)
+                                        set(「より同種性の高い（企業）」)
 
 
 「同種工事（技術者） doushu_en02」: 
@@ -521,12 +521,12 @@ reg_B :
                                 search in : taken
                                 search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
                                 if found : 
-                                    set(「同種工事(企業)」_doushu_co2)
+                                    set(「同種工事（企業）」_doushu_co2)
                                 if not found : 
                                     search in : taken
                                     search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
                                     if found : 
-                                        set(「同種工事(企業)」_doushu_co2)
+                                        set(「同種工事（企業）」_doushu_co2)
     if false : 
         search in : region_B
         search text : "2)評価基準及び得点配分"
@@ -543,10 +543,10 @@ reg_B :
                                 search in : taken
                                 search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
                                 if found : 
-                                    set(「同種工事(企業)」_doushu_co2)
+                                    set(「同種工事（企業）」_doushu_co2)
                                 if not found : 
                                     search in : taken
                                     search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
                                     if found : 
-                                        set(「同種工事(企業)」_doushu_co2)
+                                        set(「同種工事（企業）」_doushu_co2)
                                         

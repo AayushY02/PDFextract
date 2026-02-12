@@ -79,7 +79,7 @@ reg_B :
       take right : 
          store(region_B)
 
-「同種工事(企業)」:
+「同種工事（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -140,10 +140,8 @@ reg_B :
                      replace("(ア)" ,"")
                      store(var3)
                      set(var3)  
-                  
 
-
-「同種工事(技術者)」:
+「同種工事（技術者）」:
    check : name_of
    has value : 本官
    if true : 
@@ -170,7 +168,7 @@ reg_B :
             search in : taken
             search text :  ("完成･引き渡しが完了した、上記(5)の同種工事" , "完成･引渡しが完了した、上記(5)に掲げる同種工事" , "完成･引き渡しが完了した、上記(5)に掲げる同種工事")
             if found : 
-               set(「同種工事(企業)」)
+               set(「同種工事（企業）」)
             if not found : 
                search in : taken
                search text : "完成･引き渡しが完了した、下記の"
@@ -195,7 +193,7 @@ reg_B :
                search in : taken
                search text : ("に掲げる同種工事の経験を有する者であること。" , "の同種工事の施工実績を有していること。")
                if found : 
-                  set(「同種工事(企業)」)
+                  set(「同種工事（企業）」)
 
 
 「より同種性が高い（企業）」:  
@@ -295,7 +293,7 @@ reg_B :
                                     search in : taken
                                     search text : "上記以外"
                                     if found : 
-                                       set(「同種工事(企業)」)
+                                       set(「同種工事（企業）」)
                                     if not found : 
                                        remove whitespaces
                                        replace("|", "")
@@ -327,7 +325,7 @@ reg_B :
                                     search in : taken
                                     search text : "上記以外"
                                     if found : 
-                                       set(「同種工事(企業)」)
+                                       set(「同種工事（企業）」)
                                     if not found : 
                                        remove whitespaces
                                        replace("|", "")
@@ -561,7 +559,7 @@ reg_B :
                                           search in : taken
                                           search text : "上記以外"
                                           if found : 
-                                             set(「同種工事(技術者)」)
+                                             set(「同種工事（技術者）」)
                                           if not found :
                                              remove whitespaces
                                              replace("|", "")
@@ -629,7 +627,7 @@ reg_B :
                                           search in : taken
                                           search text : "上記以外"
                                           if found : 
-                                             set(「同種工事(技術者)」)
+                                             set(「同種工事（技術者）」)
                                           if not found :
                                              remove whitespaces
                                              replace("|", "")
