@@ -43,6 +43,8 @@ import csv
 import fitz  # PyMuPDF
 import pandas as pd
 import statistics
+import re
+import unicodedata
 from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -56,12 +58,27 @@ INPUT_DIR = Path("input")
 RESULTS_DIR = Path("results")
 OUTPUT_DIR = RESULTS_DIR / "output1"
 LOG_FILE = RESULTS_DIR / "extraction_log.csv"
+QUALITY_LOG_FILE = RESULTS_DIR / "extraction_quality.csv"
+QUALITY_LOG_FILE_EN = RESULTS_DIR / "extraction_quality_en.csv"
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".xls"}
 
 # Page boundary marker settings
 PAGE_START_TEMPLATE = "[[PAGE_START {n}]]"
 PAGE_END_TEMPLATE = "[[PAGE_END]]"
 TABLE_COL_SEPARATOR = " | "
+
+# ---------- QUALITY DETECTION CONFIG ----------
+WEIRD_REPLACEMENT_THRESHOLD = 1
+WEIRD_CONTROL_RATIO = 0.001
+WEIRD_PRIVATE_RATIO = 0.002
+WEIRD_NONEXPECTED_RATIO = 0.25
+
+TABLE_RATIO_THRESHOLD = 0.70
+TABLE_RATIO_SECONDARY = 0.50
+TABLE_COUNT_THRESHOLD = 3
+
+TABLE_START_TOKEN = "[[TABLE_START"
+TABLE_END_TOKEN = "[[TABLE_END]]"
 # ----------------------------------
 
 def process_one_file(file_path: Path, input_dir: Path, output_dir: Path):
@@ -79,10 +96,11 @@ def process_one_file(file_path: Path, input_dir: Path, output_dir: Path):
         else:
             raise ValueError(f"Unsupported extension: {suffix}")
 
+        quality = analyze_text_quality(text, suffix)
         save_text(output_path, text)
-        return relative_path, pages, "OK", ""
+        return relative_path, pages, "OK", "", quality
     except Exception as e:
-        return relative_path, 0, "FAIL", str(e)
+        return relative_path, 0, "FAIL", str(e), None
 
 
 def sanitize_cell_text(cell_value):
@@ -400,12 +418,216 @@ def save_text(output_path: Path, text: str):
         f.write(text)
 
 
+# ---------- QUALITY DETECTION ----------
+def _strip_markers_for_quality(text: str) -> str:
+    if "[[" not in text:
+        return text
+    text = re.sub(r"\[\[PAGE_START[^\]]*\]\]", "", text)
+    text = re.sub(r"\[\[PAGE_END\]\]", "", text)
+    text = re.sub(r"\[\[TABLE_START[^\]]*\]\]", "", text)
+    text = text.replace("[[TABLE_END]]", "")
+    text = text.replace("[[HEADING]]", "")
+    return text
+
+
+def _table_stats(text: str) -> dict:
+    if TABLE_START_TOKEN not in text:
+        total = len(text)
+        return {
+            "table_blocks": 0,
+            "table_chars": 0,
+            "non_table_chars": total,
+            "table_ratio": 0.0,
+        }
+
+    i = 0
+    table_chars = 0
+    non_table_chars = 0
+    table_blocks = 0
+    text_len = len(text)
+
+    while i < text_len:
+        start = text.find(TABLE_START_TOKEN, i)
+        if start == -1:
+            non_table_chars += text_len - i
+            break
+
+        non_table_chars += max(0, start - i)
+        table_blocks += 1
+
+        # content starts after the marker line
+        start_line_end = text.find("\n", start)
+        content_start = start_line_end + 1 if start_line_end != -1 else start
+
+        end = text.find(TABLE_END_TOKEN, start)
+        if end == -1:
+            table_chars += max(0, text_len - content_start)
+            break
+
+        table_chars += max(0, end - content_start)
+        i = end + len(TABLE_END_TOKEN)
+
+    total = table_chars + non_table_chars
+    table_ratio = (table_chars / total) if total > 0 else 0.0
+    return {
+        "table_blocks": table_blocks,
+        "table_chars": table_chars,
+        "non_table_chars": non_table_chars,
+        "table_ratio": table_ratio,
+    }
+
+
+def _is_expected_char(ch: str) -> bool:
+    if ch in ("\n", "\r", "\t"):
+        return True
+    code = ord(ch)
+    if 0x20 <= code <= 0x7E:
+        return True  # ASCII printable
+    if 0x3000 <= code <= 0x303F:
+        return True  # CJK punctuation
+    if 0x3040 <= code <= 0x309F:
+        return True  # Hiragana
+    if 0x30A0 <= code <= 0x30FF:
+        return True  # Katakana
+    if 0xFF66 <= code <= 0xFF9D:
+        return True  # Half-width Katakana
+    if 0x4E00 <= code <= 0x9FFF:
+        return True  # CJK Unified
+    if 0x3400 <= code <= 0x4DBF:
+        return True  # CJK Ext A
+    if 0xF900 <= code <= 0xFAFF:
+        return True  # CJK Compatibility
+    if 0xFF01 <= code <= 0xFF60:
+        return True  # Full-width ASCII variants
+    return False
+
+
+def analyze_text_quality(text: str, source_ext: str) -> dict:
+    cleaned = _strip_markers_for_quality(text)
+    total_chars = len(cleaned)
+
+    replacement_count = 0
+    control_count = 0
+    private_use_count = 0
+    expected_count = 0
+
+    for ch in cleaned:
+        code = ord(ch)
+        if ch == "\ufffd":
+            replacement_count += 1
+        if 0xE000 <= code <= 0xF8FF:
+            private_use_count += 1
+        if ch not in ("\n", "\r", "\t") and unicodedata.category(ch) == "Cc":
+            control_count += 1
+        if _is_expected_char(ch):
+            expected_count += 1
+
+    non_expected_count = max(0, total_chars - expected_count)
+    control_ratio = (control_count / total_chars) if total_chars > 0 else 0.0
+    private_ratio = (private_use_count / total_chars) if total_chars > 0 else 0.0
+    non_expected_ratio = (non_expected_count / total_chars) if total_chars > 0 else 0.0
+
+    table_applicable = source_ext == ".pdf"
+    if table_applicable:
+        table_stats = _table_stats(text)
+        table_ratio = table_stats["table_ratio"]
+        table_blocks = table_stats["table_blocks"]
+    else:
+        table_ratio = 0.0
+        table_blocks = 0
+
+    weird_replacement = replacement_count >= WEIRD_REPLACEMENT_THRESHOLD
+    weird_control = control_ratio >= WEIRD_CONTROL_RATIO
+    weird_private = private_ratio >= WEIRD_PRIVATE_RATIO
+    weird_nonexpected = non_expected_ratio >= WEIRD_NONEXPECTED_RATIO
+    is_weird = any([weird_replacement, weird_control, weird_private, weird_nonexpected])
+
+    if table_applicable:
+        is_table_heavy = (
+            table_ratio >= TABLE_RATIO_THRESHOLD
+            or (table_ratio >= TABLE_RATIO_SECONDARY and table_blocks >= TABLE_COUNT_THRESHOLD)
+        )
+    else:
+        is_table_heavy = False
+
+    flag_reasons = []
+    if weird_replacement:
+        flag_reasons.append("replacement_char")
+    if weird_control:
+        flag_reasons.append("control_ratio")
+    if weird_private:
+        flag_reasons.append("private_use_ratio")
+    if weird_nonexpected:
+        flag_reasons.append("non_expected_ratio")
+    if table_applicable and is_table_heavy:
+        flag_reasons.append("table_ratio")
+
+    return {
+        "total_chars": total_chars,
+        "replacement_count": replacement_count,
+        "control_count": control_count,
+        "private_use_count": private_use_count,
+        "non_expected_ratio": round(non_expected_ratio, 6),
+        "table_blocks": table_blocks,
+        "table_ratio": round(table_ratio, 6),
+        "is_weird": is_weird,
+        "is_table_heavy": is_table_heavy,
+        "table_applicable": table_applicable,
+        "flag_reason": "|".join(flag_reasons),
+    }
+
+
 def init_log():
     """Initialize CSV log file in the results folder."""
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     with open(LOG_FILE, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["timestamp", "file", "pages", "status", "error"])
+
+def init_quality_log():
+    """Initialize quality CSV log files (JP + EN) in the results folder."""
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    with open(QUALITY_LOG_FILE, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "タイムスタンプ",
+            "ファイル",
+            "ページ数",
+            "処理結果",
+            "エラー",
+            "文字数",
+            "置換文字(�)数",
+            "制御文字数",
+            "私用領域文字数",
+            "想定外文字比率",
+            "表ブロック数",
+            "表比率",
+            "文字化け疑い",
+            "表中心",
+            "問題の種類",
+        ])
+
+    with open(QUALITY_LOG_FILE_EN, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "timestamp",
+            "file",
+            "pages",
+            "status",
+            "error",
+            "total_chars",
+            "replacement_char_count",
+            "control_char_count",
+            "private_use_char_count",
+            "non_expected_ratio",
+            "table_blocks",
+            "table_ratio",
+            "weird_text_suspected",
+            "table_heavy",
+            "issue_types",
+        ])
+
+    _write_quality_legend_files(RESULTS_DIR)
 
 
 def append_log(file_path: Path, pages: int, status: str, error: str = ""):
@@ -420,6 +642,182 @@ def append_log(file_path: Path, pages: int, status: str, error: str = ""):
             error
         ])
 
+def _jp_bool(value: bool) -> str:
+    return "はい" if value else "いいえ"
+
+
+def _jp_status(status: str) -> str:
+    return "成功" if status == "OK" else "失敗"
+
+
+def _jp_flag_reason(reason: str) -> str:
+    if not reason:
+        return ""
+    mapping = {
+        "replacement_char": "置換文字(�)",
+        "control_ratio": "制御文字比率",
+        "private_use_ratio": "私用領域文字比率",
+        "non_expected_ratio": "想定外文字比率",
+        "table_ratio": "表比率",
+    }
+    parts = [mapping.get(r, r) for r in reason.split("|") if r]
+    return " / ".join(parts)
+
+
+def _jp_bool_or_na(value: bool, applicable: bool) -> str:
+    if not applicable:
+        return "対象外"
+    return _jp_bool(value)
+
+
+def append_quality_log(file_path: Path, pages: int, status: str, error: str, quality=None):
+    """Append a single quality record to the quality log file."""
+    if quality is None:
+        quality = {
+            "total_chars": 0,
+            "replacement_count": 0,
+            "control_count": 0,
+            "private_use_count": 0,
+            "non_expected_ratio": 0.0,
+            "table_blocks": 0,
+            "table_ratio": 0.0,
+            "is_weird": False,
+            "is_table_heavy": False,
+            "table_applicable": True,
+            "flag_reason": "",
+        }
+
+    table_applicable = quality.get("table_applicable", True)
+    table_blocks = quality["table_blocks"] if table_applicable else ""
+    table_ratio = quality["table_ratio"] if table_applicable else ""
+
+    with open(QUALITY_LOG_FILE, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            datetime.now().isoformat(timespec="seconds"),
+            str(file_path),
+            pages,
+            _jp_status(status),
+            error,
+            quality["total_chars"],
+            quality["replacement_count"],
+            quality["control_count"],
+            quality["private_use_count"],
+            quality["non_expected_ratio"],
+            table_blocks,
+            table_ratio,
+            _jp_bool(quality["is_weird"]),
+            _jp_bool_or_na(quality["is_table_heavy"], table_applicable),
+            _jp_flag_reason(quality["flag_reason"]),
+        ])
+
+
+def _write_quality_legend_files(base_dir: Path):
+    jp_path = base_dir / "extraction_quality_legend_ja.txt"
+    en_path = base_dir / "extraction_quality_legend_en.txt"
+
+    jp_text = """品質CSVの説明 (extraction_quality.csv)
+
+- 文字数: 抽出テキスト内の文字数
+- 置換文字(�)数: 文字化けの強い兆候となる置換文字の数
+- 制御文字数: 改行/タブ以外の制御文字数
+- 私用領域文字数: Unicode私用領域(U+E000〜U+F8FF)の文字数
+- 想定外文字比率: 期待される文字以外の割合
+- 表ブロック数/表比率: PDFのみ対象。表と判定された領域の数/割合
+- 文字化け疑い: 文字化けの兆候がある場合「はい」
+- 表中心: PDFのみ対象。表が多すぎる場合「はい」、PDF以外は「対象外」
+- 問題の種類: 判定理由の一覧
+
+比率は「該当文字数 ÷ 文字数」で計算しています。
+"""
+
+    en_text = """Quality CSV legend (extraction_quality_en.csv)
+
+- total_chars: total character count in extracted text
+- replacement_char_count: number of replacement chars (�)
+- control_char_count: control characters excluding \\n/\\r/\\t
+- private_use_char_count: Unicode private-use chars (U+E000–U+F8FF)
+- non_expected_ratio: ratio of characters outside the expected set
+- table_blocks/table_ratio: PDF only. Count/ratio of table regions
+- weird_text_suspected: "Yes" if text looks garbled
+- table_heavy: "Yes" if tables dominate; "N/A" for non-PDF
+- issue_types: reasons for the flag
+
+Ratios are calculated as (matching chars) / (total chars).
+"""
+
+    jp_path.write_text(jp_text, encoding="utf-8-sig")
+    en_path.write_text(en_text, encoding="utf-8-sig")
+
+
+def _en_bool(value: bool) -> str:
+    return "Yes" if value else "No"
+
+
+def _en_status(status: str) -> str:
+    return "Success" if status == "OK" else "Fail"
+
+
+def _en_flag_reason(reason: str) -> str:
+    if not reason:
+        return ""
+    mapping = {
+        "replacement_char": "Replacement char (�)",
+        "control_ratio": "Control char ratio",
+        "private_use_ratio": "Private-use ratio",
+        "non_expected_ratio": "Non-expected ratio",
+        "table_ratio": "Table ratio",
+    }
+    parts = [mapping.get(r, r) for r in reason.split("|") if r]
+    return " / ".join(parts)
+
+
+def _en_bool_or_na(value: bool, applicable: bool) -> str:
+    if not applicable:
+        return "N/A"
+    return _en_bool(value)
+
+
+def append_quality_log_en(file_path: Path, pages: int, status: str, error: str, quality=None):
+    """Append a single quality record to the English quality log file."""
+    if quality is None:
+        quality = {
+            "total_chars": 0,
+            "replacement_count": 0,
+            "control_count": 0,
+            "private_use_count": 0,
+            "non_expected_ratio": 0.0,
+            "table_blocks": 0,
+            "table_ratio": 0.0,
+            "is_weird": False,
+            "is_table_heavy": False,
+            "table_applicable": True,
+            "flag_reason": "",
+        }
+
+    table_applicable = quality.get("table_applicable", True)
+    table_blocks = quality["table_blocks"] if table_applicable else ""
+    table_ratio = quality["table_ratio"] if table_applicable else ""
+
+    with open(QUALITY_LOG_FILE_EN, "a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            datetime.now().isoformat(timespec="seconds"),
+            str(file_path),
+            pages,
+            _en_status(status),
+            error,
+            quality["total_chars"],
+            quality["replacement_count"],
+            quality["control_count"],
+            quality["private_use_count"],
+            quality["non_expected_ratio"],
+            table_blocks,
+            table_ratio,
+            _en_bool(quality["is_weird"]),
+            _en_bool_or_na(quality["is_table_heavy"], table_applicable),
+            _en_flag_reason(quality["flag_reason"]),
+        ])
 
 def collect_supported_files(input_dir: Path):
     """Return a sorted list of all supported files under input_dir."""
@@ -440,6 +838,7 @@ def process_documents(input_dir: Path, output_dir: Path):
         return
 
     init_log()
+    init_quality_log()
     print(f"Found {len(files)} files (PDF/Word/Excel). Starting extraction...\n")
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -451,8 +850,10 @@ def process_documents(input_dir: Path, output_dir: Path):
         }
 
         for fut in as_completed(futures):
-            rel, pages, status, error = fut.result()
+            rel, pages, status, error, quality = fut.result()
             append_log(rel, pages, status, error)
+            append_quality_log(rel, pages, status, error, quality)
+            append_quality_log_en(rel, pages, status, error, quality)
             if status == "OK":
                 print(f"✅ Extracted: {rel}  ({pages} pages/sheets)")
             else:
