@@ -48,17 +48,11 @@ name_of :
          search text : "3.2"
          if found : 
             take left : 
-               search in : taken
-               search text : "(電子入札対象案件)"
-               if found : 
-                  take left :
-                     remove whitespaces
-                     store(var_kouji)
-                     set(var_kouji)
-               if not found : 
-                  remove whitespaces
-                  store(var_kouji)
-                  set(var_kouji)
+               replace("(電子入札対象案件)" , "")
+               replace("(電子契約対象案件)" , "")
+               remove whitespaces
+               store(var_kouji)
+               set(var_kouji)
    
 reg_A : 
    search in : all
@@ -223,7 +217,7 @@ reg_B :
                                  search in : taken
                                  search text :("本工事では同種工事の経験は問わない" , "本工事では、配置予定技術者の工事経験は問わない")
                                  if found : 
-                                    set("（該当無し）")
+                                    set("記載なし")
                                  if not found : 
                                     search in : taken
                                     search text : "平成21年度以降に元請として完成し、引渡しが完了した上記4.1.5 2)の要件を満たす工事"
@@ -254,7 +248,7 @@ reg_B :
                                  search in : taken
                                  search text :("本工事では同種工事の経験は問わない" , "本工事では、配置予定技術者の工事経験は問わない")
                                  if found : 
-                                    set("（該当無し）")
+                                    set("記載なし")
                                  if not found : 
                                     search in : taken
                                     search text : "平成21年度以降に元請として完成し、引渡しが完了した上記4.1.5 2)の要件を満たす工事"
@@ -322,7 +316,7 @@ reg_B :
                                           store(yoridoushiseigatakaikouji_kigyo)
                                           set(yoridoushiseigatakaikouji_kigyo)
                   if not found : 
-                     set("（該当無し）")
+                     set("記載なし")
 
 「高い同種性が認められる（企業）」:
    check : name_of
@@ -392,7 +386,7 @@ reg_B :
                                           store(var2)
                                           set(var2)
                   if not found : 
-                     set("（該当無し）")
+                     set("記載なし")
 
 「より同種性が高い（技術者）」: 
    check : name_of
@@ -455,7 +449,7 @@ reg_B :
                                           store(var2)
                                           set(var2)
             if not found : 
-               set("（該当無し）")
+               set("記載なし")
 
 「高い同種性が認められる（技術者）」: 
    check : name_of
@@ -524,4 +518,4 @@ reg_B :
                                           store(var2)
                                           set(var2)
             if not found : 
-               set("（該当無し）")
+               set("記載なし")

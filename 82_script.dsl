@@ -69,33 +69,11 @@ name_of :
          search text : "(2) 工事場所"
          if found : 
             take left : 
-               search in : taken
-               search text : "(電子入札対象案件)"
-               if found : 
-                  take left :
-                     search in : taken
-                     search text : "(電子入札対象案件及び電子契約対象案件)"
-                     if found : 
-                        take left : 
-                           remove whitespaces
-                           store(var_kouji)
-                           set(var_kouji)
-                     if not found : 
-                        remove whitespaces
-                        store(var_kouji)
-                        set(var_kouji)
-               if not found : 
-                  search in : taken
-                  search text : "(電子入札対象案件及び電子契約対象案件)"
-                  if found : 
-                     take left : 
-                        remove whitespaces
-                        store(var_kouji)
-                        set(var_kouji)
-                  if not found : 
-                     remove whitespaces
-                     store(var_kouji)
-                     set(var_kouji)
+               remove whitespaces
+               replace("(電子入札対象案件及び電子契約対象案件)" , "")
+               replace("(入札保証金納付対象案件)" , "")
+               store(var_kouji)
+               set(var_kouji)
 
 reg_A : 
    search in : all
@@ -382,7 +360,7 @@ reg_B :
                               check : temp1
                               has value : ""
                               if true : 
-                                 set(「より同種性の高い（企業）」)
+                                 set(「より同種性が高い（企業）」)
                               if false : 
                                  set(temp1)
 

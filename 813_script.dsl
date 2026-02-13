@@ -79,23 +79,14 @@ name_of :
             search text : "(2)工事場所"
             if found : 
                 take left : 
-                    search in : taken
-                    search text : "(電子入札対象案件)"
-                    if found : 
-                        take left :
-                            remove whitespaces
-                            replace("石狩川維持工事の内" , "")
-                            replace("石狩川改修工事の内" , "")
-                            replace("天塩川改修工事の内" , "")
-                            store(var_kouji)
-                            set(var_kouji)
-                    if not found : 
-                        remove whitespaces
-                        replace("石狩川維持工事の内" , "")
-                        replace("石狩川改修工事の内" , "")
-                        replace("天塩川改修工事の内" , "")
-                        store(var_kouji)
-                        set(var_kouji)
+                    replace("(電子入札対象案件)" , "")
+                    replace("(電子契約対象案件)" , "")
+                    replace("石狩川維持工事の内" , "")
+                    replace("石狩川改修工事の内" , "")
+                    replace("天塩川改修工事の内" , "")
+                    remove whitespaces
+                    store(var_kouji)
+                    set(var_kouji)
 
 reg_A : 
     search in : all

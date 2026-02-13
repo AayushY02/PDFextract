@@ -45,21 +45,20 @@ name_of :
          if found : 
             take left : 
                search in : taken
-               search text : "(電子入札対象案件)"
+               search text : ("れいわねん" , "れいわど")
                if found : 
-                  take left :
-                     search in : taken
-                     search text : "れいわねん"
-                     if found : 
-                        take left : 
-                           remove whitespaces
-                           store(var_kouji)
-                           set(var_kouji)
-                     if not found : 
-                        take left : 
-                           remove whitespaces
-                           store(var_kouji)
-                           set(var_kouji)
+                  take left : 
+                     replace("(電子入札対象案件)" , "")
+                     replace("(電子契約対象案件)" , "")
+                     remove whitespaces
+                     store(var_kouji)
+                     set(var_kouji)
+               if not found : 
+                  replace("(電子入札対象案件)" , "")
+                  replace("(電子契約対象案件)" , "")
+                  remove whitespaces
+                  store(var_kouji)
+                  set(var_kouji)
 
 reg_A : 
    search in : all
@@ -230,7 +229,7 @@ reg_B :
                                  store(var10)
                                  set(var10)
       if not found : 
-         set("該当無し")
+         set("記載なし")
    if false : 
       search in : region_B
       search text : ("2) 企業の能力等(加算点)" , "2)企業の能力等(加算点)")
@@ -262,7 +261,7 @@ reg_B :
                                  store(var10)
                                  set(var10)
       if not found : 
-         set("該当無し")
+         set("記載なし")
 
                                     
 
@@ -300,7 +299,7 @@ reg_B :
                                        store(var11)
                                        set(var11)
       if not found : 
-         set("該当無し")
+         set("記載なし")
    if false : 
       search in : region_B
       search text : ("2) 企業の能力等(加算点)" , "2)企業の能力等(加算点)")
@@ -332,7 +331,7 @@ reg_B :
                                        store(var11)
                                        set(var11)
       if not found : 
-         set("該当無し")
+         set("記載なし")
 
 
 

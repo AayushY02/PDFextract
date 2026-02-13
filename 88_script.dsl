@@ -41,17 +41,10 @@ name_of :
    if found : 
       take right:
          search in : taken
-         search text : ("B.令和6" , "(2)")
+         search text : "(2)"
          if found : 
             take left : 
-               search in : taken
-               search text : "(電子入札及び電子契約対象案件)"
-               if found : 
-                  take left :
-                     remove whitespaces
-                     store(var_kouji)
-                     set(var_kouji)
-               if not found : 
+                  replace("(電子入札及び電子契約対象案件)" , "")
                   remove whitespaces
                   store(var_kouji)
                   set(var_kouji)

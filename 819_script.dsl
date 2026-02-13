@@ -170,7 +170,7 @@ reg_B :
             if found : 
                set(「同種工事（企業）」)
             if not found : 
-               set("該当無し")
+               set("記載なし")
 
 「より同種性が高い（技術者）」: 
    check : name_of
@@ -187,7 +187,7 @@ reg_B :
             if found : 
                set(「より同種性の高い工事（企業）」)
             if not found : 
-               set("該当無し")
+               set("記載なし")
 
     
 

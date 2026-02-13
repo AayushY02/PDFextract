@@ -46,7 +46,8 @@ name_bu :
 
 name_of :
    search in : file1
-   search text : "what_to_use"
+   ## honkan ("支出負担行為担当官　九州地方整備局長" , "支出負担行為担当官　九州地方整備局長")
+   search text : ("支出負担行為担当官　九州地方整備局長" , "支出負担行為担当官九州地方整備局長")
    if found :
       set("本官")  
    if not found : 
@@ -76,21 +77,11 @@ name_of :
          search text : ("(2) 工事場所" , "(2)工事場所" , "(3)工事場所")
          if found : 
             take left : 
-               search in : taken
-               search text : ("(電子入札及び電子契約対象案件)" , "2)" , "【B】")
-               if found : 
-                  take left :
-                     remove whitespaces
-                     replace("【A】" , "")
-                     replace("1)" , "")
-                     store(var_kouji)
-                     set(var_kouji)
-               if not found : 
-                  remove whitespaces
-                  replace("【A】" , "")
-                  replace("1)" , "")
-                  store(var_kouji)
-                  set(var_kouji)
+               remove whitespaces
+               replace("(上記工事全て電子入札及び電子契約対象案件である)" , "")
+               replace("(電子入札及び電子契約対象案件)" , "")
+               store(var_kouji)
+               set(var_kouji)
 
 reg_A : 
    search in : file1
@@ -114,7 +105,7 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("本官")    
+      set("")    
    if false:
       search in : region_A
       search text : "元請けとして次に掲げるア)の要件を満たす同種工事の施工実績を有すること。"
@@ -163,7 +154,7 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("本官")    
+      set("")    
    if false:
       search in : region_A
       search text : "次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に配置できること。"
@@ -179,7 +170,7 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("本官")
+      set("")
    if false:
       search in : file2
       search text : "(5) 総合評価の評価項目"
@@ -211,7 +202,7 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("本官")
+      set("")
    if false:
       search in : file2
       search text : "(5) 総合評価の評価項目"
@@ -283,7 +274,7 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("本官")
+      set("")
    if false:
       search in : file2
       search text : "(5) 総合評価の評価項目"
@@ -318,7 +309,7 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("本官")
+      set("")
    if false:
       search in : file2
       search text : "(5) 総合評価の評価項目"
@@ -350,7 +341,7 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("本官")
+      set("")
    if false:
       search in : file2
       search text : "(5) 総合評価の評価項目"

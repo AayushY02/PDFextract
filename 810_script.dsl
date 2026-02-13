@@ -69,17 +69,11 @@ name_of :
             search text : "(2) 工事場所"
             if found : 
                 take left : 
-                    search in : taken
-                    search text : "(電子入札対象案件)"
-                    if found : 
-                        take left :
-                            remove whitespaces
-                            store(var_kouji)
-                            set(var_kouji)
-                    if not found : 
-                        remove whitespaces
-                        store(var_kouji)
-                        set(var_kouji)
+                    replace("(電子入札対象案件)" , "")
+                    replace("(電子契約対象案件)" , "")
+                    remove whitespaces
+                    store(var_kouji)
+                    set(var_kouji)
 
 reg_A : 
     search in : all

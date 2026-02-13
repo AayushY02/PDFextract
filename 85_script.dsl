@@ -44,13 +44,11 @@ name_of :
          search text : "(2)"
          if found : 
             take left : 
-               search in : taken
-               search text : "(電子入札対象案件)"
-               if found : 
-                  take left :
-                     remove whitespaces
-                     store(var_kouji)
-                     set(var_kouji)
+               replace("(電子入札対象案件)" , "")
+               replace("(電子契約対象案件)" , "")
+               remove whitespaces
+               store(var_kouji)
+               set(var_kouji)
 
 reg_A : 
    search in : all
@@ -255,7 +253,7 @@ reg_B :
                   search in : taken
                   search text : "より同種"
                   if not found : 
-                     set("該当無し")
+                     set("記載なし")
 
 「より同種性が高い（技術者）」:
    check : name_of
@@ -306,4 +304,4 @@ reg_B :
                   search in : taken
                   search text : "より同種"
                   if not found : 
-                     set("該当無し")
+                     set("記載なし")

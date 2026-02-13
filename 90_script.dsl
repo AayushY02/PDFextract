@@ -44,17 +44,11 @@ name_of :
             search text : "(2)"
             if found : 
                 take left : 
-                    search in : taken
-                    search text : "(電子入札対象案件)"
-                    if found : 
-                        take left :
-                            remove whitespaces
-                            store(var_kouji)
-                            set(var_kouji)
-                    if not found : 
-                        remove whitespaces
-                        store(var_kouji)
-                        set(var_kouji)
+                    remove whitespaces
+                    replace("(電子入札対象案件)" , "")
+                    replace("(電子契約対象案件)" , "")
+                    store(var_kouji)
+                    set(var_kouji)
 
 reg_A : 
    search in : all
@@ -390,7 +384,6 @@ reg_B :
                                                                 replace("の施工実績", "")
                                                                 replace("を有すること。", "")
                                                                 replace("であること。", "")
-                                                                replace("同種工事の要件に加え、", "")
                                                                 replace("|", "")
                                                                 store(varA1)
                                                                 set(varA1)
@@ -400,7 +393,6 @@ reg_B :
                                                             replace("の施工実績", "")
                                                             replace("を有すること。", "")
                                                             replace("であること。", "")
-                                                            replace("同種工事の要件に加え、", "")
                                                             replace("|", "")
                                                             store(varA2)
                                                             set(varA2)
@@ -438,7 +430,6 @@ reg_B :
                                                                 replace("の施工実績", "")
                                                                 replace("を有すること。", "")
                                                                 replace("であること。", "")
-                                                                replace("同種工事の要件に加え、", "")
                                                                 replace("|", "")
                                                                 store(varA1)
                                                                 set(varA1)
@@ -448,7 +439,6 @@ reg_B :
                                                             replace("の施工実績", "")
                                                             replace("を有すること。", "")
                                                             replace("であること。", "")
-                                                            replace("同種工事の要件に加え、", "")
                                                             replace("|", "")
                                                             store(varA2)
                                                             set(varA2)
@@ -472,12 +462,12 @@ reg_B :
                                 search in : taken
                                 search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
                                 if found : 
-                                    set(「より同種性の高い（企業）」)
+                                    set(「より同種性が高い（企業）」)
                                 if not found : 
                                     search in : taken
                                     search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
                                     if found : 
-                                        set(「より同種性の高い（企業）」)
+                                        set(「より同種性が高い（企業）」)
     if false : 
         search in : region_B
         search text : "2)評価基準及び得点配分"
@@ -494,12 +484,12 @@ reg_B :
                                 search in : taken
                                 search text : "上記4.(4)に掲げる同種工事の要件を満たす工事現場に従事"
                                 if found : 
-                                    set(「より同種性の高い（企業）」)
+                                    set(「より同種性が高い（企業）」)
                                 if not found : 
                                     search in : taken
                                     search text : "◇同種及びより同種、配置予定技術者に関する発注機関別の考え方は、施工実績に準ずる。"
                                     if found : 
-                                        set(「より同種性の高い（企業）」)
+                                        set(「より同種性が高い（企業）」)
 
 
 「同種工事（技術者） doushu_en02」: 

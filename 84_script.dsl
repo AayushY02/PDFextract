@@ -48,19 +48,12 @@ name_of :
          search text : "(2)"
          if found : 
             take left : 
-               search in : taken
-               search text : "(電子入札対象案件)"
-               if found : 
-                  take left :
-                     remove whitespaces
-                     replace("A工事" , "")
-                     store(var_kouji)
-                     set(var_kouji)
-               if not found : 
-                  remove whitespaces
-                  replace("A工事" , "")
-                  store(var_kouji)
-                  set(var_kouji)
+               remove whitespaces
+               replace("(電子入札対象案件)" , "")
+               replace("(電子契約対象案件)" , "")
+               store(var_kouji)
+               set(var_kouji)
+               
    if not found : 
       search in : all
       search text : "作 業 名"
@@ -70,19 +63,11 @@ name_of :
             search text : "(2)"
             if found : 
                take left : 
-                  search in : taken
-                  search text : "(電子入札対象案件)"
-                  if found : 
-                     take left :
-                        remove whitespaces
-                        replace("A工事" , "")
-                        store(var_kouji)
-                        set(var_kouji)
-                  if not found : 
-                     remove whitespaces
-                     replace("A工事" , "")
-                     store(var_kouji)
-                     set(var_kouji)
+                  remove whitespaces
+                  replace("(電子入札対象案件)" , "")
+                  replace("(電子契約対象案件)" , "")
+                  store(var_kouji)
+                  set(var_kouji)
 
 reg_A : 
    search in : all
