@@ -156,7 +156,7 @@ reg_B :
             search in : taken
             search text : "上記(4)本文に掲げる工事の経験を有する者であること"
             if found : 
-               set(「より同種性の高い工事（企業）」)
+               set(「より同種性が高い（企業）」)
             if not found : 
                set("記載なし")
 

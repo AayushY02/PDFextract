@@ -7,11 +7,16 @@ Goals:
  - Keep folder structure identical to output2.
 
 This script does not modify the original output2 files.
+
+Usage:
+    python post_clean_output3.py
+    python post_clean_output3.py --input-dir results/output2 --output-dir results/output3
 """
 
 from pathlib import Path
 import shutil
 import re
+import argparse
 
 
 INPUT_DIR = Path("results/test2")
@@ -790,14 +795,14 @@ def process_text(text: str) -> str:
     return text
 
 
-def process_all():
-    if OUTPUT_DIR.exists():
-        shutil.rmtree(OUTPUT_DIR)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def process_all(input_dir: Path, output_dir: Path):
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    for txt_path in INPUT_DIR.rglob("*.txt"):
-        rel = txt_path.relative_to(INPUT_DIR)
-        out_path = OUTPUT_DIR / rel
+    for txt_path in input_dir.rglob("*.txt"):
+        rel = txt_path.relative_to(input_dir)
+        out_path = output_dir / rel
         out_path.parent.mkdir(parents=True, exist_ok=True)
         content = txt_path.read_text(encoding="utf-8")
         cleaned = process_text(content)
@@ -806,6 +811,14 @@ def process_all():
 
 
 if __name__ == "__main__":
-    process_all()
+    parser = argparse.ArgumentParser(description="Post-clean extracted text files.")
+    parser.add_argument("--input-dir", default=str(INPUT_DIR), help="Input directory containing .txt files")
+    parser.add_argument("--output-dir", default=str(OUTPUT_DIR), help="Output directory for cleaned .txt files")
+    args = parser.parse_args()
+    input_dir = Path(args.input_dir)
+    output_dir = Path(args.output_dir)
+    INPUT_DIR = input_dir
+    OUTPUT_DIR = output_dir
+    process_all(input_dir, output_dir)
 
 

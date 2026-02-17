@@ -166,7 +166,7 @@ reg_B :
             search in : taken
             search text : "上記(4)に掲げる工事の経験を有する"
             if found : 
-               set(「同種性が認められる工事（企業）」)
+               set(「同種性が認められる（企業）」)
             if not found : 
                search in : taken
                search text : "次の(ア)又は(イ)に掲げる工事の経験を有する者であること"
@@ -203,7 +203,7 @@ reg_B :
             search in : taken
             search text : "上記(4)に掲げる工事の経験を有する"
             if found : 
-               set(「より同種性の高い工事（企業）」)
+               set(「より同種性が高い（企業）」)
             if not found : 
                search in : taken
                search text : "次の(ア)又は(イ)に掲げる工事の経験を有する者であること"

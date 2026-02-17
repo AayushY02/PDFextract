@@ -48,7 +48,6 @@ name_of :
                      if found : 
                         take left : 
                            remove whitespaces
-                           add in right(所)
                            store(var_nameof)
                            set(var_nameof)
 

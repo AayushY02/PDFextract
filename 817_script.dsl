@@ -35,6 +35,7 @@ name_of :
                         if found : 
                            take left:
                               remove whitespaces
+                              replace("次" , "")
                               store(var_nameof)
                               set(var_nameof)
       if not found : 
@@ -55,6 +56,7 @@ name_of :
                            if found : 
                               take left : 
                                  remove whitespaces
+                                 replace("次" , "")
                                  store(var_nameof)
                                  set(var_nameof)
 
@@ -173,12 +175,12 @@ reg_B :
             search in : taken
             search text : "上記(4)本文に掲げる工事の経験(主任技術者、監理技術者、 特例監理技術者、現場代理人、監理技術者補佐、担当技術者として)を有する者であること"
             if found : 
-               set(「より同種性の高い工事（企業）」)
+               set(「より同種性が高い（企業）」)
             if not found : 
                search in : taken
                search text : "上記(4)本文に掲げる工事の経験(主任技術者、監理技術者、"
                if found : 
-                  set(「より同種性の高い工事（企業）」)
+                  set(「より同種性が高い（企業）」)
                if not found : 
                   set("記載なし")
       if not found : 

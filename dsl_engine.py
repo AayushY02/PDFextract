@@ -1079,6 +1079,8 @@ def main():
         "「高い同種性が認められる（技術者）」",
         "「より同種性が高い（企業）」",
         "「より同種性が高い（技術者）」",
+        "「やや同種性が高い工事（企業）」",
+        "「やや同種性が高い工事（技術者）」"
     ]
     var_order = []
     # Always include preferred_order in CSV/Excel headers, even if not present in the script.

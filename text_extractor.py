@@ -77,6 +77,8 @@ TABLE_RATIO_THRESHOLD = 0.70
 TABLE_RATIO_SECONDARY = 0.50
 TABLE_COUNT_THRESHOLD = 3
 
+EMPTY_ENUM_RUN_MIN = 5
+
 TABLE_START_TOKEN = "[[TABLE_START"
 TABLE_END_TOKEN = "[[TABLE_END]]"
 # ----------------------------------
@@ -477,6 +479,41 @@ def _table_stats(text: str) -> dict:
     }
 
 
+def _remove_table_blocks(text: str) -> str:
+    if TABLE_START_TOKEN not in text:
+        return text
+    out = []
+    i = 0
+    n = len(text)
+    while i < n:
+        start = text.find(TABLE_START_TOKEN, i)
+        if start == -1:
+            out.append(text[i:])
+            break
+        out.append(text[i:start])
+        end = text.find(TABLE_END_TOKEN, start)
+        if end == -1:
+            break
+        i = end + len(TABLE_END_TOKEN)
+    return "".join(out)
+
+
+def _max_empty_circled_enum_run(text: str) -> int:
+    circled = {chr(code) for code in range(0x2460, 0x2474)}  # ①..⑳
+    cleaned = _strip_markers_for_quality(_remove_table_blocks(text))
+    max_run = 0
+    current = 0
+    for line in cleaned.splitlines():
+        s = line.strip()
+        if s in circled:
+            current += 1
+            if current > max_run:
+                max_run = current
+        else:
+            current = 0
+    return max_run
+
+
 def _is_expected_char(ch: str) -> bool:
     if ch in ("\n", "\r", "\t"):
         return True
@@ -550,17 +587,21 @@ def analyze_text_quality(text: str, source_ext: str) -> dict:
     else:
         is_table_heavy = False
 
+    structure_applicable = source_ext == ".pdf"
+    if structure_applicable:
+        empty_enum_run = _max_empty_circled_enum_run(text)
+        is_structure_suspicious = empty_enum_run >= EMPTY_ENUM_RUN_MIN
+    else:
+        empty_enum_run = 0
+        is_structure_suspicious = False
+
     flag_reasons = []
-    if weird_replacement:
-        flag_reasons.append("replacement_char")
-    if weird_control:
-        flag_reasons.append("control_ratio")
-    if weird_private:
-        flag_reasons.append("private_use_ratio")
-    if weird_nonexpected:
-        flag_reasons.append("non_expected_ratio")
+    if is_weird:
+        flag_reasons.append("invalid_characters")
     if table_applicable and is_table_heavy:
-        flag_reasons.append("table_ratio")
+        flag_reasons.append("high_no_tables")
+    if structure_applicable and is_structure_suspicious:
+        flag_reasons.append("format_mismatch_review_needed")
 
     return {
         "total_chars": total_chars,
@@ -570,9 +611,12 @@ def analyze_text_quality(text: str, source_ext: str) -> dict:
         "non_expected_ratio": round(non_expected_ratio, 6),
         "table_blocks": table_blocks,
         "table_ratio": round(table_ratio, 6),
+        "empty_enum_run": empty_enum_run,
+        "is_structure_suspicious": is_structure_suspicious,
         "is_weird": is_weird,
         "is_table_heavy": is_table_heavy,
         "table_applicable": table_applicable,
+        "structure_applicable": structure_applicable,
         "flag_reason": "|".join(flag_reasons),
     }
 
@@ -602,9 +646,12 @@ def init_quality_log():
             "想定外文字比率",
             "表ブロック数",
             "表比率",
+            "空番号連続数",
             "文字化け疑い",
             "表中心",
+            "構造崩れ疑い",
             "問題の種類",
+            "要確認フラグ",
         ])
 
     with open(QUALITY_LOG_FILE_EN, "w", newline="", encoding="utf-8-sig") as f:
@@ -622,9 +669,12 @@ def init_quality_log():
             "non_expected_ratio",
             "table_blocks",
             "table_ratio",
+            "empty_enum_run_max",
             "weird_text_suspected",
             "table_heavy",
+            "structure_suspicious",
             "issue_types",
+            "needs_review",
         ])
 
     _write_quality_legend_files(RESULTS_DIR)
@@ -654,11 +704,9 @@ def _jp_flag_reason(reason: str) -> str:
     if not reason:
         return ""
     mapping = {
-        "replacement_char": "置換文字(�)",
-        "control_ratio": "制御文字比率",
-        "private_use_ratio": "私用領域文字比率",
-        "non_expected_ratio": "想定外文字比率",
-        "table_ratio": "表比率",
+        "format_mismatch_review_needed": "形式不一致",
+        "invalid_characters": "無効文字",
+        "high_no_tables": "表が多い",
     }
     parts = [mapping.get(r, r) for r in reason.split("|") if r]
     return " / ".join(parts)
@@ -681,15 +729,23 @@ def append_quality_log(file_path: Path, pages: int, status: str, error: str, qua
             "non_expected_ratio": 0.0,
             "table_blocks": 0,
             "table_ratio": 0.0,
+            "empty_enum_run": 0,
+            "is_structure_suspicious": False,
             "is_weird": False,
             "is_table_heavy": False,
             "table_applicable": True,
+            "structure_applicable": True,
             "flag_reason": "",
         }
 
     table_applicable = quality.get("table_applicable", True)
+    structure_applicable = quality.get("structure_applicable", True)
     table_blocks = quality["table_blocks"] if table_applicable else ""
     table_ratio = quality["table_ratio"] if table_applicable else ""
+    empty_enum_run = quality["empty_enum_run"] if structure_applicable else ""
+    needs_review = "☆" if (status != "OK" or quality["flag_reason"]) else ""
+
+    issue_type_jp = "抽出失敗" if status != "OK" else _jp_flag_reason(quality["flag_reason"])
 
     with open(QUALITY_LOG_FILE, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -706,9 +762,12 @@ def append_quality_log(file_path: Path, pages: int, status: str, error: str, qua
             quality["non_expected_ratio"],
             table_blocks,
             table_ratio,
+            empty_enum_run,
             _jp_bool(quality["is_weird"]),
             _jp_bool_or_na(quality["is_table_heavy"], table_applicable),
-            _jp_flag_reason(quality["flag_reason"]),
+            _jp_bool_or_na(quality["is_structure_suspicious"], structure_applicable),
+            issue_type_jp,
+            needs_review,
         ])
 
 
@@ -724,9 +783,16 @@ def _write_quality_legend_files(base_dir: Path):
 - 私用領域文字数: Unicode私用領域(U+E000〜U+F8FF)の文字数
 - 想定外文字比率: 期待される文字以外の割合
 - 表ブロック数/表比率: PDFのみ対象。表と判定された領域の数/割合
+- 空番号連続数: ②③④…のような“空の番号行”が連続する最大数
 - 文字化け疑い: 文字化けの兆候がある場合「はい」
 - 表中心: PDFのみ対象。表が多すぎる場合「はい」、PDF以外は「対象外」
-- 問題の種類: 判定理由の一覧
+- 構造崩れ疑い: 空番号の連続が一定以上の場合「はい」(PDFのみ対象)
+- 問題の種類: 次の3分類のみ
+  - 形式不一致
+  - 無効文字
+  - 表が多い
+- 抽出失敗時は「抽出失敗」と表示
+- 要確認フラグ: 問題がある場合「☆」(抽出失敗も含む)
 
 比率は「該当文字数 ÷ 文字数」で計算しています。
 """
@@ -739,9 +805,16 @@ def _write_quality_legend_files(base_dir: Path):
 - private_use_char_count: Unicode private-use chars (U+E000–U+F8FF)
 - non_expected_ratio: ratio of characters outside the expected set
 - table_blocks/table_ratio: PDF only. Count/ratio of table regions
+- empty_enum_run_max: max consecutive empty circled-number lines (e.g., ②③④…)
 - weird_text_suspected: "Yes" if text looks garbled
 - table_heavy: "Yes" if tables dominate; "N/A" for non-PDF
-- issue_types: reasons for the flag
+- structure_suspicious: "Yes" if empty circled-number runs exceed threshold (PDF only)
+- issue_types: only these three labels
+  - Format Mismatch
+  - Invalid Characters
+  - High number of tables
+- If extraction fails, issue_types shows "Extraction Failed"
+- needs_review: "☆" if any issue exists (including extraction failure)
 
 Ratios are calculated as (matching chars) / (total chars).
 """
@@ -762,11 +835,9 @@ def _en_flag_reason(reason: str) -> str:
     if not reason:
         return ""
     mapping = {
-        "replacement_char": "Replacement char (�)",
-        "control_ratio": "Control char ratio",
-        "private_use_ratio": "Private-use ratio",
-        "non_expected_ratio": "Non-expected ratio",
-        "table_ratio": "Table ratio",
+        "format_mismatch_review_needed": "Format Mismatch",
+        "invalid_characters": "Invalid Characters",
+        "high_no_tables": "High number of tables",
     }
     parts = [mapping.get(r, r) for r in reason.split("|") if r]
     return " / ".join(parts)
@@ -789,15 +860,23 @@ def append_quality_log_en(file_path: Path, pages: int, status: str, error: str, 
             "non_expected_ratio": 0.0,
             "table_blocks": 0,
             "table_ratio": 0.0,
+            "empty_enum_run": 0,
+            "is_structure_suspicious": False,
             "is_weird": False,
             "is_table_heavy": False,
             "table_applicable": True,
+            "structure_applicable": True,
             "flag_reason": "",
         }
 
     table_applicable = quality.get("table_applicable", True)
+    structure_applicable = quality.get("structure_applicable", True)
     table_blocks = quality["table_blocks"] if table_applicable else ""
     table_ratio = quality["table_ratio"] if table_applicable else ""
+    empty_enum_run = quality["empty_enum_run"] if structure_applicable else ""
+    needs_review = "☆" if (status != "OK" or quality["flag_reason"]) else ""
+
+    issue_type_en = "Extraction Failed" if status != "OK" else _en_flag_reason(quality["flag_reason"])
 
     with open(QUALITY_LOG_FILE_EN, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -814,9 +893,12 @@ def append_quality_log_en(file_path: Path, pages: int, status: str, error: str, 
             quality["non_expected_ratio"],
             table_blocks,
             table_ratio,
+            empty_enum_run,
             _en_bool(quality["is_weird"]),
             _en_bool_or_na(quality["is_table_heavy"], table_applicable),
-            _en_flag_reason(quality["flag_reason"]),
+            _en_bool_or_na(quality["is_structure_suspicious"], structure_applicable),
+            issue_type_en,
+            needs_review,
         ])
 
 def collect_supported_files(input_dir: Path):

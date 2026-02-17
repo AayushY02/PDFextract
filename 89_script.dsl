@@ -64,7 +64,6 @@ name_of :
                   if found : 
                      take left :
                         remove whitespaces
-                        add in right(所)
                         store(var_nameof)
                         set(var_nameof)
 
@@ -105,7 +104,48 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("")    
+      search in : region_A
+      search text : "元請けとして次に掲げるア)の要件を満たす同種工事の施工実績を有すること。"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "分担工事の経験であること。)"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "ただし、経常建設共同企業体"
+                  if found : 
+                     take left : 
+                        remove whitespaces
+                        replace("の施工実績を有すること。" , "")
+                        replace("を有すること。" , "")
+                        replace("ア)" , "")
+                        store(doushi_kouji_1)
+                        set(doushi_kouji_1)    
+      if not found : 
+         search in : region_A
+         search text : "元請けとして次に掲げるア)~ウ)"
+         if found : 
+            take right : 
+               search in : taken
+               search text : "分担工事の経験であること。)"
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : "ただし、経常建設共同企業体"
+                     if found : 
+                        take left : 
+                           search in : taken
+                           search text : "ただし、"
+                           if found : 
+                              take right : 
+                                 remove whitespaces
+                                 store(doushi_kouji_1)
+                                 set(doushi_kouji_1)    
+                           if not found : 
+                              remove whitespaces
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)    
    if false:
       search in : region_A
       search text : "元請けとして次に掲げるア)の要件を満たす同種工事の施工実績を有すること。"
@@ -154,7 +194,14 @@ reg_B :
    check : name_of
    has value : 本官
    if true : 
-      set("")    
+      search in : region_A
+      search text : "次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に配置できること。"
+      if found : 
+         take right : 
+            search in : taken
+            search text : ("上記(4)に掲げる同種工事の経験を有する者であること。" , "上記(5)に掲げる同種工事の経験を有する者であること。" , "上記(4)に掲げる同種工事の経験を有")
+            if found : 
+               set(「同種工事（企業）」)    
    if false:
       search in : region_A
       search text : "次に掲げる基準を満たす主任技術者又は監理技術者を当該工事に配置できること。"

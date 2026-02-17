@@ -34,9 +34,17 @@ name_of :
                         search text : "長"
                         if found : 
                            take left:
-                              remove whitespaces
-                              store(var_nameof)
-                              set(var_nameof)
+                              search in : taken
+                              search text : "部"
+                              if found :
+                                 remove whitespaces
+                                 store(var_nameof)
+                                 set(var_nameof)
+                              if not found : 
+                                 add in right("部")
+                                 remove whitespaces
+                                 store(var_nameof)
+                                 set(var_nameof)
       if not found : 
          search in : all
          search text : "契約担当官等"
@@ -54,9 +62,17 @@ name_of :
                            search text : "長"
                            if found : 
                               take left : 
-                                 remove whitespaces
-                                 store(var_nameof)
-                                 set(var_nameof)
+                                 search in : taken
+                                 search text : "部"
+                                 if found :
+                                    remove whitespaces
+                                    store(var_nameof)
+                                    set(var_nameof)
+                                 if not found : 
+                                    add in right("部")
+                                    remove whitespaces
+                                    store(var_nameof)
+                                    set(var_nameof)
 
 「工事名」:
    search in : all
@@ -185,7 +201,7 @@ reg_B :
             search in : taken
             search text : "上記(4)ア又はイに掲げる工事の経験を有する者であること"
             if found : 
-               set(「より同種性の高い工事（企業）」)
+               set(「より同種性が高い（企業）」)
             if not found : 
                set("記載なし")
 

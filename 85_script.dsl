@@ -166,42 +166,207 @@ reg_B :
                         store(var_ts_gijutsu_false)
                         set(var_ts_gijutsu_false)
 
-「より同種性が高い（企業）」:
-   search in : region_A
-   search text : "同種工事:"
-   if found : 
-      take right : 
-         search in : taken
-         search text : ["また、" , "を「より同種性が高い」と評価"]
-         if found : 
-            search in : taken 
-            search text : "また、"
+
+「同種性が認められる（企業）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in: region_A
+      search text : ("元請けとして、次に示す同種工事の要件を満たす鋼橋を架設(製作)した工事の引渡しを完了した実績を有すること" , "元請けとして、以下に示す同種工事の引渡しを完了した実績を有すること")
+      if found : 
+         take right :
+            search in : taken
+            search text: "同種工事:"
             if found : 
                take right : 
                   search in : taken
-                  search text : "を「より同種性が高い」と評価"
+                  search text : "経常建設共同企業体(甲型、乙型)"
                   if found : 
-                     take left : 
-                        remove whitespaces
-                        replace("の施工実績", "")
-                        store(var_high)
-                        set(var_high)           
-         if not found : 
+                     take left :
+                        search in : taken
+                        search text : ("「同種性が認められる工事」")
+                        if found : 
+                           take left : 
+                              search in : taken
+                              search text : "同種工事の要件を満たす場合"
+                              if found : 
+                                 set(「同種工事（企業）」)
+
+「同種性が認められる（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in: region_A
+      search text : ("同一の者が以下に示す工事の経験を有する者であること" , "同一の者が以下に示す工事の鋼橋を架設した経験を有する者であること")
+      if found : 
+         take right :
             search in : taken
-            search text : ["また、" , "を「よ"]
+            search text: "同種工事:"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "配置予定技術者と直接的かつ恒常的な雇用関係"
+                  if found : 
+                     take left :
+                        search in : taken
+                        search text : "「同種性が認められる工事」"
+                        if found : 
+                           take left : 
+                              search in : taken
+                              search text : "同種工事の要件を満たす場合"
+                              if found : 
+                                 set(「同種工事（技術者）」)
+
+「やや同種性が高い工事（企業）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in: region_A
+      search text : ("元請けとして、次に示す同種工事の要件を満たす鋼橋を架設(製作)した工事の引渡しを完了した実績を有すること" , "元請けとして、以下に示す同種工事の引渡しを完了した実績を有すること")
+      if found : 
+         take right :
+            search in : taken
+            search text: "同種工事:"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "経常建設共同企業体(甲型、乙型)"
+                  if found : 
+                     take left :
+                        search in : taken
+                        search text : ("「同種性が認められる工事」")
+                        if found : 
+                           take right : 
+                              search in : taken
+                              search text : "実績において、"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "を「やや同種性が高い工事」"
+                                    if found : 
+                                       take left : 
+                                          store(tempxxx)
+                        search in : taken
+                        search text : "とし、高く評価する。"
+                        if found : 
+                           take right : 
+                              add in left("\n")
+                              add in left(tempxxx)
+                              remove whitespaces
+                              store(finalxxx)
+                              set(finalxxx)
+                                 
+
+「やや同種性が高い工事（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in: region_A
+      search text : ("同一の者が以下に示す工事の経験を有する者であること" , "同一の者が以下に示す工事の鋼橋を架設した経験を有する者であること")
+      if found : 
+         take right :
+            search in : taken
+            search text: "同種工事:"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "配置予定技術者と直接的かつ恒常的な雇用関係"
+                  if found : 
+                     take left :
+                        search in : taken
+                        search text : ("「同種性が認められる工事」")
+                        if found : 
+                           take right : 
+                              search in : taken
+                              search text : "実績において、"
+                              if found : 
+                                 take right : 
+                                    search in : taken
+                                    search text : "を「やや同種性が高い工事」"
+                                    if found : 
+                                       take left : 
+                                          store(tempyyy)
+                        search in : taken
+                        search text : "とし、高く評価する。"
+                        if found : 
+                           take right : 
+                              add in left("\n")
+                              add in left(tempyyy)
+                              remove whitespaces
+                              store(finalyyy)
+                              set(finalyyy)
+
+
+「より同種性が高い（企業）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in: region_A
+      search text : ("元請けとして、次に示す同種工事の要件を満たす鋼橋を架設(製作)した工事の引渡しを完了した実績を有すること" , "元請けとして、以下に示す同種工事の引渡しを完了した実績を有すること")
+      if found : 
+         take right :
+            search in : taken
+            search text: "同種工事:"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "経常建設共同企業体(甲型、乙型)"
+                  if found : 
+                     take left :
+                        search in : taken
+                        search text : ("を「やや同種性が高い工事」とし、")
+                        if found : 
+                           take right : 
+                              search in : taken
+                              search text : "を「より同種性が高い工事」"
+                              if found : 
+                                 take left : 
+                                    store(tempzzz)
+                        search in : taken
+                        search text : "とし、高く評価する。"
+                        if found : 
+                           take right : 
+                              add in left("\n")
+                              add in left(tempzzz)
+                              remove whitespaces
+                              store(finalzzz)
+                              set(finalzzz)
+   if false :
+      search in : region_A
+      search text : "同種工事:"
+      if found : 
+         take right : 
+            search in : taken
+            search text : ["また、" , "を「より同種性が高い」と評価"]
             if found : 
                search in : taken 
                search text : "また、"
                if found : 
                   take right : 
                      search in : taken
-                     search text : "を「よ"
+                     search text : "を「より同種性が高い」と評価"
                      if found : 
                         take left : 
                            remove whitespaces
                            replace("の施工実績", "")
                            store(var_high)
-                           set(var_high)    
+                           set(var_high)           
+            if not found : 
+               search in : taken
+               search text : ["また、" , "を「よ"]
+               if found : 
+                  search in : taken 
+                  search text : "また、"
+                  if found : 
+                     take right : 
+                        search in : taken
+                        search text : "を「よ"
+                        if found : 
+                           take left : 
+                              remove whitespaces
+                              replace("の施工実績", "")
+                              store(var_high)
+                              set(var_high)    
 
 
 「temp_より同種性が高い工事（企業）」:
@@ -268,30 +433,27 @@ reg_B :
             if found : 
                take right : 
                   search in : taken
-                  search text : "同種工事の要件を満たす場合、「同種性が認められる工事」と評価する。更に、"
+                  search text : "配置予定技術者と直接的かつ恒常的な雇用関係"
                   if found : 
-                     take right :
+                     take left :
                         search in : taken
-                        search text : "配置予定技術者と直接的かつ恒常的な雇用関係"
+                        search text : ("を「やや同種性が高い工事」とし、")
                         if found : 
-                           take left : 
+                           take right : 
+                              search in : taken
+                              search text : "を「より同種性が高い工事」"
+                              if found : 
+                                 take left : 
+                                    store(tempttt)
+                        search in : taken
+                        search text : "とし、高く評価する。"
+                        if found : 
+                           take right : 
+                              add in left("\n")
+                              add in left(tempttt)
                               remove whitespaces
-                              replace("の施工実績", "")
-                              store(new)
-                              set(new)
-                  if not found : 
-                     search in : taken
-                     search text : "を有すること。"
-                     if found : 
-                        take right : 
-                           search in : taken
-                           search text : "配置予定技術者と直接的かつ恒常的な雇用関係"
-                           if found : 
-                              take left : 
-                                 remove whitespaces
-                                 replace("の施工実績", "")
-                                 store(new)
-                                 set(new)
+                              store(finalttt)
+                              set(finalttt)
    if false :
       search in : region_B
       search text : "工事の総合評価に関する加算点は以下のとおり付与する。"

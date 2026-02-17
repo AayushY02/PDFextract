@@ -18,6 +18,7 @@ Requirements:
 
 Usage:
     python text_cleaner.py
+    python text_cleaner.py --input-dir results/output1 --output-dir results/output2
 """
 
 import os
@@ -27,6 +28,7 @@ import shutil
 from datetime import datetime
 import csv
 import re
+import argparse
 
 # ---------- CONFIGURATION ----------
 BASE_DIR = Path("results")
@@ -2226,5 +2228,17 @@ def export_rules_status():
     print(f"📋 Rule status CSV generated at: {csv_path}")
 # ----------------------------------------
 
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Clean extracted text files.")
+    parser.add_argument("--input-dir", default=str(INPUT_DIR), help="Input directory containing .txt files")
+    parser.add_argument("--output-dir", default=str(OUTPUT_DIR), help="Output directory for cleaned .txt files")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    process_text_files(INPUT_DIR, OUTPUT_DIR)
+    args = _parse_args()
+    input_dir = Path(args.input_dir)
+    output_dir = Path(args.output_dir)
+    INPUT_DIR = input_dir
+    OUTPUT_DIR = output_dir
+    process_text_files(input_dir, output_dir)
