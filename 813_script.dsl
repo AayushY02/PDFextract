@@ -121,7 +121,7 @@ reg_B :
                 if found : 
                     take left :
                         remove whitespaces
-                        replace("実績を有すること。" , "")
+                        replace("の施工実績を有すること。" , "")
                         replace("の施工。" , "")
                         store(doushi_kouji_1)
                         set(doushi_kouji_1)
