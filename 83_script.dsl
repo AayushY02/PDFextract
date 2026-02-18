@@ -14,42 +14,46 @@ name_bu :
 
 name_of :
    search in : all
-   search text : "支出負担行為担当官関東地方整備局長"
-   if found :
-      set("本官")
-   if not found : 
-      search in : all
-      search text : "2.契約担当官等"
-      if found : 
-         take right : 
-            search in : taken
-            search text : "分任支出負担行為担当官"
-            if found :
-               take right :
+   search text : "3.工事概要"
+   if found : 
+      take left : 
+         search in : taken
+         search text : "関東地方整備局長"
+         if found :
+            set("本官")
+         if not found : 
+            search in : all
+            search text : "2.契約担当官等"
+            if found : 
+               take right : 
                   search in : taken
-                  search text : "関東地方整備局"
-                  if found:
-                     take right:
+                  search text : "分任支出負担行為担当官"
+                  if found :
+                     take right :
                         search in : taken
-                        search text : "所長"
-                        if found : 
-                           take left:
-                              remove whitespaces
-                              add in right(所)
-                              store(var_nameof)
-                              set(var_nameof)
-            if not found : 
-               search in : taken
-               search text : "契約担当官"
-               if found : 
-                  take right : 
+                        search text : "関東地方整備局"
+                        if found:
+                           take right:
+                              search in : taken
+                              search text : "所長"
+                              if found : 
+                                 take left:
+                                    remove whitespaces
+                                    add in right(所)
+                                    store(var_nameof)
+                                    set(var_nameof)
+                  if not found : 
                      search in : taken
-                     search text : "長"
+                     search text : "契約担当官"
                      if found : 
-                        take left : 
-                           remove whitespaces
-                           store(var_nameof)
-                           set(var_nameof)
+                        take right : 
+                           search in : taken
+                           search text : "長"
+                           if found : 
+                              take left : 
+                                 remove whitespaces
+                                 store(var_nameof)
+                                 set(var_nameof)
 
 「工事名」:
    search in : all
@@ -94,7 +98,7 @@ reg_B :
    has value : 本官
    if true : 
       search in : region_A
-      search text : "完成･引渡しが完了した下記(ア)、(イ)に掲げるいずれかの要件を満たす同種工事の施工実績を有すること"
+      search text : ("完成･引渡しが完了した下記(ア)、(イ)に掲げるいずれかの要件を満たす同種工事の施工実績を有すること" , "完成･引渡しが完了した下記の要件を満たす同種工事の施工実績を有すること。")
       if found : 
          take right : 
             search in : taken
@@ -106,6 +110,7 @@ reg_B :
                   if found : 
                      take left : 
                         remove whitespaces
+                        replace(end, "ただし、" , "")
                         store(temp1212)
                         set(temp1212)
    if false:
@@ -242,6 +247,11 @@ reg_B :
                               remove whitespaces
                               store(temo11)
                               set(temo11)
+            if not found : 
+               search in : taken
+               search text : "元請けとして完成･引渡しが完了した上記(5)\n(ア)に掲げる工事の経験を有するものであること"
+               if found : 
+                  set(「同種工事（企業）」)
    if false:
       search in : region_A
       search text : ("引渡しが完了した上記(5)(ア)に掲げる工事の経験を有する" , "引渡しが完了した上記(5)(ア)" , "引渡しが完了した上記(5)")

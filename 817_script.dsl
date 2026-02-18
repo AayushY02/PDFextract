@@ -10,7 +10,7 @@ name_bu :
    search in : all
    search text : "北海道開発局網走開発建設部"
    if found : 
-      set("網走開発建設部")
+      set("北海道開発局")
 
 name_of :
    search in first : 20
@@ -113,9 +113,6 @@ reg_B :
                      take left : 
                         remove whitespaces
                         replace("の施工実績を有すること。" , "")
-                        replace("(H" , "")
-                        replace("(" , "")
-                        replace(")" , "")
                         replace("- -5" , "")
                         replace("- -4" , "")
                         replace("1" , "")

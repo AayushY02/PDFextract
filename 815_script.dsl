@@ -113,8 +113,6 @@ reg_B :
                         replace("の施工実績を有すること。" , "")
                         replace("の施工実績。" , "")
                         replace("･" , "")
-                        replace("(" , "")
-                        replace(")" , "")
                         store(doushi_kouji_1)
                         set(doushi_kouji_1)                         
 
@@ -143,8 +141,6 @@ reg_B :
                               remove whitespaces
                               replace("の施工実績を有すること。" , "")
                               replace("の施工実績。" , "")
-                              replace("(" , "")
-                              replace(")" , "")
                               replace("･" , "")
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)

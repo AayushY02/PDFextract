@@ -263,9 +263,8 @@ reg_B :
                               remove whitespaces
                               replace("敷設の施工実績を有する" , "")
                               replace("実績を有する" , "")
-                              replace("の施工" , "")
                               replace("S又はA以外の" , "")
-                              replace("敷設の施 工" , "")
+                              replace("の施 工" , "")
                               replace("の 施工実績" , "")
                               replace("を含む施工実 績を有する" , "")
                               store(co_very_high_similarity)
@@ -322,7 +321,7 @@ reg_B :
                            take left : 
                               remove whitespaces
                               replace("を含む施工実 績を有する" , "")
-                              replace("敷設の施工実績 を有する" , "")
+                              replace("の施工実績 を有する" , "")
                               replace("の施工実績 を有する" , "")
                               replace("の施工実績を有する" , "")
                               replace("S以外の" , "")
@@ -441,11 +440,12 @@ reg_B :
                                                 replace("敷設の施工実績を有する" , "")
                                                 replace("実績を有する" , "")
                                                 replace("の施工" , "")
-                                                replace("敷設の施 工" , "")
+                                                replace("の施 工" , "の施工")
                                                 replace("の 施工実績" , "")
                                                 replace("を含む施工経 験を有する" , "")
                                                 replace("経験を有する" , "")
                                                 replace("S又はA以外の" , "")
+                                                replace(":4点" , "")
                                                 store(eng_very_high_similarity)
                                                 set(eng_very_high_similarity)
    if false : 
@@ -480,8 +480,7 @@ reg_B :
                                                 remove whitespaces
                                                 replace("敷設の施工実績を有する" , "")
                                                 replace("実績を有する" , "")
-                                                replace("の施工" , "")
-                                                replace("敷設の施 工" , "")
+                                                replace("の施 工" , "")
                                                 replace("の 施工実績" , "")
                                                 replace("を含む施工経 験を有する" , "")
                                                 replace("経験を有する" , "")
@@ -572,10 +571,8 @@ reg_B :
                                                 replace("の施工経験を有する" , "")
                                                 replace("S以外の" , "")
                                                 replace("を含む施工経 験を有する" , "")
-                                                replace("の施工" , "")
-                                                replace("敷設" , "")
                                                 replace("上記(S)を除く、" , "")
-                                                replace("経験を 有する" , "")
+                                                replace("を 有する" , "")
                                                 store(eng_high_similarity)
                                                 set(eng_high_similarity)
 

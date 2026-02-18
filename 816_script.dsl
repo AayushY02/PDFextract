@@ -134,7 +134,6 @@ reg_B :
                            replace("覆道橋梁カルバートのいずれかの補修" , "")
                            replace("なお、" , "")
                            replace("(5)" , "")
-                           replace("･" , "")
                            replace(":" , "")
                            store(doushi_kouji_1)
                            set(doushi_kouji_1)                  
