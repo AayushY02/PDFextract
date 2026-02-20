@@ -30,7 +30,7 @@ from docx.text.paragraph import Paragraph
 
 # ---------- CONFIGURATION ----------
 INPUT_DIR = Path("input")
-OUTPUT_DIR = Path("results/test")
+OUTPUT_DIR = Path("results/test1")
 LOG_FILE = OUTPUT_DIR / "log.csv"
 QUALITY_LOG_FILE = OUTPUT_DIR / "quality.csv"
 QUALITY_LOG_FILE_EN = OUTPUT_DIR / "quality_en.csv"

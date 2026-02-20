@@ -33,7 +33,7 @@ import argparse
 # ---------- CONFIGURATION ----------
 BASE_DIR = Path("results")
 
-INPUT_DIR = BASE_DIR / "test"
+INPUT_DIR = BASE_DIR / "test1"
 OUTPUT_DIR = BASE_DIR / "test2"
 
 # INPUT_DIR = BASE_DIR / "output1"

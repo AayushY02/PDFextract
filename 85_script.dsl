@@ -107,11 +107,12 @@ reg_B :
       if found : 
          take right : 
             search in : taken
-            search text : "また"
+            search text : "また、同種工事"
             if found : 
                take left :
                   remove whitespaces
                   replace("の施工実績", "")
+                  replace("下記の要件を満たす工事の引き渡しが完了した実績を有すること。", "")
                   store(new)
                   set(new)
 

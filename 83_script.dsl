@@ -422,15 +422,10 @@ reg_B :
                         search text : " | "
                         if found : 
                            take left : 
-                              search in : taken
-                              search text : "上記以外の同種工事の実績"
-                              if found : 
-                                 set(「同種工事（企業）」)
-                              if not found :
-                                 remove whitespaces
-                                 replace("の施工実績を有すること。" , "")
-                                 store(co_similarity)
-                                 set(co_similarity)
+                              remove whitespaces
+                              replace("の施工実績を有すること。" , "")
+                              store(co_similarity)
+                              set(co_similarity)
                         if not found : 
                            set("記載なし")
                   if not found : 
@@ -598,14 +593,9 @@ reg_B :
                      search text : " | "
                      if found : 
                         take left : 
-                           search in : taken
-                           search text : "上記以外の同種工事の経験"
-                           if found : 
-                              set(「同種工事（技術者）」)
-                           if not found : 
-                              remove whitespaces
-                              store(eng_similarity)
-                              set(eng_similarity)
+                           remove whitespaces
+                           store(eng_similarity)
+                           set(eng_similarity)
                      if not found : 
                         set("記載なし")
                if not found : 

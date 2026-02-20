@@ -91,7 +91,7 @@ reg_B :
       take right : 
          store(region_B)
 
-「同種性が認められる（企業）」:
+「同種工事（企業）」:
    check : name_of
    has value : 本官
    if true : 
@@ -153,7 +153,7 @@ reg_B :
       
 
 
-「同種性が認められる（技術者）」:
+「同種工事（技術者）」:
    check : name_of
    has value : 本官
    if true : 
