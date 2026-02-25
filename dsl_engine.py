@@ -528,7 +528,6 @@ def do_search(env: ExecEnv, search_value: Any):
     if isinstance(search_value, list):
         ok = all(scope_text.find(item) >= 0 for item in search_value)
         env.last_search_found = ok
-        # keep no specific match indices for list search
     else:
         pat = str(search_value)
         idx = scope_text.find(pat)
@@ -959,6 +958,172 @@ def _write_excel_table(out_path, headers, rows):
     df.to_excel(out_path, index=False, header=False, engine="openpyxl")
 
 
+# --------------------------- Level-mapped outputs ---------------------------
+
+LEVEL_BASE_KEYS = [
+    "has_eval_phrase",
+    "name_bu",
+    "name_of",
+    "「工事名」",
+    "「同種工事（企業）」",
+    "「同種工事（技術者）」",
+]
+
+LEVEL_HEADERS = [
+    "レベル0（企業）",
+    "レベル0（技術者）",
+    "レベル1（企業）",
+    "レベル1（技術者）",
+    "レベル2（企業）",
+    "レベル2（技術者）",
+]
+
+
+LEVEL_OUTPUT_HEADERS = []
+for key in LEVEL_BASE_KEYS:
+    LEVEL_OUTPUT_HEADERS.append(key)
+    LEVEL_OUTPUT_HEADERS.append(f"{key} pageNo")
+for key in LEVEL_HEADERS:
+    LEVEL_OUTPUT_HEADERS.append(key)
+    LEVEL_OUTPUT_HEADERS.append(f"{key} pageNo")
+
+LEVEL_DEFS = {
+    "レベル0": {
+        "企業": [
+            "「同種性が認められる（企業）」",
+            "「同種性（企業）」",
+        ],
+        "技術者": [
+            "「同種性が認められる（技術者）」",
+            "「同種性（技術者）」",
+        ],
+    },
+    "レベル1": {
+        "企業": [
+            "「高い同種性が認められる（企業）」",
+            "「同種性が高い（企業）」",
+            "「やや同種性が高い工事（企業）」",
+        ],
+        "技術者": [
+            "「高い同種性が認められる（技術者）」",
+            "「同種性が高い（技術者）」",
+            "「やや同種性が高い工事（技術者）」",
+        ],
+    },
+    "レベル2": {
+        "企業": [
+            "「より同種性が高い（企業）」",
+        ],
+        "技術者": [
+            "「より同種性が高い（技術者）」",
+        ],
+    },
+}
+
+
+
+def _alt_paren_keys(key: str) -> List[str]:
+    if not key:
+        return []
+    alt = key.replace("（", "(").replace("）", ")")
+    if alt == key:
+        return [key]
+    return [key, alt]
+
+
+def _script_has_any(base_vars: List[str], candidates: List[str]) -> bool:
+    for cand in candidates:
+        for k in _alt_paren_keys(cand):
+            if k in base_vars:
+                return True
+    return False
+
+
+def _compute_level_availability(base_vars: List[str]) -> Dict[str, Dict[str, bool]]:
+    availability: Dict[str, Dict[str, bool]] = {}
+    for level_name, roles in LEVEL_DEFS.items():
+        availability[level_name] = {}
+        for role, candidates in roles.items():
+            availability[level_name][role] = _script_has_any(base_vars, candidates)
+    return availability
+
+
+def _pick_level_value(outputs: Dict[str, Any], candidates: List[str]):
+    found = []
+    value = ""
+    chosen_key = None
+    for cand in candidates:
+        for k in _alt_paren_keys(cand):
+            if k in outputs:
+                val = outputs.get(k)
+                if val is None:
+                    continue
+                if isinstance(val, str) and not val.strip():
+                    continue
+                if cand not in found:
+                    found.append(cand)
+                if value == "":
+                    value = val
+                    chosen_key = k
+                break
+    return value, found, chosen_key
+
+
+def _build_level_row(
+    outputs: Dict[str, Any],
+    source_name: str,
+    availability: Dict[str, Dict[str, bool]],
+):
+    row = [source_name]
+    warnings = []
+    base_vals = {}
+    for key in LEVEL_BASE_KEYS:
+        base_vals[key] = outputs.get(key, "")
+        base_vals[f"{key} pageNo"] = outputs.get(f"{key} pageNo", "")
+    for level_name in ("レベル0", "レベル1", "レベル2"):
+        for role in ("企業", "技術者"):
+            candidates = LEVEL_DEFS[level_name][role]
+            if not availability[level_name][role]:
+                base_vals[f"{level_name}（{role}）"] = "記載なし"
+                base_vals[f"{level_name}（{role}） pageNo"] = ""
+                continue
+            value, found, chosen_key = _pick_level_value(outputs, candidates)
+            if len(found) > 1:
+                warnings.append((source_name, level_name, role, found))
+
+            page_no = ""
+            if chosen_key:
+                page_no = outputs.get(f"{chosen_key} pageNo", "")
+
+            if value is None or (isinstance(value, str) and not value.strip()):
+                base_vals[f"{level_name}（{role}）"] = "記載なし"
+                base_vals[f"{level_name}（{role}） pageNo"] = ""
+                continue
+
+            base_vals[f"{level_name}（{role}）"] = value
+            base_vals[f"{level_name}（{role}） pageNo"] = (page_no if page_no is not None else "")
+
+    for header in LEVEL_OUTPUT_HEADERS:
+        row.append(base_vals.get(header, ""))
+    return row, warnings
+
+
+def _write_levels_csv(out_path: str, headers: List[str], rows: List[List[Any]]):
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator="\n")
+        table = _transpose_table([["file name"] + headers] + rows)
+        for r in table:
+            w.writerow([_cell_value(v) for v in r])
+
+
+def _write_levels_excel(out_path: str, headers: List[str], rows: List[List[Any]]):
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    table = _transpose_table([["file name"] + headers] + rows)
+    df = pd.DataFrame([[_cell_value(v) for v in r] for r in table])
+    df.to_excel(out_path, index=False, header=False, engine="openpyxl")
+
+
 HALFWIDTH_KANA_RE = re.compile(r"[\uFF61-\uFF9F]+")
 DOUBLE_PAREN_POINTER_RE = re.compile(r"[(（]{2}\s*([0-9０-９]{1,3})\s*[)）]{2}")
 
@@ -1052,6 +1217,7 @@ def main():
 
     tree_for_header = parse_script(script_text)
     base_vars  = [n.name for n in tree_for_header if n.kind == 'var']
+    level_availability = _compute_level_availability(base_vars)
 
     excluded_csv_vars = {
         "reg_A",
@@ -1105,6 +1271,8 @@ def main():
         out_dir = args.outdir
 
         overall_rows = []      # summary for all text files (with relative path)
+        overall_level_rows = []  # level-mapped summary rows
+        level_warnings = []
 
         # recursive walk to pick up nested folders
         for dirpath, _, filenames in os.walk(in_dir):
@@ -1127,12 +1295,22 @@ def main():
                 base = os.path.splitext(fname)[0]
                 out_path = os.path.join(dest_dir, base + ".csv")
                 _write_csv(out_path, var_order, outputs_csv, source_name=fname)
+                level_row, warnings = _build_level_row(outputs_csv, fname, level_availability)
+                level_csv_path = os.path.join(dest_dir, base + "_levels.csv")
+                level_xlsx_path = os.path.join(dest_dir, base + "_levels.xlsx")
+                _write_levels_csv(level_csv_path, LEVEL_OUTPUT_HEADERS, [level_row])
+                _write_levels_excel(level_xlsx_path, LEVEL_OUTPUT_HEADERS, [level_row])
                 row_vals = [
                     (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
                     for h in var_order
                 ]
                 rel_name = fname if not rel_dir else os.path.join(rel_dir, fname)
                 overall_rows.append([rel_name] + row_vals)
+                overall_level_row = [rel_name] + level_row[1:]
+                overall_level_rows.append(overall_level_row)
+                if warnings:
+                    for w in warnings:
+                        level_warnings.append(w)
 
         # write overall summary for every text file processed
         if overall_rows:
@@ -1146,6 +1324,22 @@ def main():
                     w.writerow([_cell_value(v) for v in r])
             overall_xlsx_path = os.path.join(out_dir, f"{root_label}_all_texts_summary.xlsx")
             _write_excel_table(overall_xlsx_path, ['file name'] + var_order, overall_rows)
+        if overall_level_rows:
+            root_label = os.path.basename(os.path.normpath(in_dir))
+            level_summary_csv = os.path.join(out_dir, f"{root_label}_levels_summary.csv")
+            level_summary_xlsx = os.path.join(out_dir, f"{root_label}_levels_summary.xlsx")
+            _write_levels_csv(level_summary_csv, LEVEL_OUTPUT_HEADERS, overall_level_rows)
+            _write_levels_excel(level_summary_xlsx, LEVEL_OUTPUT_HEADERS, overall_level_rows)
+        if level_warnings:
+            print("WARNING: Multiple properties found for the same level. Using the first match.")
+            for idx, w in enumerate(level_warnings):
+                if idx >= 50:
+                    remaining = len(level_warnings) - 50
+                    print(f"... and {remaining} more.")
+                    break
+                fname, level_name, role, keys = w
+                keys_str = ", ".join(keys)
+                print(f"- {fname} | {level_name}（{role}）: {keys_str}")
         return
 
  # --- Single-file mode ---
@@ -1160,6 +1354,16 @@ def main():
             out_path = os.path.join(args.outdir, base + ".csv")
             src_name = os.path.basename(args.input)
             _write_csv(out_path, var_order, outputs_csv, source_name=src_name)
+            level_row, warnings = _build_level_row(outputs_csv, src_name, level_availability)
+            level_csv_path = os.path.join(args.outdir, base + "_levels.csv")
+            level_xlsx_path = os.path.join(args.outdir, base + "_levels.xlsx")
+            _write_levels_csv(level_csv_path, LEVEL_OUTPUT_HEADERS, [level_row])
+            _write_levels_excel(level_xlsx_path, LEVEL_OUTPUT_HEADERS, [level_row])
+            if warnings:
+                print("WARNING: Multiple properties found for the same level. Using the first match.")
+                for fname, level_name, role, keys in warnings:
+                    keys_str = ", ".join(keys)
+                    print(f"- {fname} | {level_name}（{role}）: {keys_str}")
         else:
             if args.json:
                 cleaned = {
