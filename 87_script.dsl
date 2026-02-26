@@ -438,36 +438,6 @@ reg_B :
                                     replace("|", "")
                                     store(y)
                                     set(y)
-            if not found : 
-               search in : taken
-               search text : "配置予定技術者の地域内での施工実績"
-               if found :
-                  take right : 
-                     search in : taken
-                     search text : "加算点を与える。"
-                     if found : 
-                        take left :
-                           search in : taken
-                           search text : "について"
-                           if found : 
-                              take left : 
-                                 remove whitespaces
-                                 store(temp1)
-                     search in : taken
-                     search text : ("加 算 点 |" , "加 算 点")
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "| 3.0点"
-                           if found : 
-                              take left : 
-                                 remove whitespaces
-                                 replace("|", "")
-                                 store(temp2)
-                                 add in left("\n")
-                                 add in left(temp1)
-                                 store(temp3)
-                                 set(temp3)
    if false : 
       search in : region_B
       search text : "技術者の能力等(加算点)"
@@ -493,38 +463,6 @@ reg_B :
                                     replace("|", "")
                                     store(y)
                                     set(y)
-            if not found : 
-               search in : taken
-               search text : "配置予定技術者の地域内での施工実績"
-               if found :
-                  take right : 
-                     search in : taken
-                     search text : "加算点を与える。"
-                     if found : 
-                        take left :
-                           search in : taken
-                           search text : "について"
-                           if found : 
-                              take left : 
-                                 remove whitespaces
-                                 store(temp1)
-                     search in : taken
-                     search text : ("加 算 点 |" , "加 算 点")
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "| 3.0点"
-                           if found : 
-                              take left : 
-                                 remove whitespaces
-                                 replace("|", "")
-                                 store(temp2)
-                                 add in left("\n")
-                                 add in left(temp1)
-                                 store(temp3)
-                                 set(temp3)
-                                       
-
 
 
 「同種性（技術者）」:
@@ -564,40 +502,6 @@ reg_B :
                                              replace("|", "")
                                              store(y)
                                              set(y)
-            if not found : 
-               search in : taken
-               search text : "配置予定技術者の地域内での施工実績"
-               if found :
-                  take right : 
-                     search in : taken
-                     search text : "加算点を与える。"
-                     if found : 
-                        take left :
-                           search in : taken
-                           search text : "について"
-                           if found : 
-                              take left : 
-                                 remove whitespaces
-                                 store(temp4)
-                     search in : taken
-                     search text : ("加 算 点 |" , "加 算 点")
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "| 3.0点"
-                           if found : 
-                              take right :
-                                 search in : taken
-                                 search text : "0.0点" 
-                                 if found : 
-                                    take left : 
-                                       remove whitespaces
-                                       replace("|", "")
-                                       store(temp5)
-                                       add in left("\n")
-                                       add in left(temp4)
-                                       store(temp6)
-                                       set(temp6)
    if false : 
       search in : region_B
       search text : "技術者の能力等(加算点)"
@@ -632,37 +536,4 @@ reg_B :
                                              replace("|", "")
                                              store(y)
                                              set(y)
-            if not found : 
-               search in : taken
-               search text : "配置予定技術者の地域内での施工実績"
-               if found :
-                  take right : 
-                     search in : taken
-                     search text : "加算点を与える。"
-                     if found : 
-                        take left :
-                           search in : taken
-                           search text : "について"
-                           if found : 
-                              take left : 
-                                 remove whitespaces
-                                 store(temp4)
-                     search in : taken
-                     search text : ("加 算 点 |" , "加 算 点")
-                     if found : 
-                        take right :
-                           search in : taken
-                           search text : "| 3.0点"
-                           if found : 
-                              take right :
-                                 search in : taken
-                                 search text : "0.0点" 
-                                 if found : 
-                                    take left : 
-                                       remove whitespaces
-                                       replace("|", "")
-                                       store(temp5)
-                                       add in left("\n")
-                                       add in left(temp4)
-                                       store(temp6)
-                                       set(temp6)
+            

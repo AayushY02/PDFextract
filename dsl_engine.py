@@ -971,10 +971,10 @@ LEVEL_BASE_KEYS = [
 
 LEVEL_HEADERS = [
     "レベル0（企業）",
-    "レベル0（技術者）",
     "レベル1（企業）",
-    "レベル1（技術者）",
     "レベル2（企業）",
+    "レベル0（技術者）",
+    "レベル1（技術者）",
     "レベル2（技術者）",
 ]
 
@@ -1068,6 +1068,28 @@ def _pick_level_value(outputs: Dict[str, Any], candidates: List[str]):
                 break
     return value, found, chosen_key
 
+def _pick_level_header_key(base_vars: List[str], candidates: List[str], fallback: str) -> str:
+    for cand in candidates:
+        for k in _alt_paren_keys(cand):
+            if k in base_vars:
+                return k  # actual property name used in the script
+    return fallback
+
+def _build_level_output_headers(base_vars: List[str]) -> List[str]:
+    header_map = {}
+    for level_name in ("レベル0", "レベル1", "レベル2"):
+        for role in ("企業", "技術者"):
+            old = f"{level_name}（{role}）"
+            header_map[old] = _pick_level_header_key(base_vars, LEVEL_DEFS[level_name][role], old)
+
+    out = []
+    for h in LEVEL_OUTPUT_HEADERS:
+        if h.endswith(" pageNo"):
+            base = h[:-len(" pageNo")]
+            out.append(f"{header_map.get(base, base)} pageNo")
+        else:
+            out.append(header_map.get(h, h))
+    return out
 
 def _build_level_row(
     outputs: Dict[str, Any],
@@ -1084,7 +1106,7 @@ def _build_level_row(
         for role in ("企業", "技術者"):
             candidates = LEVEL_DEFS[level_name][role]
             if not availability[level_name][role]:
-                base_vals[f"{level_name}（{role}）"] = "記載なし"
+                base_vals[f"{level_name}（{role}）"] = ""
                 base_vals[f"{level_name}（{role}） pageNo"] = ""
                 continue
             value, found, chosen_key = _pick_level_value(outputs, candidates)
@@ -1218,6 +1240,8 @@ def main():
     tree_for_header = parse_script(script_text)
     base_vars  = [n.name for n in tree_for_header if n.kind == 'var']
     level_availability = _compute_level_availability(base_vars)
+    level_output_headers = _build_level_output_headers(base_vars)
+
 
     excluded_csv_vars = {
         "reg_A",
@@ -1298,8 +1322,8 @@ def main():
                 level_row, warnings = _build_level_row(outputs_csv, fname, level_availability)
                 level_csv_path = os.path.join(dest_dir, base + "_levels.csv")
                 level_xlsx_path = os.path.join(dest_dir, base + "_levels.xlsx")
-                _write_levels_csv(level_csv_path, LEVEL_OUTPUT_HEADERS, [level_row])
-                _write_levels_excel(level_xlsx_path, LEVEL_OUTPUT_HEADERS, [level_row])
+                _write_levels_csv(level_csv_path, level_output_headers, [level_row])
+                _write_levels_excel(level_xlsx_path, level_output_headers, [level_row])
                 row_vals = [
                     (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
                     for h in var_order
@@ -1328,8 +1352,8 @@ def main():
             root_label = os.path.basename(os.path.normpath(in_dir))
             level_summary_csv = os.path.join(out_dir, f"{root_label}_levels_summary.csv")
             level_summary_xlsx = os.path.join(out_dir, f"{root_label}_levels_summary.xlsx")
-            _write_levels_csv(level_summary_csv, LEVEL_OUTPUT_HEADERS, overall_level_rows)
-            _write_levels_excel(level_summary_xlsx, LEVEL_OUTPUT_HEADERS, overall_level_rows)
+            _write_levels_csv(level_summary_csv, level_output_headers, overall_level_rows)
+            _write_levels_excel(level_summary_xlsx, level_output_headers, overall_level_rows)
         if level_warnings:
             print("WARNING: Multiple properties found for the same level. Using the first match.")
             for idx, w in enumerate(level_warnings):
@@ -1357,8 +1381,8 @@ def main():
             level_row, warnings = _build_level_row(outputs_csv, src_name, level_availability)
             level_csv_path = os.path.join(args.outdir, base + "_levels.csv")
             level_xlsx_path = os.path.join(args.outdir, base + "_levels.xlsx")
-            _write_levels_csv(level_csv_path, LEVEL_OUTPUT_HEADERS, [level_row])
-            _write_levels_excel(level_xlsx_path, LEVEL_OUTPUT_HEADERS, [level_row])
+            _write_levels_csv(level_csv_path, level_output_headers, [level_row])
+            _write_levels_excel(level_xlsx_path, level_output_headers, [level_row])
             if warnings:
                 print("WARNING: Multiple properties found for the same level. Using the first match.")
                 for fname, level_name, role, keys in warnings:

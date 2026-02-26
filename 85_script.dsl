@@ -192,6 +192,19 @@ reg_B :
                               search text : "同種工事の要件を満たす場合"
                               if found : 
                                  set(「同種工事（企業）」)
+   if false : 
+      search in : region_B
+      search text : "工事の総合評価に関する加算点は以下のとおり付与する。"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "企業の 能力等"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "同種工事の施工実績"
+                  if found : 
+                     set(「同種工事（企業）」)
 
 「同種性が認められる（技術者）」:
    check : name_of
@@ -217,6 +230,19 @@ reg_B :
                               search text : "同種工事の要件を満たす場合"
                               if found : 
                                  set(「同種工事（技術者）」)
+   if false : 
+      search in : region_B
+      search text : "工事の総合評価に関する加算点は以下のとおり付与する。"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "技術者 の能力"
+            if found : 
+               take right :
+                  search in : taken
+                  search text : "同種工事の工事経験"
+                  if found : 
+                     set(「同種工事（技術者）」)
 
 「やや同種性が高い工事（企業）」:
    check : name_of

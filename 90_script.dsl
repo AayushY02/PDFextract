@@ -540,3 +540,42 @@ reg_B :
                                     if found : 
                                         set(「同種工事（企業）」_doushu_co2)
                                         
+「同種性が認められる（企業）」:
+   check : name_of
+   has value : 本官
+   if true : 
+   if false : 
+        search in : region_B
+        search text : "2)評価基準及び得点配分"
+        if found :
+            take right : 
+                search in : taken
+                search text : "企業の能力等(加算点1)"
+                if found : 
+                    take right : 
+                        search in : taken
+                        search text : "同種工事の施工実績"
+                        if found : 
+                            set(「同種工事（企業）」)
+
+「同種性が認められる（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+   if false : 
+        search in : region_B
+        search text : "2)評価基準及び得点配分"
+        if found :
+            take right : 
+                search in : taken
+                search text : "企業の能力等(加算点1)"
+                if found : 
+                    take right : 
+                        search in : taken
+                        search text : "②配置予定技術者の能力等(加算点2)"
+                        if found : 
+                            take right : 
+                                search in : taken
+                                search text : "同種工事の施工実績"
+                                if found : 
+                                    set(「同種工事（技術者）」)
