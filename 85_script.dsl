@@ -202,7 +202,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : "同種工事の施工実績"
+                  search text : ("同種工事の施工実績" , "同種又は類似工事の施工実績")
                   if found : 
                      set(「同種工事（企業）」)
 
@@ -240,7 +240,7 @@ reg_B :
             if found : 
                take right :
                   search in : taken
-                  search text : "同種工事の工事経験"
+                  search text : ("同種工事の工事経験" , "同種又は類似工事の工事経験")
                   if found : 
                      set(「同種工事（技術者）」)
 
