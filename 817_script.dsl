@@ -69,8 +69,8 @@ name_of :
          search text : ("(2) 工事場所" , "(2)工事場所" , "(2)")
          if found : 
             take left : 
-               replace("(電子入札対象案件)" , "")
-               replace("(電子契約対象案件)" , "")
+               replace("（電子入札対象案件）" , "")
+               replace("（電子契約対象案件）" , "")
                remove whitespaces
                store(var_kouji)
                set(var_kouji)

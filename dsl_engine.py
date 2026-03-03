@@ -39,6 +39,7 @@ from typing import List, Dict, Any, Optional
 import os
 import csv
 import unicodedata
+from pathlib import Path
 import pandas as pd
 
 # --------------------------- Parsing ---------------------------
@@ -912,11 +913,14 @@ def run(script_text: str, input_text: str) -> Dict[str, Any]:
     return g.outputs
 
 
-def _write_csv(out_path, headers, outputs, source_name):
+def _write_csv(out_path, headers, outputs, source_name, apply_kouji_special_rules: bool = True):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     full_headers = ['file name'] + headers
 
-    outputs = _normalize_outputs_for_csv(outputs)
+    outputs = _normalize_outputs_for_csv(
+        outputs,
+        apply_kouji_special_rules=apply_kouji_special_rules,
+    )
 
     row = [source_name] + [
         outputs.get(h, "")
@@ -933,11 +937,14 @@ def _write_csv(out_path, headers, outputs, source_name):
             w.writerow([_cell_value(v) for v in r])
 
 
-def _write_excel(out_path, headers, outputs, source_name):
+def _write_excel(out_path, headers, outputs, source_name, apply_kouji_special_rules: bool = True):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     full_headers = ['file name'] + headers
 
-    outputs = _normalize_outputs_for_csv(outputs)
+    outputs = _normalize_outputs_for_csv(
+        outputs,
+        apply_kouji_special_rules=apply_kouji_special_rules,
+    )
 
     row = [source_name] + [
         outputs.get(h, "")
@@ -1208,7 +1215,10 @@ def _is_kouji_name_key(name: Any) -> bool:
     # DSL variable names often use Japanese corner quotes: 「工事名」
     return name.strip().strip("「」") == "工事名"
 
-def _normalize_outputs_for_csv(outputs: Dict[str, Any]) -> Dict[str, Any]:
+def _normalize_outputs_for_csv(
+    outputs: Dict[str, Any],
+    apply_kouji_special_rules: bool = True,
+) -> Dict[str, Any]:
     if not outputs:
         return outputs
     normalized = dict(outputs)
@@ -1216,11 +1226,125 @@ def _normalize_outputs_for_csv(outputs: Dict[str, Any]) -> Dict[str, Any]:
         if not isinstance(v, str):
             continue
         if _is_kouji_name_key(k):
-            v = _replace_double_paren_pointers(v)
-            normalized[k] = _to_fullwidth(v)
+            if apply_kouji_special_rules:
+                v = _replace_double_paren_pointers(v)
+                normalized[k] = _to_fullwidth(v)
+            else:
+                normalized[k] = v
         else:
             normalized[k] = _remove_halfwidth_spaces(v)
     return normalized
+
+
+def _is_hokkaido_810_819_script(script_path: str) -> bool:
+    base = os.path.basename(script_path or "")
+    m = re.match(r"^(\d+)_script\.dsl$", base, re.IGNORECASE)
+    if not m:
+        return False
+    try:
+        script_no = int(m.group(1))
+    except ValueError:
+        return False
+    return 810 <= script_no <= 819
+
+
+def _map_kouji_override_source_path(source_path: str) -> Optional[str]:
+    """
+    For 工事名 override source mapping:
+      - .../test3/... or .../test4/...  -> .../test1/...
+      - .../output3/...                 -> .../output1/...
+    Returns None when no mapping applies.
+    """
+    replacements = {
+        "test3": "test1",
+        "test4": "test1",
+        "output3": "output1",
+    }
+    parts = list(Path(source_path).parts)
+    if not parts:
+        return None
+
+    replaced = False
+    new_parts: List[str] = []
+    for part in parts:
+        if not replaced:
+            mapped = replacements.get(part.lower())
+            if mapped is not None:
+                new_parts.append(mapped)
+                replaced = True
+                continue
+        new_parts.append(part)
+
+    if not replaced:
+        return None
+
+    out_path = Path(new_parts[0])
+    for part in new_parts[1:]:
+        out_path = out_path / part
+    return str(out_path)
+
+
+def _override_kouji_name_outputs(
+    script_text: str,
+    base_outputs: Dict[str, Any],
+    override_text: str,
+) -> Dict[str, Any]:
+    """
+    Recompute only 工事名 from override_text, keep all other properties from base_outputs.
+    """
+    merged = dict(base_outputs)
+    override_outputs = run(script_text, override_text)
+
+    kouji_keys = [
+        k for k in merged.keys()
+        if _is_kouji_name_key(k) and not str(k).endswith(" pageNo")
+    ]
+    if not kouji_keys:
+        kouji_keys = [
+            k for k in override_outputs.keys()
+            if _is_kouji_name_key(k) and not str(k).endswith(" pageNo")
+        ]
+
+    for key in kouji_keys:
+        if key in override_outputs:
+            merged[key] = override_outputs[key]
+        page_key = f"{key} pageNo"
+        if page_key in override_outputs:
+            merged[page_key] = override_outputs[page_key]
+        elif page_key in merged:
+            # Keep pageNo consistent with the override source; blank it if not found there.
+            merged[page_key] = ""
+
+    return merged
+
+
+def _apply_kouji_name_source_override(
+    script_text: str,
+    source_path: str,
+    outputs: Dict[str, Any],
+) -> Dict[str, Any]:
+    has_kouji = any(
+        _is_kouji_name_key(k) and not str(k).endswith(" pageNo")
+        for k in outputs.keys()
+    )
+    if not has_kouji:
+        return outputs
+
+    override_path = _map_kouji_override_source_path(source_path)
+    if not override_path:
+        return outputs
+
+    if os.path.normcase(os.path.normpath(override_path)) == os.path.normcase(os.path.normpath(source_path)):
+        return outputs
+
+    if not os.path.exists(override_path):
+        print(f"WARNING: 工事名 override source not found, using default text: {override_path}")
+        return outputs
+
+    with open(override_path, "r", encoding="utf-8") as f:
+        override_text = f.read()
+
+    return _override_kouji_name_outputs(script_text, outputs, override_text)
 
 
 def main():
@@ -1234,6 +1358,8 @@ def main():
 
     with open(args.script, "r", encoding="utf-8") as f:
         script_text = f.read()
+    apply_kouji_override = _is_hokkaido_810_819_script(args.script)
+    apply_kouji_special_rules = not apply_kouji_override
     # with open(args.input, "r", encoding="utf-8") as f:
     #     input_text = f.read()
 
@@ -1316,13 +1442,24 @@ def main():
                 with open(fpath, "r", encoding="utf-8") as f:
                     text = f.read()
                 outputs = run(script_text, text)
-                outputs_csv = _normalize_outputs_for_csv(outputs)
+                if apply_kouji_override:
+                    outputs = _apply_kouji_name_source_override(script_text, fpath, outputs)
+                outputs_csv = _normalize_outputs_for_csv(
+                    outputs,
+                    apply_kouji_special_rules=apply_kouji_special_rules,
+                )
 
                 dest_dir = out_dir if not rel_dir else os.path.join(out_dir, rel_dir)
                 os.makedirs(dest_dir, exist_ok=True)
                 base = os.path.splitext(fname)[0]
                 out_path = os.path.join(dest_dir, base + ".csv")
-                _write_csv(out_path, var_order, outputs_csv, source_name=fname)
+                _write_csv(
+                    out_path,
+                    var_order,
+                    outputs_csv,
+                    source_name=fname,
+                    apply_kouji_special_rules=apply_kouji_special_rules,
+                )
                 level_row, warnings = _build_level_row(outputs_csv, fname, level_availability)
                 level_csv_path = os.path.join(dest_dir, base + "_levels.csv")
                 level_xlsx_path = os.path.join(dest_dir, base + "_levels.xlsx")
@@ -1375,13 +1512,24 @@ def main():
         with open(args.input, "r", encoding="utf-8") as f:
             input_text = f.read()
         outputs = run(script_text, input_text)
+        if apply_kouji_override:
+            outputs = _apply_kouji_name_source_override(script_text, args.input, outputs)
         # If outdir is provided, write one CSV for this file; else keep old behavior
         if args.outdir:
-            outputs_csv = _normalize_outputs_for_csv(outputs)
+            outputs_csv = _normalize_outputs_for_csv(
+                outputs,
+                apply_kouji_special_rules=apply_kouji_special_rules,
+            )
             base = os.path.splitext(os.path.basename(args.input))[0]
             out_path = os.path.join(args.outdir, base + ".csv")
             src_name = os.path.basename(args.input)
-            _write_csv(out_path, var_order, outputs_csv, source_name=src_name)
+            _write_csv(
+                out_path,
+                var_order,
+                outputs_csv,
+                source_name=src_name,
+                apply_kouji_special_rules=apply_kouji_special_rules,
+            )
             level_row, warnings = _build_level_row(outputs_csv, src_name, level_availability)
             level_csv_path = os.path.join(args.outdir, base + "_levels.csv")
             level_xlsx_path = os.path.join(args.outdir, base + "_levels.xlsx")

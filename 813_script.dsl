@@ -76,11 +76,11 @@ name_of :
     if found : 
         take right :
             search in : taken
-            search text : "(2)工事場所"
+            search text : "（２）工事場所"
             if found : 
                 take left : 
-                    replace("(電子入札対象案件)" , "")
-                    replace("(電子契約対象案件)" , "")
+                    replace("（電子入札対象案件）" , "")
+                    replace("（電子契約対象案件）" , "")
                     replace("石狩川維持工事の内" , "")
                     replace("石狩川改修工事の内" , "")
                     replace("天塩川改修工事の内" , "")

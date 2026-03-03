@@ -84,7 +84,7 @@ name_of :
          if found : 
             take left : 
                search in : taken
-               search text : "(電子入札対象案件)"
+               search text : "（電子入札対象案件）"
                if found : 
                   take left :
                      remove whitespaces
