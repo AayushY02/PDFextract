@@ -316,7 +316,7 @@ reg_B :
                                           store(yoridoushiseigatakaikouji_kigyo)
                                           set(yoridoushiseigatakaikouji_kigyo)
                   if not found : 
-                     set("記載なし")
+                     set("")
 
 「高い同種性が認められる（企業）」:
    check : name_of
@@ -386,7 +386,7 @@ reg_B :
                                           store(var2)
                                           set(var2)
                   if not found : 
-                     set("記載なし")
+                     set("")
 
 「より同種性が高い（技術者）」: 
    check : name_of
@@ -449,7 +449,7 @@ reg_B :
                                           store(var2)
                                           set(var2)
             if not found : 
-               set("記載なし")
+               set("")
 
 「高い同種性が認められる（技術者）」: 
    check : name_of
@@ -518,4 +518,4 @@ reg_B :
                                           store(var2)
                                           set(var2)
             if not found : 
-               set("記載なし")
+               set("")

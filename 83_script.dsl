@@ -166,9 +166,9 @@ reg_B :
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
          search in : taken
          search text : "完成･引渡しが完了した下記(ア)又は(イ)"
@@ -199,9 +199,9 @@ reg_B :
                            store(doushi_kouji_1)
                            set(doushi_kouji_1)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
          if not found : 
             search in : taken
             search text : "完成･引渡しが完了した下記の要件を満たす同種工事の施工実績を有すること"
@@ -222,7 +222,7 @@ reg_B :
                               store(doushi_kouji_1)
                               set(doushi_kouji_1)
             if not found : 
-               set("記載なし")
+               set("")
 
 「同種工事（技術者）」:
    check : name_of
@@ -258,7 +258,7 @@ reg_B :
       if found : 
          set(「同種工事（企業）」)
       if not found : 
-         set("記載なし")
+         set("")
 
 
 「より同種性が高い（企業）」: 
@@ -281,11 +281,11 @@ reg_B :
                         store(co_very_high_similarity)
                         set(co_very_high_similarity)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")         
+               set("")         
       if not found : 
-         set("記載なし")
+         set("")
    if false : 
       search in : region_B
       search text : "①企業の技術力"
@@ -307,13 +307,13 @@ reg_B :
                               store(co_very_high_similarity)
                               set(co_very_high_similarity)
                         if not found : 
-                           set("記載なし")
+                           set("")
                   if not found : 
-                     set("記載なし")         
+                     set("")         
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
-         set("記載なし")
+         set("")
 
 「同種性が高い（企業）」: 
    check : name_of
@@ -341,11 +341,11 @@ reg_B :
                            store(co_similarity)
                            set(co_similarity)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
-         set("記載なし")
+         set("")
    if false : 
       search in : region_B
       search text : "①企業の技術力"
@@ -367,13 +367,13 @@ reg_B :
                               store(co_high_similarity)
                               set(co_high_similarity)
                         if not found : 
-                           set("記載なし")
+                           set("")
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
-         set("記載なし")
+         set("")
 
 「同種性が認められる（企業）」: 
    check : name_of
@@ -401,9 +401,9 @@ reg_B :
                            store(co_similarity)
                            set(co_similarity)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
    if false : 
       search in : region_B
@@ -427,13 +427,13 @@ reg_B :
                               store(co_similarity)
                               set(co_similarity)
                         if not found : 
-                           set("記載なし")
+                           set("")
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
-         set("記載なし")
+         set("")
 
    
 
@@ -459,11 +459,11 @@ reg_B :
                         store(eng_very_high_similarity)
                         set(eng_very_high_similarity)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
-         set("記載なし")
+         set("")
    if false : 
       search in : region_B
       search text : "②配置予定技術者の技術力"
@@ -486,13 +486,13 @@ reg_B :
                            store(eng_very_high_similarity)
                            set(eng_very_high_similarity)
                      if not found : 
-                        set("記載なし")
+                        set("")
                if not found : 
-                  set("記載なし")
+                  set("")
          if not found : 
-            set("記載なし")
+            set("")
       if not found : 
-         set("記載なし")
+         set("")
 
 「同種性が高い（技術者）」:
    check : name_of
@@ -514,11 +514,11 @@ reg_B :
                         store(eng_high_similarity)
                         set(eng_high_similarity)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
-         set("記載なし")
+         set("")
    if false : 
       search in : region_B
       search text : "②配置予定技術者の技術力"
@@ -539,13 +539,13 @@ reg_B :
                            store(eng_high_similarity)
                            set(eng_high_similarity)
                      if not found : 
-                        set("記載なし")
+                        set("")
                if not found : 
-                  set("記載なし")
+                  set("")
          if not found : 
-            set("記載なし")
+            set("")
       if not found : 
-         set("記載なし")
+         set("")
 
 「同種性が認められる（技術者）」:
    check : name_of
@@ -572,11 +572,11 @@ reg_B :
                            store(eng_similarity)
                            set(eng_similarity)
                   if not found : 
-                     set("記載なし")
+                     set("")
             if not found : 
-               set("記載なし")
+               set("")
       if not found : 
-         set("記載なし")
+         set("")
    if false : 
       search in : region_B
       search text : "②配置予定技術者の技術力"
@@ -597,12 +597,12 @@ reg_B :
                            store(eng_similarity)
                            set(eng_similarity)
                      if not found : 
-                        set("記載なし")
+                        set("")
                if not found : 
-                  set("記載なし")
+                  set("")
          if not found : 
-            set("記載なし")
+            set("")
       if not found : 
-         set("記載なし")
+         set("")
 
  

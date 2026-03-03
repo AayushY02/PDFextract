@@ -445,7 +445,7 @@ reg_B :
                   search in : taken
                   search text : "より同種"
                   if not found : 
-                     set("記載なし")
+                     set("")
 
 「より同種性が高い（技術者）」:
    check : name_of
@@ -493,4 +493,4 @@ reg_B :
                   search in : taken
                   search text : "より同種"
                   if not found : 
-                     set("記載なし")
+                     set("")

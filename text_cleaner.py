@@ -718,8 +718,12 @@ def clean_cut_at_end_headings(text: str, file_name: str = "") -> str:
         "別表", "様式", "仕様書", "参考資料", "添付", "別紙"
     then remove that line and everything after it.
     """
-    # Skip this rule for 86 Osaka files (to avoid trimming actual data)
-    if "【86】大阪" in file_name or ("大阪" in file_name and "86" in file_name):
+    # Skip this rule for:
+    # - 86 Osaka files (to avoid trimming actual data)
+    # - Hokkaido region files 810-819
+    is_86_osaka = ("\u301086\u3011\u5927\u962a" in file_name) or ("\u5927\u962a" in file_name and "86" in file_name)
+    is_hokkaido_810_819 = bool(re.search(r"\u301081[0-9]\u3011", file_name))
+    if is_86_osaka or is_hokkaido_810_819:
         return text
 
     end_keywords = ["別表", "様式", "仕様書", "参考資料", "添付", "別紙"]

@@ -1251,6 +1251,10 @@ def main():
         "「同種工事（技術者）」temp",
         "file_1",
         "file_2",
+        "「より同種性が高い（企業）」temp",
+        "「より同種性が高い（技術者）」temp",
+        
+        
     }
     preferred_order = [
         "has_eval_phrase",

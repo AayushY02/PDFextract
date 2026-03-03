@@ -229,7 +229,7 @@ reg_B :
                                  store(var10)
                                  set(var10)
       if not found : 
-         set("記載なし")
+         set("")
    if false : 
       search in : region_B
       search text : ("2) 企業の能力等(加算点)" , "2)企業の能力等(加算点)")
@@ -261,7 +261,7 @@ reg_B :
                                  store(var10)
                                  set(var10)
       if not found : 
-         set("記載なし")
+         set("")
 
                                     
 
@@ -299,7 +299,7 @@ reg_B :
                                        store(var11)
                                        set(var11)
       if not found : 
-         set("記載なし")
+         set("")
    if false : 
       search in : region_B
       search text : ("2) 企業の能力等(加算点)" , "2)企業の能力等(加算点)")
@@ -331,7 +331,7 @@ reg_B :
                                        store(var11)
                                        set(var11)
       if not found : 
-         set("記載なし")
+         set("")
 
 
 

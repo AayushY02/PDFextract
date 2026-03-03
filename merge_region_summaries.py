@@ -1,96 +1,120 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Merge region summary CSVs into two Excel workbooks:
-1) Main summaries (all_texts_summary) – each region in its own sheet.
-2) Level summaries (levels_summary) – each region in its own sheet.
+Merge region summary CSVs into Excel workbooks.
 
-Targets regions 82–90. Input CSVs are expected under results/csv/<region_folder>/.
-Output workbook paths:
-  - results/csv/merged_main_summary_82-90.xlsx
-  - results/csv/merged_levels_summary_82-90.xlsx
+Creates two workbook sets:
+1) Regions 82-90
+   - results/csv/merged_main_summary_82-90.xlsx
+   - results/csv/merged_levels_summary_82-90.xlsx
+2) Regions 810-819
+   - results/csv/merged_main_summary_810-819.xlsx
+   - results/csv/merged_levels_summary_810-819.xlsx
+
+Each workbook contains one sheet per region folder.
 """
+
+from __future__ import annotations
 
 from pathlib import Path
 import re
+from typing import Iterable
+
 import pandas as pd
 
 
-REGIONS = list(range(82, 91))
 BASE_DIR = Path("results") / "csv"
-OUT_MAIN = BASE_DIR / "merged_main_summary_82-90.xlsx"
-OUT_LEVELS = BASE_DIR / "merged_levels_summary_82-90.xlsx"
+REGION_SETS: list[tuple[str, list[int]]] = [
+    ("82-90", list(range(82, 91))),
+    ("810-819", list(range(810, 820))),
+]
+
+LEFT_BRACKET = chr(0x3010)   # 【
+RIGHT_BRACKET = chr(0x3011)  # 】
 
 
-def _find_first(pattern: str) -> Path | None:
-    matches = list(BASE_DIR.glob(pattern))
+def _region_prefix(region_code: int) -> str:
+    return f"{LEFT_BRACKET}{region_code}{RIGHT_BRACKET}"
+
+
+def _find_region_dir(region_code: int) -> Path | None:
+    if not BASE_DIR.exists():
+        return None
+    prefix = _region_prefix(region_code)
+    matches = sorted(
+        (
+            path
+            for path in BASE_DIR.iterdir()
+            if path.is_dir() and path.name.startswith(prefix)
+        ),
+        key=lambda p: p.name,
+    )
     return matches[0] if matches else None
 
 
-def _sheet_name(path: Path) -> str:
-    """
-    Build a safe sheet name (<=31 chars, avoid Excel banned chars).
+def _find_first(directory: Path, pattern: str) -> Path | None:
+    matches = sorted(directory.glob(pattern), key=lambda p: p.name)
+    return matches[0] if matches else None
 
-    Requirement: sheet name should just be the region code + region name
-    (e.g., `?82???`), not the full CSV stem that includes
-    `_levels_summary` / `_all_texts_summary`.
-    """
-    # Prefer the parent directory name, which already matches the desired label.
-    base = path.parent.name.strip()
 
-    if not base:
-        # Fallback: strip known suffixes from the file stem.
-        stem = path.stem
-        stem = re.sub(r"(_levels_summary|_all_texts_summary)$", "", stem)
-        base = stem
-
+def _sheet_name(folder_name: str) -> str:
     # Remove characters Excel forbids in sheet names: : \ / ? * [ ]
-    base = re.sub(r"[:\\/\?\*\[\]]", "_", base)
-    return base[:31]
+    cleaned = re.sub(r"[:\\/\?\*\[\]]", "_", folder_name.strip())
+    return (cleaned or "Sheet1")[:31]
 
 
-
-def _collect_frames(kind: str):
+def _collect_frames(region_codes: Iterable[int], kind: str) -> list[tuple[str, pd.DataFrame]]:
     """
-    kind: 'all' for main summaries, 'levels' for level summaries.
-    Returns list of (sheet_name, DataFrame).
+    kind: 'all' for *_all_texts_summary.csv, 'levels' for *_levels_summary.csv.
     """
-    frames = []
-    for region in REGIONS:
-        if kind == "all":
-            pattern = f"【{region}】*/【{region}】*_all_texts_summary.csv"
-        else:
-            pattern = f"【{region}】*/【{region}】*_levels_summary.csv"
-        path = _find_first(pattern)
-        if not path:
-            print(f"SKIP region {region}: {kind} summary not found")
+    suffix = "_all_texts_summary.csv" if kind == "all" else "_levels_summary.csv"
+    pattern = f"*{suffix}"
+    frames: list[tuple[str, pd.DataFrame]] = []
+
+    for region_code in region_codes:
+        region_dir = _find_region_dir(region_code)
+        if not region_dir:
+            print(f"SKIP region {region_code}: folder not found")
             continue
+
+        csv_path = _find_first(region_dir, pattern)
+        if not csv_path:
+            print(f"SKIP region {region_code}: {kind} summary not found in {region_dir.name}")
+            continue
+
         try:
-            df = pd.read_csv(path, encoding="utf-8-sig")
+            frame = pd.read_csv(csv_path, encoding="utf-8-sig")
         except Exception as exc:
-            print(f"SKIP region {region}: failed to read {path} ({exc})")
+            print(f"SKIP region {region_code}: failed to read {csv_path} ({exc})")
             continue
-        sheet = _sheet_name(path)
-        frames.append((sheet, df))
+
+        frames.append((_sheet_name(region_dir.name), frame))
+
     return frames
 
 
-def _write_workbook(output_path: Path, frames: list[tuple[str, pd.DataFrame]]):
+def _write_workbook(output_path: Path, frames: list[tuple[str, pd.DataFrame]]) -> None:
     if not frames:
         print(f"No data to write for {output_path.name}")
         return
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-        for sheet, df in frames:
-            df.to_excel(writer, sheet_name=sheet, index=False)
+        for sheet, frame in frames:
+            frame.to_excel(writer, sheet_name=sheet, index=False)
     print(f"Wrote {output_path}")
 
 
-def main():
-    main_frames = _collect_frames("all")
-    level_frames = _collect_frames("levels")
-    _write_workbook(OUT_MAIN, main_frames)
-    _write_workbook(OUT_LEVELS, level_frames)
+def main() -> None:
+    for label, region_codes in REGION_SETS:
+        main_frames = _collect_frames(region_codes, "all")
+        levels_frames = _collect_frames(region_codes, "levels")
+
+        out_main = BASE_DIR / f"merged_main_summary_{label}.xlsx"
+        out_levels = BASE_DIR / f"merged_levels_summary_{label}.xlsx"
+
+        _write_workbook(out_main, main_frames)
+        _write_workbook(out_levels, levels_frames)
 
 
 if __name__ == "__main__":

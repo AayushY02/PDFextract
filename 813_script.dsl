@@ -127,7 +127,7 @@ reg_B :
                         set(doushi_kouji_1)
                                 
 
-「より同種性が高い（企業）」:
+「より同種性が高い（企業）」temp:
     check : name_of
     has value : 本官
     if true : 
@@ -173,7 +173,7 @@ reg_B :
 
 
 
-「より同種性が高い（技術者）」: 
+「より同種性が高い（技術者）」temp: 
     check : name_of
     has value : 本官
     if true : 
@@ -186,8 +186,83 @@ reg_B :
                 search in : taken
                 search text : "上記(4)に掲げる工事の経験を有する者であること"
                 if found : 
-                    set(「より同種性が高い（企業）」)
+                    set(「より同種性が高い（企業）」temp)
                 if not found : 
                     set("記載なし")
     
 
+「同種性が認められる（企業）」:
+    check : name_of
+    has value : 本官
+    if true : 
+        set("本官")
+    if false : 
+        search in : region_B
+        search text : "別表1(入札説明書 記6(2)「評価の基準」関係)"
+        if found : 
+            take right : 
+                search in : taken
+                search text : "企 業 ( 地 域 以 外 )"
+                if found : 
+                take right : 
+                    search in : taken
+                    search text : "同種性が認められる工事"
+                    if found : 
+                        set(「同種工事（企業）」)
+
+「同種性が認められる（技術者）」:
+    check : name_of
+    has value : 本官
+    if true : 
+        set("本官")
+    if false : 
+        search in : region_B
+        search text : "別表1(入札説明書 記6(2)「評価の基準」関係)"
+        if found : 
+            take right : 
+                search in : taken
+                search text : "配 置 予 定 技 術 者"
+                if found : 
+                take right : 
+                    search in : taken
+                    search text : "同種性が認められる工事"
+                    if found : 
+                        set(「同種工事（技術者）」)
+
+「より同種性が高い（企業）」:
+    check : name_of
+    has value : 本官
+    if true : 
+        set("本官")
+    if false : 
+        search in : region_B
+        search text : "別表1(入札説明書 記6(2)「評価の基準」関係)"
+        if found : 
+            take right : 
+                search in : taken
+                search text : "企 業 ( 地 域 以 外 )"
+                if found : 
+                take right : 
+                    search in : taken
+                    search text : "より同種性の高い工事"
+                    if found : 
+                        set(「より同種性が高い（企業）」temp)
+
+「より同種性が高い（技術者）」:
+    check : name_of
+    has value : 本官
+    if true : 
+        set("本官")
+    if false : 
+        search in : region_B
+        search text : "別表1(入札説明書 記6(2)「評価の基準」関係)"
+        if found : 
+            take right : 
+                search in : taken
+                search text : "配 置 予 定 技 術 者"
+                if found : 
+                take right : 
+                    search in : taken
+                    search text : "より同種性の高い工事"
+                    if found : 
+                        set(「より同種性が高い（技術者）」temp)
