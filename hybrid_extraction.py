@@ -14,6 +14,7 @@ import os
 import csv
 import re
 import unicodedata
+import shutil
 import fitz  # PyMuPDF
 import pandas as pd
 import statistics
@@ -930,6 +931,15 @@ def collect_supported_files(input_dir: Path):
     )
 
 
+def prepare_clean_output_dir(input_dir: Path, output_dir: Path):
+    """Remove prior extraction output so stale files never remain."""
+    if input_dir.resolve() == output_dir.resolve():
+        raise ValueError("input_dir and output_dir must be different")
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+
 def _write_quality_legend_files(base_dir: Path):
     jp_path = base_dir / "quality_legend_ja.txt"
     en_path = base_dir / "quality_legend_en.txt"
@@ -985,7 +995,7 @@ Ratios are calculated as (matching chars) / (total chars).
 
 
 def process_documents(input_dir: Path, output_dir: Path):
-    ensure_output_dir(output_dir)
+    prepare_clean_output_dir(input_dir, output_dir)
 
     files = collect_supported_files(input_dir)
     if not files:

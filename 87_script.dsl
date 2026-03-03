@@ -45,17 +45,17 @@ name_of :
          if found : 
             take left : 
                search in : taken
-               search text : ("れいわねん" , "れいわど")
+               search text : ("ねん" , "ど")
                if found : 
                   take left : 
-                     replace("(電子入札対象案件)" , "")
-                     replace("(電子契約対象案件)" , "")
+                     replace("（電子入札対象案件）" , "")
+                     replace("（電子契約対象案件）" , "")
                      remove whitespaces
                      store(var_kouji)
                      set(var_kouji)
                if not found : 
-                  replace("(電子入札対象案件)" , "")
-                  replace("(電子契約対象案件)" , "")
+                  replace("（電子入札対象案件）" , "")
+                  replace("（電子契約対象案件）" , "")
                   remove whitespaces
                   store(var_kouji)
                   set(var_kouji)

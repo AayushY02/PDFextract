@@ -45,6 +45,7 @@ import pandas as pd
 import statistics
 import re
 import unicodedata
+import shutil
 from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -913,7 +914,18 @@ def collect_supported_files(input_dir: Path):
     )
 
 
+def prepare_clean_output_dir(input_dir: Path, output_dir: Path):
+    """Remove prior extraction output so stale files never remain."""
+    if input_dir.resolve() == output_dir.resolve():
+        raise ValueError("input_dir and output_dir must be different")
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+
 def process_documents(input_dir: Path, output_dir: Path):
+    prepare_clean_output_dir(input_dir, output_dir)
+
     files = collect_supported_files(input_dir)
     if not files:
         print(f"No supported files (.pdf, .docx, .xls, .xlsx) found in: {input_dir}")
@@ -922,8 +934,6 @@ def process_documents(input_dir: Path, output_dir: Path):
     init_log()
     init_quality_log()
     print(f"Found {len(files)} files (PDF/Word/Excel). Starting extraction...\n")
-
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     with ProcessPoolExecutor() as executor:
         futures = {

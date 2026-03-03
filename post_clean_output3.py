@@ -796,6 +796,8 @@ def process_text(text: str) -> str:
 
 
 def process_all(input_dir: Path, output_dir: Path):
+    if input_dir.resolve() == output_dir.resolve():
+        raise ValueError("input_dir and output_dir must be different")
     if output_dir.exists():
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

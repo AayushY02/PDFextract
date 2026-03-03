@@ -4,10 +4,10 @@ function Run-Command {
     param(
         [string]$Label,
         [string]$Exe,
-        [string[]]$Args
+        [string[]]$CommandArgs
     )
     Write-Host "==> $Label"
-    & $Exe @Args
+    & $Exe @CommandArgs
     if ($LASTEXITCODE -ne 0) {
         throw "Step failed: $Label (exit $LASTEXITCODE)"
     }

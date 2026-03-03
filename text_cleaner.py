@@ -2177,6 +2177,12 @@ def save_cleaned_text(output_path: Path, text: str):
 # ---------- MAIN PROCESS ----------
 def process_text_files(input_dir: Path, output_dir: Path):
     """Read text files from input_dir, clean them, and save to output_dir."""
+    if input_dir.resolve() == output_dir.resolve():
+        raise ValueError("input_dir and output_dir must be different")
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     text_files = list(input_dir.rglob("*.txt"))
     if not text_files:
         print(f"No text files found in: {input_dir}")

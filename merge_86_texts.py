@@ -23,6 +23,7 @@ import argparse
 from pathlib import Path
 import os
 import re
+import shutil
 
 
 DEFAULT_INPUT_DIR = Path("results") / "test3" / "【86】近畿"
@@ -229,6 +230,10 @@ def main() -> None:
     if not input_root.exists():
         raise SystemExit(f"Input directory not found: {input_root}")
 
+    if input_root.resolve() == output_root.resolve():
+        raise SystemExit("input_dir and output_dir must be different")
+    if output_root.exists():
+        shutil.rmtree(output_root)
     output_root.mkdir(parents=True, exist_ok=True)
 
     combined_count = 0

@@ -1236,16 +1236,31 @@ def _normalize_outputs_for_csv(
     return normalized
 
 
-def _is_hokkaido_810_819_script(script_path: str) -> bool:
+def _script_number_from_path(script_path: str) -> Optional[int]:
     base = os.path.basename(script_path or "")
     m = re.match(r"^(\d+)_script\.dsl$", base, re.IGNORECASE)
     if not m:
-        return False
+        return None
     try:
-        script_no = int(m.group(1))
+        return int(m.group(1))
     except ValueError:
+        return None
+
+
+def _is_hokkaido_810_819_script(script_path: str) -> bool:
+    script_no = _script_number_from_path(script_path)
+    if script_no is None:
         return False
     return 810 <= script_no <= 819
+
+
+def _is_kouji_source_override_script(script_path: str) -> bool:
+    script_no = _script_number_from_path(script_path)
+    if script_no is None:
+        return False
+    if script_no in {86, 89}:
+        return False
+    return (82 <= script_no <= 90) or (810 <= script_no <= 819)
 
 
 def _map_kouji_override_source_path(source_path: str) -> Optional[str]:
@@ -1358,8 +1373,8 @@ def main():
 
     with open(args.script, "r", encoding="utf-8") as f:
         script_text = f.read()
-    apply_kouji_override = _is_hokkaido_810_819_script(args.script)
-    apply_kouji_special_rules = not apply_kouji_override
+    apply_kouji_source_override = _is_kouji_source_override_script(args.script)
+    apply_kouji_special_rules = not _is_hokkaido_810_819_script(args.script)
     # with open(args.input, "r", encoding="utf-8") as f:
     #     input_text = f.read()
 
@@ -1442,7 +1457,7 @@ def main():
                 with open(fpath, "r", encoding="utf-8") as f:
                     text = f.read()
                 outputs = run(script_text, text)
-                if apply_kouji_override:
+                if apply_kouji_source_override:
                     outputs = _apply_kouji_name_source_override(script_text, fpath, outputs)
                 outputs_csv = _normalize_outputs_for_csv(
                     outputs,
@@ -1512,7 +1527,7 @@ def main():
         with open(args.input, "r", encoding="utf-8") as f:
             input_text = f.read()
         outputs = run(script_text, input_text)
-        if apply_kouji_override:
+        if apply_kouji_source_override:
             outputs = _apply_kouji_name_source_override(script_text, args.input, outputs)
         # If outdir is provided, write one CSV for this file; else keep old behavior
         if args.outdir:

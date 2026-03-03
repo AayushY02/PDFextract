@@ -41,10 +41,20 @@ name_of :
    if found : 
       take right:
          search in : taken
-         search text : "(2)"
+         search text : "（２）"
          if found : 
             take left : 
-                  replace("(電子入札及び電子契約対象案件)" , "")
+                  replace("（電子入札及び電子契約対象案件）" , "")
+                  replace("（電子入札及" , "")
+                  replace("（電子入" , "")
+                  replace("び電子契約対象案件）" , "")
+                  replace("札及び電子契約対象案件）" , "")
+                  replace("（電子入札及び電子契約対" , "")
+                  replace("（電子入札及び電子契約対象" , "")
+                  replace("案件）" , "")
+                  replace("（電子入札及び電" , "")
+                  replace("象案件）" , "")
+                  replace("子契約対象案件）" , "")
                   remove whitespaces
                   store(var_kouji)
                   set(var_kouji)
