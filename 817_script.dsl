@@ -115,7 +115,6 @@ reg_B :
                         replace("の施工実績を有すること。" , "")
                         replace("- -5" , "")
                         replace("- -4" , "")
-                        replace("1" , "")
                         replace("の施工実" , "")
                         replace("績を有すること。" , "")
                         store(doushi_kouji_1)
@@ -128,7 +127,29 @@ reg_B :
    if true : 
       set("本官")
    if false:
-      set("記載なし")
+      search in : region_B
+      search text : "より同種性の高い工事は以下のとおりとする。"
+      if found : 
+         take right :
+            search in : taken
+            search text : "JVの場合は代表者"
+            if found : 
+               take left : 
+                  remove whitespaces
+                  replace("の施工実績を有すること。" , "")
+                  replace("の施工実績を有すること" , "")
+                  store(teno)
+                  set(teno)
+            if not found :
+               search in : taken
+               search text : "※9"
+               if found : 
+                  take left : 
+                     remove whitespaces
+                     replace("の施工実績を有すること。" , "")
+                     replace("の施工実績を有すること" , "")
+                     store(teno)
+                     set(teno)
       
 
 
