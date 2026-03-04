@@ -50,12 +50,14 @@ name_of :
                   take left : 
                      replace("（電子入札対象案件）" , "")
                      replace("（電子契約対象案件）" , "")
+                     replace(end, "れいわ" , "")
                      remove whitespaces
                      store(var_kouji)
                      set(var_kouji)
                if not found : 
                   replace("（電子入札対象案件）" , "")
                   replace("（電子契約対象案件）" , "")
+                  replace(end, "れいわ" , "")
                   remove whitespaces
                   store(var_kouji)
                   set(var_kouji)
@@ -536,4 +538,3 @@ reg_B :
                                              replace("|", "")
                                              store(y)
                                              set(y)
-            

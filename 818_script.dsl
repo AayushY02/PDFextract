@@ -98,6 +98,36 @@ reg_B :
       set("本官")    
    if false:
       search in : region_A
+      search text : ("平成20年度以降から公告開始日時点において、次の" , "平成21年度以降から公告開始日時点において、次の")
+      if found : 
+         take right : 
+               search in : taken
+               search text : "を元請"
+               if found : 
+                  take left :
+                     store(tempdd)
+               search in : taken
+               search text : "又は「より同種工事」の実績とする。"
+               if found : 
+                  take right : 
+                     search in : taken
+                     search text : ("施工計画(「当該工事での留意事項等" , "当該工事での留意事項等(以下「施工計画」という" , "次のア、イ及びウに掲げる基準を満")
+                     if found : 
+                           take left : 
+                              add in left(tempdd)
+                              remove whitespaces
+                              replace("の施工実績を有すること。" , "")
+                              replace("の施工実績。" , "")
+                              store(doushi_kouji_1)
+                              set(doushi_kouji_1)  
+
+「同種性が認められる（企業）」temp:
+   check : name_of
+   has value : 本官
+   if true : 
+      set("本官")    
+   if false:
+      search in : region_A
       search text : "次のア又はイの要件を満たす工事を元請"
       if found : 
          take right : 
@@ -113,10 +143,68 @@ reg_B :
                         search text : "イ【より同種性の高い工事】"
                         if found : 
                            take left :
-                              remove whitespaces
-                              replace("の施工実績を有すること。" , "")
-                              store(doushi_kouji_1)
-                              set(doushi_kouji_1)
+                              store(dd)
+                           take right : 
+                              search in : taken
+                              search text : "注1)"
+                              if found : 
+                                 search in : taken
+                                 search text : "施工計画(「当該工事での留意事項等"
+                                 if found : 
+                                    take left : 
+                                       search in : taken
+                                       search text : "施工実績を有すること。 "
+                                       if found : 
+                                          take right : 
+                                             add in left(dd)
+                                             remove whitespaces
+                                             store(xx)
+                                             set(xx)
+                              if not found : 
+                                 set(dd)
+                        
+「同種性が認められる（技術者）」temp:
+   check : name_of
+   has value : 本官
+   if true : 
+      set("本官")    
+   if false:
+      search in : region_A
+      search text : "基準を満たす主任技術者又は監理技術者を当該工事に専任で"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "上記(4)に掲げる工事の経験を有する"
+            if found : 
+               set(「同種性が認められる（企業）」temp)
+            if not found : 
+               search in : taken
+               search text : "(ア)【同種性が認められる工事】" 
+               if found : 
+                  take right :
+                     search in : taken
+                     search text : "(イ)【より同種性の高い工事】"
+                     if found : 
+                        take left :
+                           store(dd1)
+                        take right : 
+                           search in : taken
+                           search text : "注1)"
+                           if found : 
+                              search in : taken
+                              search text : "施工計画(「当該工事での留意事項等"
+                              if found : 
+                                 take left : 
+                                    search in : taken
+                                    search text : "施工実績を有すること。 "
+                                    if found : 
+                                       take right : 
+                                          add in left(dd1)
+                                          remove whitespaces
+                                          store(xx)
+                                          set(xx)
+                           if not found : 
+                              set(dd1)                                  
                                 
 
 「より同種性が高い（企業）」temp:
@@ -166,26 +254,32 @@ reg_B :
             search in : taken
             search text : "上記(4)に掲げる工事の経験を有する"
             if found : 
-               set(「同種性が認められる（企業）」)
+               set(「同種工事（企業）」)
             if not found : 
                search in : taken
-               search text : "次の(ア)又は(イ)に掲げる工事の経験を有する者であること"
+               search text : "平成20年度以降から公告開始日時点において、次の"
                if found : 
-                  take right :
+                  take right : 
                      search in : taken
-                     search text : "(ア)【同種性が認められる工事】"
+                     search text : "の経験を有する者であること"
                      if found : 
-                        take right :
+                        take left :
+                           store(tempdd)
+                     search in : taken
+                     search text : "点未満のものを除く。"
+                     if found : 
+                        take right : 
                            search in : taken
-                           search text : "(イ)【より同種性の高い工事】"
+                           search text : "ウ 監理技術者にあっては"
                            if found : 
-                              take left : 
-                                 remove whitespaces
-                                 replace("の施工実績を有すること。" , "")
-                                 replace("を有すること。" , "")
-                                 store(doushi_kouji_1)
-                                 set(doushi_kouji_1)
-                  
+                                 take left : 
+                                    add in left(tempdd)
+                                    remove whitespaces
+                                    replace("の施工実績を有すること。" , "")
+                                    replace("の施工実績。" , "")
+                                    store(doushi_kouji_1)
+                                    set(doushi_kouji_1)  
+                           
         
 
 
@@ -243,9 +337,9 @@ reg_B :
             if found : 
                take right : 
                   search in : taken
-                  search text : "同種性が認められる工事"
+                  search text : "同種性が認められる工事の実績あり"
                   if found : 
-                     set(「同種工事（企業）」)
+                     set(「同種性が認められる（企業）」temp)
 
 「同種性が認められる（技術者）」:
    check : name_of
@@ -258,9 +352,28 @@ reg_B :
       if found : 
          take right : 
             search in : taken
-            search text : "同種性が認められる工事"
+            search text : "CPDへの取組"
             if found : 
-               set(「同種工事（技術者）」)
+               take left : 
+                  search in : taken
+                  search text : "同種性が認められる工事の実績あり"
+                  if found : 
+                     set(「同種性が認められる（技術者）」temp)
+                  if not found : 
+                     search in : taken
+                     search text : "同種性が認められる工事において、"
+                     if found : 
+                           take right : 
+                              search in : taken
+                              search text : " | "
+                              if found : 
+                                 take left : 
+                                       add in left("：")
+                                       add in left(「同種性が認められる（技術者）」temp)
+                                       replace("施工実績" , "")
+                                       replace("のを有すること。" , "")
+                                       store(newenwewe)
+                                       set(newenwewe)
 
 「より同種性が高い（企業）」:
    check : name_of
@@ -277,7 +390,7 @@ reg_B :
             if found :
                take right : 
                   search in : taken
-                  search text : "より同種性の高い工事"
+                  search text : "より同種性の高い工事実績あり"
                   if found : 
                      set(「より同種性が高い（企業）」temp)
 
@@ -292,6 +405,69 @@ reg_B :
       if found : 
          take right : 
             search in : taken
-            search text : "より同種性の高い工事"
+            search text : "CPDへの取組"
             if found : 
-               set(「より同種性が高い（技術者）」temp)
+               take left : 
+                  search in : taken
+                  search text : "より同種性の高い工事実績あり"
+                  if found : 
+                     set(「より同種性が高い（技術者）」temp)
+                  if not found : 
+                     search in : taken
+                     search text : "より同種性の高い工事において、"
+                     if found : 
+                           take right : 
+                              search in : taken
+                              search text : " | "
+                              if found : 
+                                 take left : 
+                                       replace("施工実績" , "")
+                                       add in left("：")
+                                       add in left(「より同種性が高い（技術者）」temp)
+                                       store(newenwewe)
+                                       set(newenwewe)
+
+
+「同種性が高い（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      set("本官")
+   if false : 
+      search in : region_B
+      search text : "配 置 予 定 技 術 者"
+      if found : 
+         take right :
+            search in : taken
+            search text : "CPDへの取組"
+            if found : 
+                  take left :  
+                     search in : taken
+                     search text : "より同種性の高い工事において、"
+                     if found : 
+                        take right : 
+                              search in : taken
+                              search text : " | "
+                              if found : 
+                                 take right :
+                                    search in : taken
+                                    search text : "より同種性の高い工事において、"
+                                    if found : 
+                                          take right : 
+                                             search in : taken
+                                             search text : " | "
+                                             if found : 
+                                                take left : 
+                                                      search in : taken
+                                                      search text : "同種性が認められる工事に おいて、"
+                                                      if found : 
+                                                         search in first : 0
+                                                         search text : ""
+                                                         if found :
+                                                            take left :
+                                                                  add in right(「より同種性が高い（技術者）」)
+                                                                  add in right(" ")
+                                                                  add in right(「同種性が認められる（技術者）」)
+                                                                  replace("施工実績" , "")
+                                                                  store(Xx)
+                                                                  set(Xx)

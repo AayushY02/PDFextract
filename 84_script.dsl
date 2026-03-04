@@ -53,6 +53,16 @@ name_of :
                replace("（電子契約対象案件）" , "")
                store(var_kouji)
                set(var_kouji)
+         if not found : 
+            search in : taken
+            search text : "（２）"
+            if found : 
+               take left : 
+                  remove whitespaces
+                  replace("（電子入札対象案件）" , "")
+                  replace("（電子契約対象案件）" , "")
+                  store(var_kouji)
+                  set(var_kouji)
                
    if not found : 
       search in : all

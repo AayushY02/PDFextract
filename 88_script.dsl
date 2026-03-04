@@ -44,20 +44,34 @@ name_of :
          search text : "（２）"
          if found : 
             take left : 
-                  replace("（電子入札及び電子契約対象案件）" , "")
-                  replace("（電子入札及" , "")
-                  replace("（電子入" , "")
-                  replace("び電子契約対象案件）" , "")
-                  replace("札及び電子契約対象案件）" , "")
-                  replace("（電子入札及び電子契約対" , "")
-                  replace("（電子入札及び電子契約対象" , "")
-                  replace("案件）" , "")
-                  replace("（電子入札及び電" , "")
-                  replace("象案件）" , "")
-                  replace("子契約対象案件）" , "")
-                  remove whitespaces
-                  store(var_kouji)
-                  set(var_kouji)
+               replace("（電子入札及び電子契約対象" , "")
+               replace("（電子入札及び電子契約対" , "")
+               replace("（電子入札及び電子契約" , "")
+               replace("（電子入札及び電子契" , "")
+               replace("（電子入札及び電子" , "")
+               replace("（電子入札及び電" , "")
+               replace("（電子入札及び" , "")
+               replace("（電子入札及" , "")
+               replace("（電子入札" , "")
+               replace("（電子入" , "")
+               replace("（電子" , "")
+               replace("（電" , "")
+               replace("子入札及び電子契約対象案件）" , "")
+               replace("入札及び電子契約対象案件）" , "")
+               replace("札及び電子契約対象案件）" , "")
+               replace("及び電子契約対象案件）" , "")
+               replace("び電子契約対象案件）" , "")
+               replace("電子契約対象案件）" , "")
+               replace("子契約対象案件）" , "")
+               replace("契約対象案件）" , "")
+               replace("約対象案件）" , "")
+               replace("対象案件）" , "")
+               replace("象案件）" , "")
+               replace("案件）" , "")
+               replace("件）" , "")
+               remove whitespaces
+               store(var_kouji)
+               set(var_kouji)
 
 reg_A : 
    search in : all

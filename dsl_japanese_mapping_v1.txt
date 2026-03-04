@@ -1,0 +1,275 @@
+DSL Japanese Keyword Mapping (Proposal v1)
+=========================================
+
+Section 1: Full Mapping (English -> Japanese)
+----------------------------------------------
+Commands / Keys / Blocks
+- search in first -> 先頭検索範囲
+- search in -> 検索範囲
+- search text -> 検索文字
+- if found -> 見つかったら
+- if not found -> 見つからなければ
+- if true -> 真なら
+- if false -> 偽なら
+- take right -> 右取得
+- take left -> 左取得
+- remove whitespaces -> 前後空白削除
+- remove tables -> テーブル削除
+- add in right -> 右追加
+- add in left -> 左追加
+- store -> 保存
+- set -> 設定
+- replace -> 置換
+- check -> 確認
+- has value -> 値が
+
+Reserved values / arguments
+- all -> 全体
+- taken -> 現在
+- true -> true
+- false -> false
+- start -> 先頭
+- end -> 末尾
+
+Compatibility note
+- seach -> search  (既存エンジンのタイプミス許容。日本語変換とは別の互換機能)
+
+Syntax note
+- 記号はそのまま使用: : ( ) [ ] { } ,
+
+
+Section 2: 各コマンドの日本語説明
+-----------------------------------
+- search in first : N
+  文章の最初から N 文字だけを見て探します。
+  文書の前半だけで判断したいときに使います。
+  例: N=100 なら、先頭100文字の中でだけ検索します。
+  例: 冒頭にある「工事名」だけを先に見たい場合に便利です。
+
+- search in : all | taken | 変数名
+  「どこを探すか」を決めます。
+  all は全文、taken は今の切り出し部分、変数名は保存しておいた文章です。
+  まず search in で範囲を決めて、そのあと search text で実際に探す流れです。
+  例: take right で右側だけにしたあと search in : taken を使うと、その部分だけを探せます。
+
+- search text : 値
+  指定した文字を探します。
+  "A" または A: A を探します。
+  [A, B, C]: A/B/C が全部あるかを確認します。
+  (A, B, C): A/B/C のどれか1つがあれば成功です。
+  {A, B, C}: A→B→C の順で探し、最初に見つかったものを使います。
+  ポイント:
+  [ ] は「全部あるか確認したい」とき向きです。
+  ( ) は「候補のどれか1つ見つかればよい」とき向きです。
+  { } は「第1候補→第2候補→第3候補」の優先順を決めたいとき向きです。
+
+- if found:
+  直前の検索で見つかったときだけ実行します。
+  「見つかった場合の処理」をここに書きます。
+  例: 見つかったら take right で右側を取り、必要な文字だけ取り出す。
+
+- if not found:
+  直前の検索で見つからなかったときだけ実行します。
+  「見つからなかった場合の処理」をここに書きます。
+  例: 見つからなければ set("不明") のように初期値を入れる。
+
+- check : 変数名
+  チェックしたい項目名を指定します。
+  すでに作った結果を使って、次の分岐をしたいときに使います。
+  例: check : name_of
+
+- has value : 値
+  「その項目がこの値かどうか」を指定します。
+  check とセットで使います。
+  例: has value : 本店 なら「name_of が本店かどうか」を判定できます。
+
+- if true:
+  check の結果が true のとき実行します。
+  条件に合うときの処理を書きます。
+  例: true なら詳細抽出を進める。
+
+- if false:
+  check の結果が false のとき実行します。
+  条件に合わないときの処理を書きます。
+  例: false なら別パターンで再検索する。
+
+- take right:
+  見つかった場所より「右側（後ろ）」だけを使って次の処理をします。
+  終わると元の文章に戻ります。
+  見出しの後ろに値が書かれている資料でよく使います。
+  例: 「工事名」を見つけた後、その右側から実際の工事名を切り出す。
+
+- take left:
+  見つかった場所より「左側（前）」だけを使って次の処理をします。
+  終わると元の文章に戻ります。
+  キーワードの前に欲しい情報があるときに使います。
+  例: 「円」を見つけて、その左側から金額を取り出す。
+
+- remove whitespaces
+  文の前後にある空白を削除します。
+  見た目では分かりにくい余分な空白を落として、結果をきれいにします。
+  例: "  東京都  " -> "東京都"
+
+- remove tables
+  表データ部分（[[TABLE_START...]] から [[TABLE_END]]）を削除します。
+  表の中身がノイズになる場合に使います。
+  本文だけで判断したいときに有効です。
+
+- add in right(X)
+  文の末尾に X を足します。
+  文字の補完に使います。
+  例: "東京" に "都" を足して "東京都" にする。
+
+- add in left(X)
+  文の先頭に X を足します。
+  先頭に決まった語を付けたいときに使います。
+  例: "5000円" の前に "約" を付けて "約5000円" にする。
+
+- replace(old, new)
+  old を全部 new に置き換えます。
+  文の中の表記ゆれをまとめたいときに使います。
+  例: "㈱" を "株式会社" に一括置換する。
+
+- replace(start, old, new)
+  文の先頭に old があるときだけ new に置き換えます。
+  先頭だけ変えたいときに使います。
+  例: 先頭の "第" だけを削るなど。
+
+- replace(end, old, new)
+  文の末尾に old があるときだけ new に置き換えます。
+  末尾だけ変えたいときに使います。
+  例: 末尾の "。" を消すなど。
+
+- store(varName)
+  今の文を一時メモとして保存します。
+  後で再利用したい途中結果を残せます。
+  例: 会社名を store(company_name) して、あとで set(company_name) で使う。
+
+- set(X)
+  最終的な答えを X にします。
+  X には文字、保存した値、true/false などを指定できます。
+  補足: set(all) は入力全文をそのまま入れます。
+  1つのトップ項目に対する「最終出力」を決める命令です。
+  例: set("該当なし") のように固定文字を返すこともできます。
+
+
+Section 3: English Version
+--------------------------
+Full Mapping (English -> Japanese)
+- search in first -> 先頭検索範囲
+- search in -> 検索範囲
+- search text -> 検索文字
+- if found -> 見つかったら
+- if not found -> 見つからなければ
+- if true -> 真なら
+- if false -> 偽なら
+- take right -> 右取得
+- take left -> 左取得
+- remove whitespaces -> 前後空白削除
+- remove tables -> テーブル削除
+- add in right -> 右追加
+- add in left -> 左追加
+- store -> 保存
+- set -> 設定
+- replace -> 置換
+- check -> 確認
+- has value -> 値が
+
+Reserved values / arguments
+- all -> 全体
+- taken -> 現在
+- true -> true
+- false -> false
+- start -> 先頭
+- end -> 末尾
+
+Command behavior (English)
+- search in first : N
+  Search only in the first N characters.
+  Use this when important clues usually appear near the top of the document.
+  Example: N=100 limits search to the first 100 characters.
+
+- search in : all | taken | varName
+  Chooses where to search.
+  all = full text, taken = current sliced text, varName = saved text.
+  Typical flow: choose scope with `search in`, then run `search text`.
+
+- search text : value
+  Searches text.
+  "A" or A: find A.
+  [A, B, C]: all must exist.
+  (A, B, C): any one can exist.
+  {A, B, C}: try A, then B, then C; use the first found.
+  Use [ ] for strict checks, ( ) for alternatives, and { } for priority order.
+
+- if found:
+  Run only if last search found a match.
+  Put your "success path" here.
+
+- if not found:
+  Run only if last search did not find a match.
+  Put fallback/default handling here.
+
+- check : varName
+  Pick which variable to check.
+  This is used for branching based on previously extracted values.
+
+- has value : value
+  Define the expected value for that variable.
+  Usually used with `check` before `if true` / `if false`.
+
+- if true:
+  Run when check result is true.
+  Use this for the matching branch.
+
+- if false:
+  Run when check result is false.
+  Use this for alternative handling.
+
+- take right:
+  Use only text to the right of the match.
+  Then return to the original text scope.
+  Great when labels are followed by values.
+
+- take left:
+  Use only text to the left of the match.
+  Then return to the original text scope.
+  Useful when the needed value appears before a keyword.
+
+- remove whitespaces
+  Remove spaces at the start and end.
+  Helps clean output before storing/setting it.
+
+- remove tables
+  Remove table blocks between [[TABLE_START...]] and [[TABLE_END]].
+  Useful when table content creates false matches.
+
+- add in right(X)
+  Add X at the end.
+  Useful for restoring missing suffixes.
+
+- add in left(X)
+  Add X at the beginning.
+  Useful for adding prefixes.
+
+- replace(old, new)
+  Replace all old with new.
+  Good for normalizing different notations.
+
+- replace(start, old, new)
+  Replace old with new only at the start.
+  Prefix-only replace.
+
+- replace(end, old, new)
+  Replace old with new only at the end.
+  Suffix-only replace.
+
+- store(varName)
+  Save current text into a temporary variable.
+  Lets you reuse an intermediate result later.
+
+- set(X)
+  Set final output value to X.
+  X can be text, saved value, or true/false.
+  Note: set(all) means full original input text.
+  This is the final assignment for the current top-level field.

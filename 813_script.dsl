@@ -262,7 +262,7 @@ reg_B :
                                 search in : taken
                                 search text : "同種性が認められる工事の実績あり"
                                 if found : 
-                                    set(「同種工事（技術者）」)
+                                    set(「同種性が認められる（企業）」temp)
                                 if not found : 
                                     search in : taken
                                     search text : "同種性が認められる工事において、"

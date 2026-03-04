@@ -519,3 +519,65 @@ reg_B :
                                           set(var2)
             if not found : 
                set("")
+
+
+「同種性が認められる（企業）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : all
+      search text : "[[HEADING]] 5.1 技術評価項目"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "5.1.1 企業の施工能力"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "同種工事"
+                  if found : 
+                     set(「同種工事（企業）」)
+   if false : 
+      search in : region_B
+      search text : "5.1 技術評価項目"
+      if found : 
+         take right : 
+            search in : taken
+            search text : ("5.1.1 企業の施工能力" , "5.1.1 企業の 施工能力")
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "同種工事"
+                  if found : 
+                     set(「同種工事（企業）」)
+
+
+「同種性が認められる（技術者）」:
+   check : name_of
+   has value : 本官
+   if true : 
+      search in : all
+      search text : "[[HEADING]] 5.1 技術評価項目"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "5.1.2 配置予定技術者の能力"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "同種工事"
+                  if found : 
+                     set(「同種工事（企業）」)
+   if false : 
+      search in : region_B
+      search text : "5.1 技術評価項目"
+      if found : 
+         take right : 
+            search in : taken
+            search text : "5.1.2 配置予定技術者の能力"
+            if found : 
+               take right : 
+                  search in : taken
+                  search text : "同種工事"
+                  if found : 
+                     set(「同種工事（企業）」)
