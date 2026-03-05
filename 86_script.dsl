@@ -39,7 +39,7 @@ name_of :
                               store(var_nameof)
                               set(var_nameof)
 
-「工事名・作業名」:
+「工事名」:
    search in : all
    search text : "工事名"
    if found : 
