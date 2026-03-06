@@ -1,5 +1,9 @@
 ﻿$ErrorActionPreference = "Stop"
 
+if ($PSScriptRoot) {
+    Set-Location -LiteralPath $PSScriptRoot
+}
+
 function Run-Command {
     param(
         [string]$Label,

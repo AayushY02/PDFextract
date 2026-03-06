@@ -48,7 +48,9 @@ Windows セットアップ手順 (Python 3.10以上、3.13で確認)
 - 819: `python dsl_engine.py --script 819_script.dsl --input_dir "results/test3/【819】" --outdir "results/csv/【819】"`
 
 8) 一括実行 (推奨)
-- `.\run_pipeline.ps1`
+- `.\run_pipeline.cmd`
+- Fallback: `powershell -ExecutionPolicy Bypass -File .\run_pipeline.ps1`
+- One-time unblock (if needed): `Unblock-File -Path .\run_pipeline.ps1`
 
 9) 地域サマリ統合 (任意)
 - `python merge_region_summaries.py`

@@ -48,7 +48,9 @@ Windows setup (Python 3.10+; tested with Python 3.13)
 - 819: `python dsl_engine.py --script 819_script.dsl --input_dir "results/test3/【819】" --outdir "results/csv/【819】"`
 
 8) One-command run (recommended)
-- `.\run_pipeline.ps1`
+- `.\run_pipeline.cmd`
+- Fallback from PowerShell: `powershell -ExecutionPolicy Bypass -File .\run_pipeline.ps1`
+- If script came from a downloaded ZIP and is blocked once: `Unblock-File -Path .\run_pipeline.ps1`
 
 9) Optional final merge of region summaries
 - `python merge_region_summaries.py`
