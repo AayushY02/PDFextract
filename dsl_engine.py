@@ -35,11 +35,12 @@ import argparse
 import re
 import json
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import os
 import csv
 import unicodedata
 from pathlib import Path
+from difflib import SequenceMatcher
 import pandas as pd
 
 # --------------------------- Parsing ---------------------------
@@ -1236,6 +1237,248 @@ def _normalize_outputs_for_csv(
     return normalized
 
 
+KOUJI_CIRCLED_MARKER_RE = re.compile(r"[①-⑳⑴-⒇]")
+KOUJI_NUMBERED_MARKER_RE = re.compile(
+    r"(?:\(|（)[0-9０-９]{1,2}(?:\)|）)|[0-9０-９]{1,2}[)）]"
+)
+KOUJI_ALPHA_MARKER_RE = re.compile(
+    r"(?:"
+    r"(?:\(|（)\s*[A-Za-zＡ-Ｚａ-ｚ]\s*(?:\)|）)"
+    r"|[A-Za-zＡ-Ｚａ-ｚ]\s*[\.．\)）:：]"
+    r"|[A-Za-zＡ-Ｚａ-ｚ]\s*\u5DE5\u4E8B(?:\s*[\.．\)）:：\-‐―ー])?"
+    r")"
+)
+KOUJI_MARKER_PREFIX_RE = re.compile(
+    r"^\s*(?:"
+    r"[①-⑳⑴-⒇]"
+    r"|(?:\(|（)[0-9０-９]{1,2}(?:\)|）)"
+    r"|[0-9０-９]{1,2}[)）]"
+    r"|(?:\(|（)\s*[A-Za-zＡ-Ｚａ-ｚ]\s*(?:\)|）)"
+    r"|[A-Za-zＡ-Ｚａ-ｚ]\s*[\.．\)）:：]"
+    r"|[A-Za-zＡ-Ｚａ-ｚ]\s*\u5DE5\u4E8B(?:\s*[\.．\)）:：\-‐―ー])?"
+    r")\s*"
+)
+KOUJI_LABEL_PREFIX_RE = re.compile(r"^\s*(?:工事名|件名)\s*[:：\-‐―ー]?\s*")
+KOUJI_TOKEN_RE = re.compile(r"[0-9a-zA-Z一-龯ぁ-んァ-ヶー]+")
+KOUJI_MARKER_BOUNDARY_CHARS = " \t\r\n　:：・,，;；/／|｜-‐―()（）[]【】「」『』<>〈〉《》"
+KOUJI_MATCH_STOPWORDS = {
+    "工事",
+    "工事名",
+    "令和",
+    "年度",
+    "一般",
+    "国道",
+    "入札",
+    "説明書",
+    "入札説明書",
+    "公告",
+}
+
+
+def _is_kouji_marker_boundary(text: str, idx: int) -> bool:
+    if idx <= 0:
+        return True
+    return text[idx - 1] in KOUJI_MARKER_BOUNDARY_CHARS
+
+
+def _find_kouji_marker_starts(text: str) -> List[int]:
+    starts = set()
+    for m in KOUJI_CIRCLED_MARKER_RE.finditer(text):
+        starts.add(m.start())
+    for m in KOUJI_NUMBERED_MARKER_RE.finditer(text):
+        if _is_kouji_marker_boundary(text, m.start()):
+            starts.add(m.start())
+    for m in KOUJI_ALPHA_MARKER_RE.finditer(text):
+        if _is_kouji_marker_boundary(text, m.start()):
+            starts.add(m.start())
+    return sorted(starts)
+
+
+def _compact_for_match(s: str) -> str:
+    if not s:
+        return ""
+    normalized = unicodedata.normalize("NFKC", str(s)).lower()
+    normalized = normalized.replace(".txt", " ").replace(".pdf", " ").replace(".docx", " ")
+    normalized = normalized.replace("_", " ").replace("-", " ")
+    normalized = re.sub(r"[【】\[\]「」『』()（）<>〈〉《》]", " ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return re.sub(r"[^\w一-龯ぁ-んァ-ヶー]", "", normalized)
+
+
+def _clean_kouji_candidate_text(s: str) -> str:
+    if not s:
+        return ""
+    cleaned = s.strip()
+    cleaned = KOUJI_MARKER_PREFIX_RE.sub("", cleaned)
+    cleaned = KOUJI_LABEL_PREFIX_RE.sub("", cleaned)
+    cleaned = re.sub(r"^[\s:：\-‐―ー・]+", "", cleaned)
+    return cleaned.strip()
+
+
+def _extract_kouji_candidates(value: str) -> List[str]:
+    if not isinstance(value, str):
+        return []
+    text = value.strip()
+    if not text:
+        return []
+
+    marker_starts = _find_kouji_marker_starts(text)
+    if len(marker_starts) < 2:
+        return []
+
+    candidates: List[str] = []
+    boundaries = marker_starts + [len(text)]
+    for idx, start in enumerate(marker_starts):
+        raw = text[start:boundaries[idx + 1]]
+        candidate = _clean_kouji_candidate_text(raw)
+        if candidate:
+            candidates.append(candidate)
+
+    deduped: List[str] = []
+    seen: set = set()
+    for candidate in candidates:
+        key = _compact_for_match(candidate)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(candidate)
+    if len(deduped) < 2:
+        return []
+    return deduped
+
+
+def _kouji_token_match_ratio(candidate: str, source_hint: str) -> float:
+    src_compact = _compact_for_match(source_hint)
+    if not src_compact:
+        return 0.0
+
+    tokens = []
+    for token in KOUJI_TOKEN_RE.findall(unicodedata.normalize("NFKC", candidate).lower()):
+        token = token.strip()
+        if len(token) < 2:
+            continue
+        if token in KOUJI_MATCH_STOPWORDS:
+            continue
+        compact_token = _compact_for_match(token)
+        if compact_token:
+            tokens.append(compact_token)
+
+    if not tokens:
+        return 0.0
+
+    total = sum(len(t) for t in tokens)
+    matched = sum(len(t) for t in tokens if t in src_compact)
+    return matched / max(1, total)
+
+
+def _score_kouji_candidate(candidate: str, source_hint: str) -> Tuple[float, bool]:
+    cand_compact = _compact_for_match(candidate)
+    src_compact = _compact_for_match(source_hint)
+    if not cand_compact or not src_compact:
+        return 0.0, False
+
+    contains = cand_compact in src_compact
+    seq = SequenceMatcher(None, cand_compact, src_compact)
+    seq_ratio = seq.ratio()
+    longest_ratio = seq.find_longest_match(0, len(cand_compact), 0, len(src_compact)).size / max(1, len(cand_compact))
+    token_ratio = _kouji_token_match_ratio(candidate, source_hint)
+    score = (3.0 if contains else 0.0) + (2.0 * token_ratio) + seq_ratio + longest_ratio
+    return score, contains
+
+
+def _shorten_for_log(text: str, limit: int = 70) -> str:
+    s = _remove_empty_lines(str(text)).replace("\n", " / ")
+    if len(s) <= limit:
+        return s
+    return s[: max(1, limit - 3)] + "..."
+
+
+def _format_score_lines(score_summary: List[Tuple[str, float]]) -> List[str]:
+    lines: List[str] = []
+    for idx, (candidate, score) in enumerate(score_summary, start=1):
+        lines.append(f"{idx}. score={score:.2f} | candidate={_shorten_for_log(candidate, 56)}")
+    return lines
+
+
+def _print_kouji_disambiguation_log(file_label: str, change: Dict[str, Any]) -> None:
+    print("INFO: 工事名 disambiguated")
+    print(f"  file   : {file_label}")
+    print(f"  key    : {change.get('key', '')}")
+    print(f"  reason : {change.get('reason', '')}")
+    print(f"  from   : {_shorten_for_log(change.get('old', ''), 120)}")
+    print(f"  to     : {_shorten_for_log(change.get('new', ''), 120)}")
+    score_lines = change.get("score_lines") or []
+    if score_lines:
+        print("  scores :")
+        for line in score_lines:
+            print(f"    - {line}")
+    print("")
+
+
+def _select_best_kouji_candidate(
+    candidates: List[str],
+    source_hint: str,
+) -> Tuple[Optional[str], str, List[Tuple[str, float]]]:
+    if len(candidates) < 2:
+        return None, "not_multi", []
+
+    scored: List[Tuple[str, float, bool]] = []
+    for candidate in candidates:
+        score, contains = _score_kouji_candidate(candidate, source_hint)
+        scored.append((candidate, score, contains))
+
+    contains_matches = [candidate for candidate, _, contains in scored if contains]
+    score_summary = [(candidate, score) for candidate, score, _ in scored]
+    if len(contains_matches) == 1:
+        return contains_matches[0], "unique_filename_substring", score_summary
+
+    ranked = sorted(scored, key=lambda x: x[1], reverse=True)
+    best_candidate, best_score, _ = ranked[0]
+    second_score = ranked[1][1] if len(ranked) > 1 else 0.0
+    margin = best_score - second_score
+    if best_score >= 2.4 and margin >= 0.35:
+        return best_candidate, f"score_margin({margin:.2f})", score_summary
+    return None, "ambiguous_or_low_confidence", score_summary
+
+
+def _disambiguate_multi_kouji_names(
+    outputs: Dict[str, Any],
+    source_hint: str,
+) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    if not outputs:
+        return outputs, []
+
+    updated = dict(outputs)
+    changes: List[Dict[str, Any]] = []
+    for key, value in list(updated.items()):
+        if not _is_kouji_name_key(key) or str(key).endswith(" pageNo"):
+            continue
+        if not isinstance(value, str):
+            continue
+
+        candidates = _extract_kouji_candidates(value)
+        if len(candidates) < 2:
+            continue
+
+        selected, reason, score_summary = _select_best_kouji_candidate(candidates, source_hint)
+        if not selected:
+            continue
+        if selected.strip() == value.strip():
+            continue
+
+        updated[key] = selected
+        changes.append(
+            {
+                "key": str(key),
+                "old": value,
+                "new": selected,
+                "reason": reason,
+                "score_lines": _format_score_lines(score_summary),
+            }
+        )
+    return updated, changes
+
+
 def _script_number_from_path(script_path: str) -> Optional[int]:
     base = os.path.basename(script_path or "")
     m = re.match(r"^(\d+)_script\.dsl$", base, re.IGNORECASE)
@@ -1453,6 +1696,7 @@ def main():
             rel_dir = "" if rel_dir == "." else rel_dir
 
             for fname in txt_files:
+                rel_name = fname if not rel_dir else os.path.join(rel_dir, fname)
                 fpath = os.path.join(dirpath, fname)
                 with open(fpath, "r", encoding="utf-8") as f:
                     text = f.read()
@@ -1463,6 +1707,9 @@ def main():
                     outputs,
                     apply_kouji_special_rules=apply_kouji_special_rules,
                 )
+                outputs_csv, kouji_name_changes = _disambiguate_multi_kouji_names(outputs_csv, fpath)
+                for change in kouji_name_changes:
+                    _print_kouji_disambiguation_log(rel_name, change)
 
                 dest_dir = out_dir if not rel_dir else os.path.join(out_dir, rel_dir)
                 os.makedirs(dest_dir, exist_ok=True)
@@ -1484,7 +1731,6 @@ def main():
                     (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
                     for h in var_order
                 ]
-                rel_name = fname if not rel_dir else os.path.join(rel_dir, fname)
                 overall_rows.append([rel_name] + row_vals)
                 overall_level_row = [rel_name] + level_row[1:]
                 overall_level_rows.append(overall_level_row)
@@ -1535,9 +1781,12 @@ def main():
                 outputs,
                 apply_kouji_special_rules=apply_kouji_special_rules,
             )
+            outputs_csv, kouji_name_changes = _disambiguate_multi_kouji_names(outputs_csv, args.input)
             base = os.path.splitext(os.path.basename(args.input))[0]
             out_path = os.path.join(args.outdir, base + ".csv")
             src_name = os.path.basename(args.input)
+            for change in kouji_name_changes:
+                _print_kouji_disambiguation_log(src_name, change)
             _write_csv(
                 out_path,
                 var_order,
