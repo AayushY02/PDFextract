@@ -1,0 +1,70 @@
+﻿対象: text_extractor.py, hybrid_extraction.py, text_cleaner.py, post_clean_output3.py, dsl_engine.py, *.dsl, merge_86_rows.py, merge_89_texts.py
+
+text_extractor.py
+- PyMuPDF（fitz）: PDFを開き、ページ本文とテーブルを抽出する
+- python-docx（docx）: DOCXの段落・表を文書順に走査してテキスト化する
+- pandas: Excel（.xls/.xlsx）を読み込み、シートごとに表を扱う
+- csv: 抽出ログCSVの書き出し
+- statistics: テーブル比率や品質判定の統計値計算
+- re: 正規表現でマーカー除去・判定
+- unicodedata: 文字正規化や文字種判定
+- pathlib: 入出力パス操作
+- datetime: ログ用タイムスタンプ
+- concurrent.futures: 複数ファイルの並列処理
+
+hybrid_extraction.py
+- PyMuPDF（fitz）: PDFの本文とテーブルを抽出し、位置情報で並べ替える
+- python-docx（docx）: DOCXの段落・表を抽出する
+- pandas: Excel（.xls/.xlsx）を読み込み、表データを扱う
+- csv: 抽出ログCSVの書き出し
+- statistics: 品質判定の統計値計算
+- re: 正規表現でマーカー除去・判定
+- unicodedata: 文字正規化や文字種判定
+- pathlib: 入出力パス操作
+- datetime: ログ用タイムスタンプ
+- concurrent.futures: 複数ファイルの並列処理
+- os: ファイル操作補助
+
+text_cleaner.py
+- os: 入出力フォルダ走査
+- unicodedata: 全角→半角などの文字正規化
+- pathlib: パス操作
+- shutil: 出力先作成やファイル操作
+- datetime: ログ用タイムスタンプ
+- csv: クリーニングログ出力
+- re: クリーニング時の正規表現処理
+- argparse: CLI引数処理
+
+post_clean_output3.py
+- pathlib: パス操作
+- shutil: 出力先作成やファイル操作
+- re: ページ番号やテーブル結合判定の正規表現処理
+- argparse: CLI引数処理
+
+dsl_engine.py
+- pandas: 抽出結果の表をDataFrame化し、Excel出力に利用
+- csv: CSV書き出し補助
+- re: DSLコマンド解析やマーカー処理
+- json: 実行時のデータ操作補助
+- dataclasses: DSL実行環境や中間データの管理
+- typing: 型注釈
+- argparse: CLI引数処理
+- os: ファイル操作補助
+- unicodedata: 文字正規化
+
+merge_86_rows.py
+- pandas: CSV読み込み・グルーピング・結合・書き出し
+- csv: 書き出し時の引用符制御（改行セル保持）
+- re: ファイル名正規化
+- pathlib: パス操作
+
+merge_89_texts.py
+- argparse: CLI引数処理
+- pathlib: パス操作
+
+*.dsl（各 script ファイル）
+- Pythonライブラリは使用しない（dsl_engine.py が解釈するDSLスクリプト）
+
+補足（間接依存）
+- dsl_engine.py のExcel出力は pandas 経由で openpyxl を利用（engine="openpyxl"）
+- text_extractor.py / hybrid_extraction.py の .xls 読み込みは pandas 経由で xlrd が必要になる場合がある

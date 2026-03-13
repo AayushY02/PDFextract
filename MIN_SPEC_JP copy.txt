@@ -1,0 +1,91 @@
+PDF 1700ファイル処理向け 最低限の実用スペック（速度重視）
+=========================================================
+
+目的
+----
+1700件のPDFを「できるだけ早く」処理するための、最低限かつ実用的な構成です。
+本プロジェクトはマルチプロセスで同時実行するため、CPUコア数とRAMが速度に直結します。
+
+最低限の実用スペック（目安）
+----------------------------
+- CPU: 8コア以上（16スレッド相当が望ましい）
+  理由: 既定の並列数がCPUコア数に近く、コアが少ないと待ちが増える。
+
+- RAM: 32GB
+  理由: 1プロセスあたりPDFを丸ごと読み込むため、
+        8プロセス同時だと合計使用量が大きくなる。
+        16GBでも動くが、ページ数が多いPDFで交換（スワップ）が発生しやすく速度低下。
+
+- ストレージ: NVMe SSD、空き容量は「入力合計サイズの3～4倍 + 20GB」
+  理由: 抽出→クリーニング→ポスト処理でテキストが複数段階に保存される。
+        HDDだと書き込み待ちで時間が大幅に伸びる。
+
+- OS: Windows 10/11
+  理由: 交換用の仮想メモリ（ページファイル）を確保できる環境が必要。
+        空き容量が少ないとページファイルが拡張できず、メモリエラーが発生しやすい。
+
+補足
+----
+- PDFの内容（ページ数、表の多さ、画像密度）でメモリ使用量が大きく変動します。
+- 速度を優先するなら「CPUコア数」と「SSD性能」が最重要です。
+- RAMが不足すると、CPUが速くても逆に遅くなります。
+
+参考: もっと速くしたい場合
+--------------------------
+- CPU: 12～16コア
+- RAM: 64GB
+- ストレージ: NVMe SSD（空き容量は入力の4～5倍）
+
+
+
+ENGLISH
+
+Minimum Practical System Requirements for Processing 1,700 PDF Files (Speed-Focused)
+====================================================================================
+
+Purpose
+-------
+This configuration describes the minimum practical system requirements to process
+approximately 1,700 PDF files as quickly as possible.
+
+Because this project uses multi-process parallel execution, CPU core count and
+available RAM have a direct and significant impact on processing speed.
+
+Minimum Practical Specifications (Guideline)
+---------------------------------------------
+- CPU: 8 cores or more (16 threads recommended)
+  Reason:
+  The default level of parallelism is close to the number of CPU cores.
+  With fewer cores, process waiting time increases and overall throughput drops.
+
+- RAM: 32 GB
+  Reason:
+  Each process loads entire PDF files into memory.
+  With 8 processes running in parallel, total memory usage becomes large.
+  While 16 GB may still work, PDFs with many pages are more likely to trigger swapping,
+  causing noticeable performance degradation.
+
+- Storage: NVMe SSD, with free space equal to
+  "3–4× the total input size + 20 GB"
+  Reason:
+  Text data is saved across multiple stages (extraction → cleaning → post-processing).
+  Using an HDD significantly increases processing time due to I/O wait.
+
+- OS: Windows 10 / Windows 11
+  Reason:
+  The environment must support expandable virtual memory (page file).
+  If free disk space is insufficient, the page file cannot expand properly,
+  increasing the likelihood of memory-related errors.
+
+Additional Notes
+----------------
+- Memory usage varies greatly depending on PDF characteristics
+  (number of pages, table density, image density).
+- For maximum speed, CPU core count and SSD performance are the highest priorities.
+- Insufficient RAM can slow down processing even if the CPU is fast.
+
+Reference: For Higher Performance
+---------------------------------
+- CPU: 12–16 cores
+- RAM: 64 GB
+- Storage: NVMe SSD (free space equal to 4–5× the total input size)

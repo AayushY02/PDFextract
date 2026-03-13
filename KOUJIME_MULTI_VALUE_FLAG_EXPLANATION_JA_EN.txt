@@ -1,0 +1,30 @@
+koujime_multi_value_flag Explanation (Japanese / English)
+
+Column name:
+- koujime_multi_value_flag
+
+Japanese:
+1) 複数値検出_一致あり
+   - 「工事名」欄で複数候補を検出し、ファイル名との照合で最適な候補を1つ選択できた状態です。
+   - この場合、「工事名」は選択された値に更新されます。
+
+2) 複数値検出_一致なし
+   - 「工事名」欄で複数候補を検出したが、候補名とファイル名の一致が弱い/曖昧で1つに決められなかった状態です。
+   - この場合、安全側として「工事名」は元の抽出値を保持します。
+
+3) （空欄）
+   - 「工事名」欄で複数候補が検出されなかった状態です（単一値、または複数候補パターンに該当しない）。
+   - この場合、flagセルは空欄にし、通常の抽出結果をそのまま使用します。
+
+English:
+1) 複数値検出_一致あり
+   - Multiple project-name candidates were detected in the "工事名" field, and one best candidate was confidently matched using the file name.
+   - In this case, "工事名" is updated to the selected candidate.
+
+2) 複数値検出_一致なし
+   - Multiple project-name candidates were detected, but matching against the file name was weak/ambiguous, so the system could not choose one safely.
+   - In this case, the original extracted "工事名" value is kept.
+
+3) (blank)
+   - No multi-candidate pattern was detected in the "工事名" field (single value, or not recognized as a multi-candidate format).
+   - In this case, the flag cell is left blank and the normal extracted value is used as-is.

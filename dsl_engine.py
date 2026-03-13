@@ -968,6 +968,11 @@ def _write_excel_table(out_path, headers, rows):
 
 # --------------------------- Level-mapped outputs ---------------------------
 
+KOUJIME_MULTI_VALUE_FLAG_HEADER = "koujime_multi_value_flag"
+KOUJIME_MULTI_VALUE_FLAG_MATCHED = "複数値検出_一致あり"
+KOUJIME_MULTI_VALUE_FLAG_UNMATCHED = "複数値検出_一致なし"
+KOUJIME_MULTI_VALUE_FLAG_NOT_DETECTED = ""
+
 LEVEL_BASE_KEYS = [
     "has_eval_phrase",
     "name_bu",
@@ -990,6 +995,8 @@ LEVEL_HEADERS = [
 LEVEL_OUTPUT_HEADERS = []
 for key in LEVEL_BASE_KEYS:
     LEVEL_OUTPUT_HEADERS.append(key)
+    if key == "「工事名」":
+        LEVEL_OUTPUT_HEADERS.append(KOUJIME_MULTI_VALUE_FLAG_HEADER)
     LEVEL_OUTPUT_HEADERS.append(f"{key} pageNo")
 for key in LEVEL_HEADERS:
     LEVEL_OUTPUT_HEADERS.append(key)
@@ -1110,6 +1117,7 @@ def _build_level_row(
     for key in LEVEL_BASE_KEYS:
         base_vals[key] = outputs.get(key, "")
         base_vals[f"{key} pageNo"] = outputs.get(f"{key} pageNo", "")
+    base_vals[KOUJIME_MULTI_VALUE_FLAG_HEADER] = outputs.get(KOUJIME_MULTI_VALUE_FLAG_HEADER, "")
     for level_name in ("レベル0", "レベル1", "レベル2"):
         for role in ("企業", "技術者"):
             candidates = LEVEL_DEFS[level_name][role]
@@ -1450,19 +1458,27 @@ def _disambiguate_multi_kouji_names(
 
     updated = dict(outputs)
     changes: List[Dict[str, Any]] = []
+    has_koujime_field = False
+    has_multi_candidates = False
+    has_multi_match = False
+    has_multi_no_match = False
     for key, value in list(updated.items()):
         if not _is_kouji_name_key(key) or str(key).endswith(" pageNo"):
             continue
+        has_koujime_field = True
         if not isinstance(value, str):
             continue
 
         candidates = _extract_kouji_candidates(value)
         if len(candidates) < 2:
             continue
+        has_multi_candidates = True
 
         selected, reason, score_summary = _select_best_kouji_candidate(candidates, source_hint)
         if not selected:
+            has_multi_no_match = True
             continue
+        has_multi_match = True
         if selected.strip() == value.strip():
             continue
 
@@ -1476,7 +1492,30 @@ def _disambiguate_multi_kouji_names(
                 "score_lines": _format_score_lines(score_summary),
             }
         )
+
+    if has_koujime_field:
+        if has_multi_no_match:
+            updated[KOUJIME_MULTI_VALUE_FLAG_HEADER] = KOUJIME_MULTI_VALUE_FLAG_UNMATCHED
+        elif has_multi_candidates and has_multi_match:
+            updated[KOUJIME_MULTI_VALUE_FLAG_HEADER] = KOUJIME_MULTI_VALUE_FLAG_MATCHED
+        else:
+            updated[KOUJIME_MULTI_VALUE_FLAG_HEADER] = KOUJIME_MULTI_VALUE_FLAG_NOT_DETECTED
+    else:
+        # Keep the flag deterministic even when the script does not output 工事名.
+        updated[KOUJIME_MULTI_VALUE_FLAG_HEADER] = KOUJIME_MULTI_VALUE_FLAG_NOT_DETECTED
     return updated, changes
+
+
+def _build_var_order_with_koujime_flag(ordered_vars: List[str]) -> List[str]:
+    var_order: List[str] = []
+    flag_inserted = False
+    for name in ordered_vars:
+        var_order.append(name)
+        if (not flag_inserted) and _is_kouji_name_key(name):
+            var_order.append(KOUJIME_MULTI_VALUE_FLAG_HEADER)
+            flag_inserted = True
+        var_order.append(f"{name} pageNo")
+    return var_order
 
 
 def _script_number_from_path(script_path: str) -> Optional[int]:
@@ -1660,13 +1699,10 @@ def main():
         "「やや同種性が高い工事（企業）」",
         "「やや同種性が高い工事（技術者）」"
     ]
-    var_order = []
     # Always include preferred_order in CSV/Excel headers, even if not present in the script.
     # Missing outputs will render as empty cells.
     ordered_vars = [v for v in preferred_order if v not in excluded_csv_vars]
-    for name in ordered_vars:
-        var_order.append(name)
-        var_order.append(f"{name} pageNo")
+    var_order = _build_var_order_with_koujime_flag(ordered_vars)
 
     # outputs = run(script_text, input_text)
 

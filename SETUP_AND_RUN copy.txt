@@ -1,0 +1,221 @@
+﻿繝励Ο繧ｸ繧ｧ繧ｯ繝医そ繝・ヨ繧｢繝・・謇矩・(Windows)
+====================================
+
+縺薙・繝励Ο繧ｸ繧ｧ繧ｯ繝医・縲￣DF/DOCX/XLS/XLSX 縺九ｉ繝・く繧ｹ繝医ｒ謚ｽ蜃ｺ縺励√け繝ｬ繝ｳ繧ｸ繝ｳ繧ｰ蠕後↓
+DSL 繧ｹ繧ｯ繝ｪ繝励ヨ縺ｧ CSV 繧堤函謌舌＠縺ｾ縺吶・
+蜑肴署譚｡莉ｶ
+--------
+- Windows 迺ｰ蠅・- Python 3.10 莉･荳・(3.13 縺ｧ遒ｺ隱・
+- Git 縺ｯ莉ｻ諢・(clone縺吶ｋ蝣ｴ蜷医・縺ｿ)
+- `results/` 繧剃ｽ懈・縺ｧ縺阪ｋ蜊∝・縺ｪ遨ｺ縺榊ｮｹ驥・
+1) 繧ｳ繝ｼ繝牙叙蠕・-------------
+GitHub 縺九ｉ clone 縺吶ｋ蝣ｴ蜷・
+git clone <repo-url>
+cd PDFextract
+
+ZIP 縺ｮ蝣ｴ蜷・
+ZIP繧定ｧ｣蜃阪＠縲√・繝ｭ繧ｸ繧ｧ繧ｯ繝医Ν繝ｼ繝医〒 PowerShell 繧帝幕縺・※縺上□縺輔＞縲・
+2) 莉ｮ諠ｳ迺ｰ蠅・・菴懈・縺ｨ譛牙柑蛹・------------------------
+python -m venv .venv
+.\.venv\Scripts\Activate
+
+3) 萓晏ｭ倥Λ繧､繝悶Λ繝ｪ縺ｮ繧､繝ｳ繧ｹ繝医・繝ｫ
+------------------------------
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+莉ｻ諢上メ繧ｧ繝・け:
+python -c "import fitz, pandas, yaml; print('ok')"
+
+4) 蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｮ貅門ｙ
+--------------------
+- PDF/DOCX/XLS/XLSX 繧・`input/` 驟堺ｸ九↓驟咲ｽｮ
+- 繧ｵ繝悶ヵ繧ｩ繝ｫ繝讒区・縺ｯ蜃ｺ蜉帛・縺ｫ繧ょｼ輔″邯吶′繧後∪縺・
+5) 謚ｽ蜃ｺ
+-------
+- 騾壼ｸｸ謚ｽ蜃ｺ:
+  python text_extractor.py
+  蜃ｺ蜉帛・: `results/output1/`
+  繝ｭ繧ｰ: `results/extraction_log.csv`
+
+- hybrid謚ｽ蜃ｺ:
+  python hybrid_extraction.py
+  蜃ｺ蜉帛・: `results/test1/`
+  繝ｭ繧ｰ: `results/test1/log.csv`
+
+6) 繧ｯ繝ｬ繝ｳ繧ｸ繝ｳ繧ｰ
+---------------
+- 騾壼ｸｸ邉ｻ:
+  python text_cleaner.py --input-dir results/output1 --output-dir results/output2
+- hybrid邉ｻ:
+  python text_cleaner.py --input-dir results/test1 --output-dir results/test2
+
+7) 繝昴せ繝医け繝ｬ繝ｳ繧ｸ繝ｳ繧ｰ
+--------------------
+- 騾壼ｸｸ邉ｻ:
+  python post_clean_output3.py --input-dir results/output2 --output-dir results/output3
+- hybrid邉ｻ:
+  python post_clean_output3.py --input-dir results/test2 --output-dir results/test3
+
+8) 繝槭・繧ｸ蜃ｦ逅・(蟇ｾ雎｡蝨ｰ蝓溘・縺ｿ)
+--------------------------
+- 86:
+  python merge_86_texts.py --input_dir "results/test3/縲・6縲題ｿ醍柄" --output_dir "results/test4/縲・6縲題ｿ醍柄"
+- 89:
+  python merge_89_texts.py --input_dir "results/test3/縲・9縲台ｹ晏ｷ・ --output_dir "results/test4/縲・9縲台ｹ晏ｷ・
+
+9) DSL 謚ｽ蜃ｺ
+-----------
+蝨ｰ蝓溘＃縺ｨ縺ｫ莉･荳九ｒ螳溯｡・
+
+python dsl_engine.py --script 82_script.dsl --input_dir "results/output3/縲・2縲第擲蛹・ --outdir "results/csv/縲・2縲第擲蛹・
+python dsl_engine.py --script 83_script.dsl --input_dir "results/output3/縲・3縲鷹未譚ｱ" --outdir "results/csv/縲・3縲鷹未譚ｱ"
+python dsl_engine.py --script 84_script.dsl --input_dir "results/output3/縲・4縲大圏髯ｸ" --outdir "results/csv/縲・4縲大圏髯ｸ"
+python dsl_engine.py --script 85_script.dsl --input_dir "results/test3/縲・5縲台ｸｭ驛ｨ" --outdir "results/csv/縲・5縲台ｸｭ驛ｨ"
+python dsl_engine.py --script 86_script.dsl --input_dir "results/test4/縲・6縲題ｿ醍柄" --outdir "results/csv/縲・6縲題ｿ醍柄"
+python dsl_engine.py --script 87_script.dsl --input_dir "results/output3/縲・7縲台ｸｭ蝗ｽ" --outdir "results/csv/縲・7縲台ｸｭ蝗ｽ"
+python dsl_engine.py --script 88_script.dsl --input_dir "results/output3/縲・8縲大屁蝗ｽ" --outdir "results/csv/縲・8縲大屁蝗ｽ"
+python dsl_engine.py --script 89_script.dsl --input_dir "results/test4/縲・9縲台ｹ晏ｷ・ --outdir "results/csv/縲・9縲台ｹ晏ｷ・
+python dsl_engine.py --script 90_script.dsl --input_dir "results/output3/縲・0縲第ｲ也ｸ・ --outdir "results/csv/縲・0縲第ｲ也ｸ・
+
+python dsl_engine.py --script 810_script.dsl --input_dir "results/test3/縲・10縲・ --outdir "results/csv/縲・10縲・
+python dsl_engine.py --script 811_script.dsl --input_dir "results/test3/縲・11縲・ --outdir "results/csv/縲・11縲・
+python dsl_engine.py --script 812_script.dsl --input_dir "results/test3/縲・12縲・ --outdir "results/csv/縲・12縲・
+python dsl_engine.py --script 813_script.dsl --input_dir "results/test3/縲・13縲・ --outdir "results/csv/縲・13縲・
+python dsl_engine.py --script 814_script.dsl --input_dir "results/test3/縲・14縲・ --outdir "results/csv/縲・14縲・
+python dsl_engine.py --script 815_script.dsl --input_dir "results/test3/縲・15縲・ --outdir "results/csv/縲・15縲・
+python dsl_engine.py --script 816_script.dsl --input_dir "results/test3/縲・16縲・ --outdir "results/csv/縲・16縲・
+python dsl_engine.py --script 817_script.dsl --input_dir "results/test3/縲・17縲・ --outdir "results/csv/縲・17縲・
+python dsl_engine.py --script 818_script.dsl --input_dir "results/test3/縲・18縲・ --outdir "results/csv/縲・18縲・
+python dsl_engine.py --script 819_script.dsl --input_dir "results/test3/縲・19縲・ --outdir "results/csv/縲・19縲・
+
+陬懆ｶｳ:
+- `--outdir` 縺ｯ蟄伜惠縺励↑縺・ｴ蜷医↓閾ｪ蜍穂ｽ懈・縺輔ｌ縺ｾ縺・- 縺吶∋縺ｦ荳諡ｬ縺ｧ螳溯｡後☆繧句ｴ蜷医・ `.\run_pipeline.ps1` 縺梧耳螂ｨ縺ｧ縺・
+- .\run_pipeline.cmd is also available.
+- Region-only rerun: .\run_regions_pipeline.ps1 or .\run_regions_pipeline.cmd
+10) 蜃ｺ蜉帛ｴ謇
+-----------
+- 謚ｽ蜃ｺ繝・く繧ｹ繝・ `results/output1` / `results/test1`
+- 繧ｯ繝ｬ繝ｳ繧ｸ繝ｳ繧ｰ蠕・ `results/output2` / `results/test2`
+- 繝昴せ繝医け繝ｬ繝ｳ繧ｸ繝ｳ繧ｰ蠕・ `results/output3` / `results/test3`
+- 繝槭・繧ｸ蠕・ `results/test4` (86,89)
+- CSV: `results/csv/<蝨ｰ蝓・`
+
+
+ENGLISH
+
+PROJECT SETUP AND RUN GUIDE (Windows)
+====================================
+
+This project extracts text from PDF/DOCX/XLS/XLSX files, cleans it, then runs
+DSL scripts to generate CSV outputs.
+
+Prerequisites
+-------------
+- Windows with Python 3.10+ (tested with 3.13)
+- Git (optional, only needed if you clone)
+- Enough disk space under `results/`
+
+1) Get the code
+---------------
+If cloning from GitHub:
+git clone <repo-url>
+cd PDFextract
+
+If using ZIP:
+Unzip and open PowerShell in the project root.
+
+2) Create and activate a virtual environment
+--------------------------------------------
+python -m venv .venv
+.\.venv\Scripts\Activate
+
+3) Install dependencies
+-----------------------
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+
+Optional sanity check:
+python -c "import fitz, pandas, yaml; print('ok')"
+
+4) Prepare input files
+----------------------
+- Put PDF/DOCX/XLS/XLSX files under `input/`
+- Subfolders are supported and preserved
+
+5) Run extraction
+-----------------
+- Standard extractor:
+  python text_extractor.py
+  Output: `results/output1/`
+  Log: `results/extraction_log.csv`
+
+- Hybrid extractor:
+  python hybrid_extraction.py
+  Output: `results/test1/`
+  Log: `results/test1/log.csv`
+
+6) Clean extracted text
+-----------------------
+python text_cleaner.py --input-dir results/output1 --output-dir results/output2
+python text_cleaner.py --input-dir results/test1 --output-dir results/test2
+
+7) Post-clean
+-------------
+python post_clean_output3.py --input-dir results/output2 --output-dir results/output3
+python post_clean_output3.py --input-dir results/test2 --output-dir results/test3
+
+8) Merge (required regions)
+---------------------------
+python merge_86_texts.py --input_dir "results/test3/縲・6縲題ｿ醍柄" --output_dir "results/test4/縲・6縲題ｿ醍柄"
+python merge_89_texts.py --input_dir "results/test3/縲・9縲台ｹ晏ｷ・ --output_dir "results/test4/縲・9縲台ｹ晏ｷ・
+
+9) Run DSL extraction
+---------------------
+Use the same region commands listed in the Japanese section above.
+Important updates:
+- `85_script.dsl` uses `results/test3/【85】...`
+- `818_script.dsl` is included
+
+10) Pipeline launch commands
+----------------------------
+- Full pipeline (PowerShell): `.\run_pipeline.ps1`
+- Full pipeline (CMD launcher): `.\run_pipeline.cmd`
+- Region-only DSL pipeline (PowerShell): `.\run_regions_pipeline.ps1`
+- Region-only DSL pipeline (CMD launcher): `.\run_regions_pipeline.cmd`
+- Region-only mode runs only `dsl_engine.py` and expects `results/output3`, `results/test3`, and `results/test4`.
+
+11) Required files in this `code zip` package
+----------------------------------------------
+- Core Python: `text_extractor.py`, `hybrid_extraction.py`, `text_cleaner.py`, `post_clean_output3.py`, `merge_86_texts.py`, `merge_89_texts.py`, `dsl_engine.py`, `merge_region_summaries.py`
+- Pipeline scripts: `run_pipeline.ps1`, `run_pipeline.cmd`, `run_regions_pipeline.ps1`, `run_regions_pipeline.cmd`
+- DSL scripts: `82_script.dsl` to `90_script.dsl`, and `810_script.dsl` to `819_script.dsl`
+- Setup/docs: `requirements.txt`, `INSTALLATION.txt`, `INSTALLATION_JP.txt`, `SETUP_AND_RUN.txt`, `MIN_SPEC_JP.txt`
+
+12) Where outputs go
+--------------------
+- Extracted text: `results/output1` / `results/test1`
+- Cleaned text: `results/output2` / `results/test2`
+- Post-cleaned text: `results/output3` / `results/test3`
+- Merged text: `results/test4` (86,89)
+- CSV outputs: `results/csv/<region>`
+
+final order :
+
+1) python -m venv .venv
+2) .\.venv\Scripts\Activate
+3) python -m pip install --upgrade pip
+4) pip install -r requirements.txt
+5) python text_extractor.py
+6) python hybrid_extraction.py
+7) python text_cleaner.py --input-dir results/output1 --output-dir results/output2
+8) python text_cleaner.py --input-dir results/test1 --output-dir results/test2
+9) python post_clean_output3.py --input-dir results/output2 --output-dir results/output3
+10) python post_clean_output3.py --input-dir results/test2 --output-dir results/test3
+11) run both merge commands from section 8
+12) run region-wise `dsl_engine.py` commands from section 9
+13) full pipeline launcher (recommended): `.\run_pipeline.ps1` or `.\run_pipeline.cmd`
+14) region-only rerun: `.\run_regions_pipeline.ps1` or `.\run_regions_pipeline.cmd`
+
+
+

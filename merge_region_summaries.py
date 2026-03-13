@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Merge region summary CSVs into Excel workbooks.
+Merge region summary CSVs into Excel and CSV outputs.
 
-Creates two workbook sets:
+Creates three output sets:
 1) Regions 82-90
-   - results/csv/merged_main_summary_82-90.xlsx
-   - results/csv/merged_levels_summary_82-90.xlsx
 2) Regions 810-819
-   - results/csv/merged_main_summary_810-819.xlsx
-   - results/csv/merged_levels_summary_810-819.xlsx
+3) Regions 82-90 + 810-819 (combined)
 
-Each workbook contains one sheet per region folder.
+For each set, generates both:
+- merged_main_summary_<label>.xlsx / .csv
+- merged_levels_summary_<label>.xlsx / .csv
+
+Excel files contain one sheet per region folder.
+CSV files contain all region sheets stacked together with a region column.
 """
 
 from __future__ import annotations
@@ -24,9 +26,13 @@ import pandas as pd
 
 
 BASE_DIR = Path("results") / "csv"
+REGION_82_90 = list(range(82, 91))
+REGION_810_819 = list(range(810, 820))
+
 REGION_SETS: list[tuple[str, list[int]]] = [
-    ("82-90", list(range(82, 91))),
-    ("810-819", list(range(810, 820))),
+    ("82-90", REGION_82_90),
+    ("810-819", REGION_810_819),
+    ("82-90_and_810-819", REGION_82_90 + REGION_810_819),
 ]
 
 LEFT_BRACKET = chr(0x3010)   # 【
@@ -105,16 +111,43 @@ def _write_workbook(output_path: Path, frames: list[tuple[str, pd.DataFrame]]) -
     print(f"Wrote {output_path}")
 
 
+def _combine_for_csv(frames: list[tuple[str, pd.DataFrame]]) -> pd.DataFrame:
+    if not frames:
+        return pd.DataFrame()
+
+    combined_frames: list[pd.DataFrame] = []
+    for sheet, frame in frames:
+        region_frame = frame.copy()
+        region_frame.insert(0, "region_sheet", sheet)
+        combined_frames.append(region_frame)
+
+    return pd.concat(combined_frames, ignore_index=True, sort=False)
+
+
+def _write_csv(output_path: Path, frame: pd.DataFrame) -> None:
+    if frame.empty:
+        print(f"No data to write for {output_path.name}")
+        return
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    frame.to_csv(output_path, index=False, encoding="utf-8-sig")
+    print(f"Wrote {output_path}")
+
+
 def main() -> None:
     for label, region_codes in REGION_SETS:
         main_frames = _collect_frames(region_codes, "all")
         levels_frames = _collect_frames(region_codes, "levels")
 
-        out_main = BASE_DIR / f"merged_main_summary_{label}.xlsx"
-        out_levels = BASE_DIR / f"merged_levels_summary_{label}.xlsx"
+        out_main_xlsx = BASE_DIR / f"merged_main_summary_{label}.xlsx"
+        out_levels_xlsx = BASE_DIR / f"merged_levels_summary_{label}.xlsx"
+        out_main_csv = BASE_DIR / f"merged_main_summary_{label}.csv"
+        out_levels_csv = BASE_DIR / f"merged_levels_summary_{label}.csv"
 
-        _write_workbook(out_main, main_frames)
-        _write_workbook(out_levels, levels_frames)
+        _write_workbook(out_main_xlsx, main_frames)
+        _write_workbook(out_levels_xlsx, levels_frames)
+        _write_csv(out_main_csv, _combine_for_csv(main_frames))
+        _write_csv(out_levels_csv, _combine_for_csv(levels_frames))
 
 
 if __name__ == "__main__":

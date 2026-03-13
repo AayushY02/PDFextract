@@ -1,0 +1,67 @@
+Windows セットアップ手順 (Python 3.10以上、3.13で確認)
+--------------------------------------------------------
+
+1) 仮想環境を作成して有効化 (PowerShell、プロジェクトルート)
+- `python -m venv .venv`
+- `.\.venv\Scripts\Activate`
+
+2) 依存ライブラリをインストール
+- pip更新: `python -m pip install --upgrade pip`
+- 依存導入: `pip install -r requirements.txt`
+  - pandas, pdfminer.six, PyYAML, PyMuPDF, python-docx, openpyxl, xlrd, pywin32 を含む
+
+3) 抽出
+- `python text_extractor.py`  (`results/output1`へ出力)
+- `python hybrid_extraction.py` (`results/test1`へ出力)
+
+4) クリーニング
+- 通常系: `python text_cleaner.py --input-dir results/output1 --output-dir results/output2`
+- 810-819 と hybrid系: `python text_cleaner.py --input-dir results/test1 --output-dir results/test2`
+
+5) ポストクリーニング
+- 通常系: `python post_clean_output3.py --input-dir results/output2 --output-dir results/output3`
+- 810-819 と hybrid系: `python post_clean_output3.py --input-dir results/test2 --output-dir results/test3`
+
+6) マージが必要な地域
+- 86マージ: `python merge_86_texts.py --input_dir "results/test3/【86】近畿" --output_dir "results/test4/【86】近畿"`
+- 89マージ: `python merge_89_texts.py --input_dir "results/test3/【89】九州" --output_dir "results/test4/【89】九州"`
+
+7) 地域別CSV生成コマンド (PowerShell)
+- 82 東北: `python dsl_engine.py --script 82_script.dsl --input_dir "results/output3/【82】東北" --outdir "results/csv/【82】東北"`
+- 83 関東: `python dsl_engine.py --script 83_script.dsl --input_dir "results/output3/【83】関東" --outdir "results/csv/【83】関東"`
+- 84 北陸: `python dsl_engine.py --script 84_script.dsl --input_dir "results/output3/【84】北陸" --outdir "results/csv/【84】北陸"`
+- 85 中部: `python dsl_engine.py --script 85_script.dsl --input_dir "results/test3/【85】中部" --outdir "results/csv/【85】中部"`
+- 86 近畿: `python dsl_engine.py --script 86_script.dsl --input_dir "results/test4/【86】近畿" --outdir "results/csv/【86】近畿"`
+- 87 中国: `python dsl_engine.py --script 87_script.dsl --input_dir "results/output3/【87】中国" --outdir "results/csv/【87】中国"`
+- 88 四国: `python dsl_engine.py --script 88_script.dsl --input_dir "results/output3/【88】四国" --outdir "results/csv/【88】四国"`
+- 89 九州: `python dsl_engine.py --script 89_script.dsl --input_dir "results/test4/【89】九州" --outdir "results/csv/【89】九州"`
+- 90 沖縄: `python dsl_engine.py --script 90_script.dsl --input_dir "results/output3/【90】沖縄" --outdir "results/csv/【90】沖縄"`
+- 810: `python dsl_engine.py --script 810_script.dsl --input_dir "results/test3/【810】" --outdir "results/csv/【810】"`
+- 811: `python dsl_engine.py --script 811_script.dsl --input_dir "results/test3/【811】" --outdir "results/csv/【811】"`
+- 812: `python dsl_engine.py --script 812_script.dsl --input_dir "results/test3/【812】" --outdir "results/csv/【812】"`
+- 813: `python dsl_engine.py --script 813_script.dsl --input_dir "results/test3/【813】" --outdir "results/csv/【813】"`
+- 814: `python dsl_engine.py --script 814_script.dsl --input_dir "results/test3/【814】" --outdir "results/csv/【814】"`
+- 815: `python dsl_engine.py --script 815_script.dsl --input_dir "results/test3/【815】" --outdir "results/csv/【815】"`
+- 816: `python dsl_engine.py --script 816_script.dsl --input_dir "results/test3/【816】" --outdir "results/csv/【816】"`
+- 817: `python dsl_engine.py --script 817_script.dsl --input_dir "results/test3/【817】" --outdir "results/csv/【817】"`
+- 818: `python dsl_engine.py --script 818_script.dsl --input_dir "results/test3/【818】" --outdir "results/csv/【818】"`
+- 819: `python dsl_engine.py --script 819_script.dsl --input_dir "results/test3/【819】" --outdir "results/csv/【819】"`
+
+8) パイプライン実行コマンド (推奨)
+- フルパイプライン (PowerShell): `.\run_pipeline.ps1`
+- フルパイプライン (CMDランチャー): `.\run_pipeline.cmd`
+- 地域DSLのみ (PowerShell): `.\run_regions_pipeline.ps1`
+- 地域DSLのみ (CMDランチャー): `.\run_regions_pipeline.cmd`
+  - 地域DSLのみモードは `dsl_engine.py` だけを実行します。事前に `results/output3`、`results/test3`、`results/test4` が必要です。
+
+9) 地域サマリ統合 (任意)
+- `python merge_region_summaries.py`
+
+10) この `code zip` に必要な主要ファイル
+- Python本体: `text_extractor.py`, `hybrid_extraction.py`, `text_cleaner.py`, `post_clean_output3.py`, `merge_86_texts.py`, `merge_89_texts.py`, `dsl_engine.py`, `merge_region_summaries.py`
+- パイプライン: `run_pipeline.ps1`, `run_pipeline.cmd`, `run_regions_pipeline.ps1`, `run_regions_pipeline.cmd`
+- DSLスクリプト: `82_script.dsl` から `90_script.dsl`、`810_script.dsl` から `819_script.dsl`
+- セットアップ文書: `requirements.txt`, `INSTALLATION.txt`, `INSTALLATION_JP.txt`, `SETUP_AND_RUN.txt`, `MIN_SPEC_JP.txt`
+
+11) 文字コード
+- テキストはUTF-8を推奨。CSVはExcel互換のためUTF-8-SIGで出力される。

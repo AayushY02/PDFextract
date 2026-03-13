@@ -1,0 +1,306 @@
+プロジェクト更新概要（クライアント向け）
+=======================================
+
+トピック:
+1つの文書内に複数の「工事名」が含まれる場合の処理改善。
+
+
+1) 本アップデートが必要になった理由
+------------------------------------
+一部の入札関連文書では、工事名の欄に複数の候補がまとめて記載されている場合があります。
+
+例:
+
+- ① ... ② ... ③ ...
+- A. ... B. ...
+- Ａ工事 ... Ｂ工事 ... Ｃ工事 ...
+
+従来の処理では、以下のような問題が発生する可能性がありました。
+
+- 複数の工事名がまとめて1つの出力フィールドに残る
+- 現在のファイルと一致しない工事名が保持される
+
+その結果、最終的なCSV / Excel出力結果に混乱が生じるケースがありました。
+
+
+2) 現在のシステムの動作（高レベルフロー）
+---------------------------------------------
+通常の抽出処理および最終クリーニング処理が完了した後、
+CSV / Excelに書き込む直前の段階で、以下の処理が行われます。
+
+1. 抽出された「工事名」フィールドを確認する
+2. 複数の名称が含まれている場合、それらを個別の候補として分割する
+3. 各候補を現在のファイル名と比較する
+4. 明確に最も一致する候補がある場合、その候補のみを採用する
+5. 一致が明確でない場合は変更を強制しない（安全フォールバック）
+6. 最終的に選択された値を出力に書き込む
+
+
+3) 現在認識されるリスト形式
+------------------------------
+複数工事名の検出では、以下すべてのパターンをサポートしています。
+
+- 丸付き番号
+  ①, ②, ③, ...
+
+- 番号リスト形式
+  (1), （１）, 1), １）...
+
+- アルファベット形式
+  A., B., C.
+  Ａ．, Ｂ．, Ｃ．
+  (A), （Ａ）
+
+- 工事ラベル形式
+  A工事, B工事, C工事
+  Ａ工事, Ｂ工事, Ｃ工事
+
+
+4) マッチング精度の改善
+------------------------
+マッチングの信頼性を高めるため、表記ゆれに強い比較処理が実装されています。
+
+- 全角 / 半角の正規化
+  例:
+  A と Ａ
+  1 と １
+  () と （）
+  は同一として扱われます。
+
+- ファイル接尾辞および句読点の違いは比較前に正規化されます。
+
+- 一般的で識別力の低い単語はマッチング時の影響を弱め、
+  より識別性の高い単語に重点を置いた比較を行います。
+
+
+5) 安全動作（誤上書き防止）
+----------------------------
+システムは、十分な確信度がある場合のみ工事名を更新します。
+
+以下の場合には変更を行いません。
+
+- 確信度が低い場合
+- 複数の候補がほぼ同等に一致する場合
+
+この仕組みにより、
+
+- 既存の抽出結果を保護し
+- 誤った置き換えが発生するリスクを防止
+
+します。
+
+
+6) ターミナルログ出力
+----------------------
+実際に変更が行われた場合、ターミナルに読みやすいログブロックが表示されます。
+
+表示内容:
+
+- ファイル名
+- 変更されたフィールド
+- 変更前の値
+- 変更後の値
+- 変更理由
+- 候補ごとのスコア概要
+
+明確な候補が存在しない場合は変更を行わず、
+「disambiguated」ログも出力されません。
+
+これは正常動作であり、エラーではありません。
+
+
+7) 動作例
+----------
+
+ケース A:
+ファイル名に「...笹本町...」が含まれ、
+「工事名」フィールドに以下が含まれる場合:
+
+① ...高田町...
+② ...笹本町...
+③ ...左岸...
+
+結果:
+「...笹本町...」のみが保持されます。
+
+
+ケース B:
+「工事名」に以下が含まれる場合:
+
+Ａ工事 ...その2...
+Ｂ工事 ...その1...
+Ｃ工事 ...浦山...その2...
+
+結果:
+システムは3つの候補を検出し、
+現在のファイル名と最も一致する候補のみを採用します。
+
+
+ケース C:
+ファイル名が非常に一般的な場合
+（例: 説明書_02-01...）で、候補の類似度が高い場合
+
+結果:
+強制的な置き換えは行われず、
+元の抽出値がそのまま保持されます。
+
+
+8) 影響範囲
+-------------
+本アップデートは、DSL出力段階における
+最終的な工事名選択処理のみに影響します。
+
+以下には影響しません:
+
+- 文書抽出処理そのもの
+- 「工事名」以外のフィールド
+- 上流のクリーニングルール
+
+
+9) ビジネス上のメリット
+------------------------
+本改善により、以下の効果が期待されます。
+
+- CSV / Excelにおける工事名の品質向上
+- ファイル単位の文書識別と工事名の整合性向上
+- 手動修正作業の削減
+- 曖昧なケースでも安全に動作するフォールバック
+
+
+End of overview.
+
+
+Project Update Overview 
+=======================================
+
+Topic:
+Improved handling of "工事名" (project name) when one document contains multiple project names.
+
+
+1) Why this update was needed
+-----------------------------
+In some bid documents, the project name section can include multiple options in one block, for example:
+
+- ① ... ② ... ③ ...
+- A. ... B. ...
+- Ａ工事 ... Ｂ工事 ... Ｃ工事 ...
+
+Before this update, the system could carry all names together into one output field, or keep a name that did not match the current file.
+
+This created confusion in final CSV/Excel results.
+
+
+2) What the system does now (high-level flow)
+---------------------------------------------
+After the normal extraction and final cleaning steps are completed, and just before writing the final CSV/Excel output:
+
+1. The system checks the extracted project name field ("工事名").
+2. If it contains multiple listed names, it splits them into separate candidates.
+3. It compares those candidates against the current file name.
+4. If one candidate clearly matches best, only that one is kept.
+5. If the match is not clear, the system does not force a change (safe fallback).
+6. The final selected value is written to output.
+
+
+3) List formats now recognized
+------------------------------
+The multi-name detection supports all of the following patterns:
+
+- Circled numbers:
+  ①, ②, ③, ...
+
+- Numbered list markers:
+  (1), （１）, 1), １）...
+
+- Alphabet markers:
+  A., B., C.
+  Ａ．, Ｂ．, Ｃ．
+  (A), （Ａ）
+
+- Work-type labels:
+  A工事, B工事, C工事
+  Ａ工事, Ｂ工事, Ｃ工事
+
+
+4) Matching reliability improvements
+------------------------------------
+To improve reliability, matching is designed to be tolerant of formatting differences:
+
+- Halfwidth/fullwidth character differences are normalized.
+  Example: A and Ａ, 1 and １, () and （） are treated consistently.
+
+- File suffixes and punctuation differences are normalized before comparison.
+
+- Common generic words are de-emphasized during matching so the system focuses on distinguishing words.
+
+
+5) Safety behavior (to avoid incorrect overwrites)
+--------------------------------------------------
+The system updates the project name only when confidence is high.
+
+If confidence is low or multiple candidates look equally likely, it keeps the original extracted value unchanged.
+
+This protects existing behavior and avoids introducing accidental wrong replacements.
+
+
+6) Terminal logging behavior
+----------------------------
+When a change is actually applied, a readable log block is printed in terminal, showing:
+
+- File name
+- Field changed
+- Old value
+- New value
+- Reason
+- Candidate score summary
+
+If no clear winner exists, no change is made and no "disambiguated" log is printed.
+This is expected behavior, not an error.
+
+
+7) Example outcomes
+-------------------
+Case A:
+File name contains "...笹本町..." and "工事名" has:
+① ...高田町...
+② ...笹本町...
+③ ...左岸...
+
+Result:
+Only the "...笹本町..." candidate is kept.
+
+Case B:
+"工事名" has:
+Ａ工事 ...その2...
+Ｂ工事 ...その1...
+Ｃ工事 ...浦山...その2...
+
+Result:
+System detects all 3 candidates and keeps the one that best matches the current file name.
+
+Case C:
+File name is too generic (for example only "説明書_02-01..."), and candidates are equally similar.
+
+Result:
+No forced replacement; original value is retained for safety.
+
+
+8) Impact scope
+---------------
+This update affects only final project-name selection behavior in DSL output stage.
+
+It does not change:
+- document extraction itself,
+- other fields unrelated to "工事名",
+- upstream cleaning rules.
+
+
+9) Business benefit
+-------------------
+- Cleaner final "工事名" values in CSV/Excel.
+- Better alignment between file-level document identity and selected project name.
+- Lower manual correction effort.
+- Safe fallback in ambiguous situations.
+
+
+End of overview.
