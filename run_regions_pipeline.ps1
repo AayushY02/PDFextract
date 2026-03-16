@@ -107,4 +107,7 @@ Run-Dsl -Script "817_script.dsl" -InputBase "results/test3" -Prefix (Get-RegionP
 Run-Dsl -Script "818_script.dsl" -InputBase "results/test3" -Prefix (Get-RegionPrefix "818") -RequiredInput
 Run-Dsl -Script "819_script.dsl" -InputBase "results/test3" -Prefix (Get-RegionPrefix "819") -RequiredInput
 
+# Merge all region summaries after DSL extraction
+Run-Command "merge_region_summaries" "python" @("merge_region_summaries.py")
+
 Write-Host "Region-only DSL pipeline completed."

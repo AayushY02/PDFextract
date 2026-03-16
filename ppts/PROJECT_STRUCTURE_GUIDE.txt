@@ -1,0 +1,307 @@
+﻿
+======================================================================
+プロジェクト構成ガイド
+======================================================================
+
+1) プロジェクト目的
+本プロジェクトは、入札関連文書（PDF、DOCX、XLS/XLSX）からテキストを抽出し、段階的に整形した後、地域別DSLルールで必要項目を抽出し、地域単位のCSV/Excel要約を出力する構成です。
+
+主な到達点:
+- `input/` に元データを配置
+- パイプラインを実行
+- `results/csv/` に地域別要約を出力
+
+現在の出力方針:
+- `dsl_engine.py` はフォルダ実行時、地域単位の `*_levels_summary.csv` / `*_levels_summary.xlsx` を主出力とする設定です。
+- 案件別CSV/Excelおよびall_texts_summary系ロジックは将来再有効化可能な形でコード内に保持されています。
+- `merge_region_summaries.py` はデフォルトでlevels系結合を生成する設定です。
+
+
+2) トップレベル構成
+`code zip` 直下の現状:
+- フォルダ: 3
+- ファイル: 46
+
+直下フォルダ:
+- `input/`
+- `results/`
+
+直下の役割:
+- `input/`: 元データ
+- `results/`: 中間成果物と最終成果物
+- 直下ファイル群: 実行スクリプト、DSLルール、起動スクリプト、導入/運用文書
+
+
+3) 実行フロー
+標準フル実行（`run_pipeline.ps1`）:
+1. `text_extractor.py` -> `results/output1`
+2. `hybrid_extraction.py` -> `results/test1`
+3. `text_cleaner.py`（`output1 -> output2`）
+4. `text_cleaner.py`（`test1 -> test2`）
+5. `post_clean_output3.py`（`output2 -> output3`）
+6. `post_clean_output3.py`（`test2 -> test3`）
+7. `merge_86_texts.py`（`test3/【86】近畿 -> test4/【86】近畿`）
+8. `merge_89_texts.py`（`test3/【89】九州 -> test4/【89】九州`）
+9. 地域DSL実行（`dsl_engine.py`）-> `results/csv/<地域フォルダ>`
+
+地域のみ再実行（`run_regions_pipeline.ps1`）:
+- 上記9のみ実行
+- `results/output3`、`results/test3`、`results/test4` が事前に必要
+
+
+4) フォルダ定義
+
+4.1) `input/`
+目的:
+- 処理対象元ファイルの配置先。
+
+現存する地域フォルダ:
+- `【82】東北`
+- `【83】関東`
+- `【84】北陸`
+- `【85】中部`
+- `【86】近畿`
+- `【87】中国`
+- `【88】四国`
+- `【89】九州`
+- `【90】沖縄`
+- `【810】` から `【819】`
+
+地域フォルダ内の典型サブフォルダ:
+- `本管` / `本官`: 主案件群
+- `対象外`: 処理対象外
+- 案件名フォルダ: 案件単位格納
+
+4.2) `results/`
+目的:
+- 全ステージの中間成果物と最終成果物を格納。
+
+主要ステージ:
+- `output1`: 主抽出経路の抽出結果
+- `output2`: `output1` のクリーニング結果
+- `output3`: `output2` のポストクリーニング結果
+- `test1`: ハイブリッド抽出経路の抽出結果
+- `test2`: `test1` のクリーニング結果
+- `test3`: `test2` のポストクリーニング結果
+- `test4`: 86/89地域のマージ結果
+- `csv`: DSL最終出力・地域横断結合出力
+
+現状ファイル数スナップショット:
+- `output1`: 191
+- `output2`: 191
+- `output3`: 191
+- `test1`: 196
+- `test2`: 193
+- `test3`: 193
+- `test4`: 11
+- `csv`: 604
+
+4.3) `results/csv/`
+目的:
+- 地域別最終要約の配置先。
+
+現存する地域フォルダ:
+- `【82】東北`, `【83】関東`, `【84】北陸`, `【85】中部`, `【86】近畿`, `【87】中国`, `【88】四国`, `【89】九州`, `【90】沖縄`
+- `【810】` から `【819】`
+
+現行生成ポリシー:
+- 新規実行は地域レベルのlevels要約を中心に生成。
+- 過去実行由来のファイル/フォルダが残存している場合があります。
+
+`results/csv/` 直下の結合ファイル（現状確認）:
+- `merged_levels_summary_82-90.csv` / `.xlsx`
+- `merged_levels_summary_810-819.csv` / `.xlsx`
+- `merged_levels_summary_82-90_and_810-819.csv` / `.xlsx`
+
+過去実行由来のmain系結合ファイルが残存している場合:
+- `merged_main_summary_82-90.csv` / `.xlsx`
+- `merged_main_summary_810-819.csv` / `.xlsx`
+- `merged_main_summary_82-90_and_810-819.csv` / `.xlsx`
+
+
+5) 直下ファイル定義（運用対象）
+
+5.1) 設定
+- `.gitignore`: Git除外設定。
+- `requirements.txt`: 依存ライブラリ一覧。
+
+5.2) 起動スクリプト
+- `run_pipeline.ps1`: フル実行オーケストレーター。
+- `run_pipeline.cmd`: `run_pipeline.ps1` 起動用CMD。
+- `run_regions_pipeline.ps1`: 地域DSLのみ再実行オーケストレーター。
+- `run_regions_pipeline.cmd`: `run_regions_pipeline.ps1` 起動用CMD。
+
+5.3) コア処理スクリプト
+- `text_extractor.py`: PDF/DOCX/XLS/XLSX抽出（`results/output1`）。
+- `hybrid_extraction.py`: ハイブリッド抽出経路（`results/test1`）。
+- `text_cleaner.py`: 文字整形・正規化。
+- `post_clean_output3.py`: 追加整形（ページ/テーブル連続性調整）。
+- `dsl_engine.py`: DSL解釈・地域サマリ出力。
+
+5.4) マージ系スクリプト
+- `merge_86_texts.py`: 86地域向け結合・順序制御。
+- `merge_89_texts.py`: 89地域向け結合・順序制御。
+- `merge_region_summaries.py`: 地域横断結合（デフォルトはlevels系）。
+
+5.5) 地域DSL（82-90）
+- `82_script.dsl`
+- `83_script.dsl`
+- `84_script.dsl`
+- `85_script.dsl`
+- `86_script.dsl`
+- `87_script.dsl`
+- `88_script.dsl`
+- `89_script.dsl`
+- `90_script.dsl`
+
+役割:
+- 地域コードごとの抽出ルール定義。
+
+5.6) 地域DSL（810-819）
+- `810_script.dsl`
+- `811_script.dsl`
+- `812_script.dsl`
+- `813_script.dsl`
+- `814_script.dsl`
+- `815_script.dsl`
+- `816_script.dsl`
+- `817_script.dsl`
+- `818_script.dsl`
+- `819_script.dsl`
+
+役割:
+- 追加地域コードごとの抽出ルール定義。
+
+5.7) 導入・運用文書
+- `INSTALLATION.txt`: 英語導入手順。
+- `INSTALLATION_JP.txt`: 日本語導入手順。
+- `SETUP_AND_RUN.txt`: パッケージ向けセットアップ/実行手順。
+- `MIN_SPEC_JP.txt`: 動作環境目安。
+- `libraries_usage_ja.txt`: スクリプトとライブラリの対応表。
+
+6) 地域コードモデル
+主地域群:
+- 82 から 90
+
+追加地域群:
+- 810 から 819
+
+各地域コードで保持される要素:
+- `input/` の地域フォルダ
+- `results/` のステージ出力
+- `<code>_script.dsl` ルール
+- `results/csv/` の地域出力フォルダ
+
+
+7) 出力命名規則
+ステージ出力:
+- 案件名はステージ間で基本的に継承
+- ステージ判定はフォルダ名（`output1/2/3`, `test1/2/3/4`）
+
+地域要約出力:
+- `<地域>_levels_summary.csv`
+- `<地域>_levels_summary.xlsx`
+
+地域横断結合出力:
+- `merged_levels_summary_<group>.csv`
+- `merged_levels_summary_<group>.xlsx`
+
+
+8) 運用確認チェックリスト
+地域要約が不足・欠落している場合:
+1. `input/` に対象地域フォルダが存在するか確認
+2. 対応する中間ステージ出力が存在するか確認
+3. 対応するDSLファイル（`<region>_script.dsl`）が存在するか確認
+4. 必要に応じてフル実行または地域のみ再実行を実施
+
+
+9) 在庫スナップショット
+- `code zip` 配下総ファイル数（再帰）: 2025
+- 直下フォルダ数: 3
+- 直下ファイル数: 47
+- `results/csv` 拡張子内訳:
+  - `.csv`: 388
+  - `.xlsx`: 216
+
+
+10) ツリー図（画像準拠・集約表記）
+※ 地域名は `82-90` と `810-819` で集約
+
+技術提案テーマ（code zip）
+├─ EXTRACT（抽出・整形・統合）
+│  ├─ text_extractor.py
+│  ├─ hybrid_extraction.py
+│  ├─ text_cleaner.py
+│  ├─ post_clean_output3.py
+│  ├─ merge_86_texts.py
+│  ├─ merge_89_texts.py
+│  ├─ dsl_engine.py
+│  ├─ merge_region_summaries.py
+│  └─ DSLルール
+│     ├─ 82_script.dsl ～ 90_script.dsl
+│     └─ 810_script.dsl ～ 819_script.dsl
+│
+├─ INPUT（元データ）
+│  ├─ input/【82-90】/<本管|本官|対象外|案件フォルダ>/*
+│  └─ input/【810-819】/<対象外|案件フォルダ>/*
+│
+├─ OUTPUT（成果物）
+│  ├─ results/output1 -> output2 -> output3
+│  ├─ results/test1 -> test2 -> test3 -> test4（86/89）
+│  └─ results/csv
+│     ├─ 【82-90】/<地域>_levels_summary.(csv|xlsx)
+│     ├─ 【810-819】/<地域>_levels_summary.(csv|xlsx)
+│     └─ merged_levels_summary_*.(csv|xlsx)
+│
+└─ 実行・運用ファイル
+   ├─ run_pipeline.ps1 / run_pipeline.cmd
+   ├─ run_regions_pipeline.ps1 / run_regions_pipeline.cmd
+   ├─ requirements.txt / .gitignore
+   ├─ INSTALLATION.txt / INSTALLATION_JP.txt / SETUP_AND_RUN.txt
+   ├─ MIN_SPEC_JP.txt / libraries_usage_ja.txt
+   ├─ project_flow_connections_ja.txt / flowchart_block_explanation_ja.txt
+   ├─ Application_Flow.pptx / Application_Flow_new.pptx / final_jp.pptx
+   ├─ flowchart_detailed_ja.docx / flowchart_detailed_ja.pptx
+   ├─ project_full_flowchart_single_detailed_ja.pptx
+   └─ PROJECT_STRUCTURE_GUIDE.txt
+
+
+11) ルートファイル一覧（47件）
+├─ 設定
+│  ├─ .gitignore
+│  └─ requirements.txt
+├─ 実行ランチャー
+│  ├─ run_pipeline.ps1
+│  ├─ run_pipeline.cmd
+│  ├─ run_regions_pipeline.ps1
+│  └─ run_regions_pipeline.cmd
+├─ Python処理
+│  ├─ text_extractor.py
+│  ├─ hybrid_extraction.py
+│  ├─ text_cleaner.py
+│  ├─ post_clean_output3.py
+│  ├─ merge_86_texts.py
+│  ├─ merge_89_texts.py
+│  ├─ merge_region_summaries.py
+│  └─ dsl_engine.py
+├─ DSLルール
+│  ├─ 82_script.dsl ～ 90_script.dsl（9件）
+│  └─ 810_script.dsl ～ 819_script.dsl（10件）
+├─ 導入・運用文書
+│  ├─ INSTALLATION.txt
+│  ├─ INSTALLATION_JP.txt
+│  ├─ SETUP_AND_RUN.txt
+│  ├─ MIN_SPEC_JP.txt
+│  ├─ libraries_usage_ja.txt
+│  ├─ project_flow_connections_ja.txt
+│  └─ flowchart_block_explanation_ja.txt
+├─ 補助資料
+│  ├─ Application_Flow.pptx
+│  ├─ Application_Flow_new.pptx
+│  ├─ final_jp.pptx
+│  ├─ flowchart_detailed_ja.docx
+│  ├─ flowchart_detailed_ja.pptx
+│  └─ project_full_flowchart_single_detailed_ja.pptx
+└─ 構成ガイド
+   └─ PROJECT_STRUCTURE_GUIDE.txt
+

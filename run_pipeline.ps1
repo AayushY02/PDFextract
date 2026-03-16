@@ -166,4 +166,7 @@ Run-Dsl -Script "817_script.dsl" -InputBase "results/test3" -Prefix (Get-RegionP
 Run-Dsl -Script "818_script.dsl" -InputBase "results/test3" -Prefix (Get-RegionPrefix "818") -RequiredInput
 Run-Dsl -Script "819_script.dsl" -InputBase "results/test3" -Prefix (Get-RegionPrefix "819") -RequiredInput
 
+# 6) Merge all region summaries
+Run-Command "merge_region_summaries" "python" @("merge_region_summaries.py")
+
 Write-Host "All pipeline steps completed."

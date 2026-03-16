@@ -1,0 +1,62 @@
+﻿PDF抽出プロジェクト 接続マップ（日本語詳細版）
+=================================================
+
+【A. フル実行ルート（run_pipeline.ps1）】
+1) run_pipeline.ps1 -> text_extractor.py
+   - 入力: input/ 配下の案件PDF
+   - 出力: results/output1
+
+2) run_pipeline.ps1 -> hybrid_extraction.py
+   - 入力: input/ 配下の案件PDF
+   - 出力: results/test1
+
+3) text_extractor.py の出力 -> text_cleaner.py（output1 -> output2）
+4) hybrid_extraction.py の出力 -> text_cleaner.py（test1 -> test2）
+
+5) text_cleaner.py の出力 -> post_clean_output3.py（output2 -> output3）
+6) text_cleaner.py の出力 -> post_clean_output3.py（test2 -> test3）
+
+7) test3/[86]* -> merge_86_texts.py -> test4/[86]*
+8) test3/[89]* -> merge_89_texts.py -> test4/[89]*
+
+9) dsl_engine.py 接続（地域コード別）
+   - output3 -> 82_script.dsl -> results/csv/[82]*
+   - output3 -> 83_script.dsl -> results/csv/[83]*
+   - output3 -> 84_script.dsl -> results/csv/[84]*
+   - test3   -> 85_script.dsl -> results/csv/[85]*
+   - test4   -> 86_script.dsl -> results/csv/[86]*
+   - output3 -> 87_script.dsl -> results/csv/[87]*
+   - output3 -> 88_script.dsl -> results/csv/[88]*
+   - test4   -> 89_script.dsl -> results/csv/[89]*
+   - output3 -> 90_script.dsl -> results/csv/[90]*
+   - test3   -> 810_script.dsl -> results/csv/[810]*
+   - test3   -> 811_script.dsl -> results/csv/[811]*
+   - test3   -> 812_script.dsl -> results/csv/[812]*
+   - test3   -> 813_script.dsl -> results/csv/[813]*
+   - test3   -> 814_script.dsl -> results/csv/[814]*
+   - test3   -> 815_script.dsl -> results/csv/[815]*
+   - test3   -> 816_script.dsl -> results/csv/[816]*
+   - test3   -> 817_script.dsl -> results/csv/[817]*
+   - test3   -> 818_script.dsl -> results/csv/[818]*
+   - test3   -> 819_script.dsl -> results/csv/[819]*
+
+10) 各地域フォルダで生成される主な成果物
+    - 案件別: <案件>.csv / <案件>.xlsx
+    - 案件別: <案件>_levels.csv / <案件>_levels.xlsx
+    - 地域集計: <地域>_all_texts_summary.csv / .xlsx
+    - 地域集計: <地域>_levels_summary.csv / .xlsx
+
+11) （任意）merge_region_summaries.py
+    - 入力: results/csv/<各地域フォルダ> の地域集計CSV
+    - 出力:
+      merged_main_summary_82-90.(xlsx|csv)
+      merged_levels_summary_82-90.(xlsx|csv)
+      merged_main_summary_810-819.(xlsx|csv)
+      merged_levels_summary_810-819.(xlsx|csv)
+      merged_main_summary_82-90_and_810-819.(xlsx|csv)
+      merged_levels_summary_82-90_and_810-819.(xlsx|csv)
+
+【B. 地域再実行ルート（run_regions_pipeline.ps1）】
+1) run_regions_pipeline.ps1 -> dsl_engine.py（EXTRACT/CLEANは実行しない）
+2) dsl_engine.py の入力元は既存フォルダ（output3 / test3 / test4）
+3) 出力は A-9, A-10 と同じ results/csv/<地域> 構造

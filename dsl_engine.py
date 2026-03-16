@@ -1717,6 +1717,10 @@ def main():
             raise SystemExit("--outdir is required when using --input_dir")
         in_dir = args.input_dir
         out_dir = args.outdir
+        # Default behavior for folder mode: generate only region-level levels summaries.
+        # Keep detailed output logic available for future re-enablement.
+        write_per_file_outputs = False
+        write_all_text_summary = False
 
         overall_rows = []      # summary for all text files (with relative path)
         overall_level_rows = []  # level-mapped summary rows
@@ -1748,26 +1752,28 @@ def main():
                     _print_kouji_disambiguation_log(rel_name, change)
 
                 dest_dir = out_dir if not rel_dir else os.path.join(out_dir, rel_dir)
-                os.makedirs(dest_dir, exist_ok=True)
                 base = os.path.splitext(fname)[0]
-                out_path = os.path.join(dest_dir, base + ".csv")
-                _write_csv(
-                    out_path,
-                    var_order,
-                    outputs_csv,
-                    source_name=fname,
-                    apply_kouji_special_rules=apply_kouji_special_rules,
-                )
                 level_row, warnings = _build_level_row(outputs_csv, fname, level_availability)
-                level_csv_path = os.path.join(dest_dir, base + "_levels.csv")
-                level_xlsx_path = os.path.join(dest_dir, base + "_levels.xlsx")
-                _write_levels_csv(level_csv_path, level_output_headers, [level_row])
-                _write_levels_excel(level_xlsx_path, level_output_headers, [level_row])
-                row_vals = [
-                    (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
-                    for h in var_order
-                ]
-                overall_rows.append([rel_name] + row_vals)
+                if write_per_file_outputs:
+                    os.makedirs(dest_dir, exist_ok=True)
+                    out_path = os.path.join(dest_dir, base + ".csv")
+                    _write_csv(
+                        out_path,
+                        var_order,
+                        outputs_csv,
+                        source_name=fname,
+                        apply_kouji_special_rules=apply_kouji_special_rules,
+                    )
+                    level_csv_path = os.path.join(dest_dir, base + "_levels.csv")
+                    level_xlsx_path = os.path.join(dest_dir, base + "_levels.xlsx")
+                    _write_levels_csv(level_csv_path, level_output_headers, [level_row])
+                    _write_levels_excel(level_xlsx_path, level_output_headers, [level_row])
+                if write_all_text_summary:
+                    row_vals = [
+                        (outputs_csv.get(h, "") if outputs_csv.get(h, "") is not None else "")
+                        for h in var_order
+                    ]
+                    overall_rows.append([rel_name] + row_vals)
                 overall_level_row = [rel_name] + level_row[1:]
                 overall_level_rows.append(overall_level_row)
                 if warnings:
@@ -1775,7 +1781,7 @@ def main():
                         level_warnings.append(w)
 
         # write overall summary for every text file processed
-        if overall_rows:
+        if write_all_text_summary and overall_rows:
             root_label = os.path.basename(os.path.normpath(in_dir))
             overall_path = os.path.join(out_dir, f"{root_label}_all_texts_summary.csv")
             os.makedirs(os.path.dirname(overall_path), exist_ok=True)

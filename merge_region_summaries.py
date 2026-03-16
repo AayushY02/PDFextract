@@ -8,8 +8,7 @@ Creates three output sets:
 2) Regions 810-819
 3) Regions 82-90 + 810-819 (combined)
 
-For each set, generates both:
-- merged_main_summary_<label>.xlsx / .csv
+Default behavior generates only:
 - merged_levels_summary_<label>.xlsx / .csv
 
 Excel files contain one sheet per region folder.
@@ -34,6 +33,10 @@ REGION_SETS: list[tuple[str, list[int]]] = [
     ("810-819", REGION_810_819),
     ("82-90_and_810-819", REGION_82_90 + REGION_810_819),
 ]
+
+# Keep main-summary merge logic available for future use, but do not generate it by default.
+GENERATE_MAIN_SUMMARY = False
+GENERATE_LEVELS_SUMMARY = True
 
 LEFT_BRACKET = chr(0x3010)   # 【
 RIGHT_BRACKET = chr(0x3011)  # 】
@@ -136,18 +139,19 @@ def _write_csv(output_path: Path, frame: pd.DataFrame) -> None:
 
 def main() -> None:
     for label, region_codes in REGION_SETS:
-        main_frames = _collect_frames(region_codes, "all")
-        levels_frames = _collect_frames(region_codes, "levels")
+        if GENERATE_MAIN_SUMMARY:
+            main_frames = _collect_frames(region_codes, "all")
+            out_main_xlsx = BASE_DIR / f"merged_main_summary_{label}.xlsx"
+            out_main_csv = BASE_DIR / f"merged_main_summary_{label}.csv"
+            _write_workbook(out_main_xlsx, main_frames)
+            _write_csv(out_main_csv, _combine_for_csv(main_frames))
 
-        out_main_xlsx = BASE_DIR / f"merged_main_summary_{label}.xlsx"
-        out_levels_xlsx = BASE_DIR / f"merged_levels_summary_{label}.xlsx"
-        out_main_csv = BASE_DIR / f"merged_main_summary_{label}.csv"
-        out_levels_csv = BASE_DIR / f"merged_levels_summary_{label}.csv"
-
-        _write_workbook(out_main_xlsx, main_frames)
-        _write_workbook(out_levels_xlsx, levels_frames)
-        _write_csv(out_main_csv, _combine_for_csv(main_frames))
-        _write_csv(out_levels_csv, _combine_for_csv(levels_frames))
+        if GENERATE_LEVELS_SUMMARY:
+            levels_frames = _collect_frames(region_codes, "levels")
+            out_levels_xlsx = BASE_DIR / f"merged_levels_summary_{label}.xlsx"
+            out_levels_csv = BASE_DIR / f"merged_levels_summary_{label}.csv"
+            _write_workbook(out_levels_xlsx, levels_frames)
+            _write_csv(out_levels_csv, _combine_for_csv(levels_frames))
 
 
 if __name__ == "__main__":
